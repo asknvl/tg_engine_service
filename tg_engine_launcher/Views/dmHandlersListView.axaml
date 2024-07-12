@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="using:tg_engine_launcher.Views.converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"             
+             x:Class="tg_engine_launcher.Views.dmHandlersListView">
+
+    <UserControl.Styles>
+        <StyleInclude Source="/Views/styles/WindowStyle.axaml" />
+    </UserControl.Styles>
+
+    <UserControl.Resources>
+        <conv:StatusColorConverter x:Key="statusColorConverter"/>
+    </UserControl.Resources>    
+    
+    <Grid
+        ColumnDefinitions="Auto, Auto">
+        <ListBox
+            Grid.Column="0"
+            Items="{Binding DMHandlers}"
+            SelectedItem="{Binding SelectedDM}"
+            Width="300">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid
+                        ColumnDefinitions="*, 20">
+                        <StackPanel
+                            Grid.Column="0"
+                            Orientation="Vertical">
+                            <TextBlock
+                                Text="{Binding Source}"
+                                FontWeight="DemiBold"/>
+                            <Grid
+                                ColumnDefinitions="Auto, Auto">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Text="{Binding PhoneNumber}"
+                                    VerticalAlignment="Center"/>
+                                <Grid
+                                    Grid.Column="1"
+                                    ColumnDefinitions="Auto, Auto"
+                                    IsVisible="{Binding NeedCode}">
+                                    <TextBox
+                                        Grid.Column="0"
+                                        Text="{Binding Code}"
+                                        VerticalAlignment="Center"
+                                        Width="80"
+                                        Watermark="код верификации"/>
+                                    <Button
+                                        Grid.Column="1"
+                                        Command="{Binding setCodeCmd}"
+                                        VerticalAlignment="Center"
+                                        TextBlock.FontSize="8"
+                                        MinWidth="60"
+                                        MinHeight="0">
+                                        ОК
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                        <Ellipse
+                               Grid.Column="1"
+                               Height="10"
+                               Width="10"
+                               Fill="{Binding Status, Converter={StaticResource statusColorConverter}}"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel
+            Grid.Column="1"
+            Orientation="Vertical">
+            <Button
+                Command="{Binding startAllCmd}">
+                Запустить
+            </Button>
+            <Button
+                Command="{Binding stopAllCmd}">
+                Остановить
+            </Button>
+            <Button
+               Command="{Binding refreshCmd}">
+                Обновить
+            </Button>
+        </StackPanel>
+    </Grid>
+
+</UserControl>

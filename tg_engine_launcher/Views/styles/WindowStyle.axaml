@@ -1,0 +1,222 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!--<ListBox
+				Width="200"
+				MaxHeight="100">
+                <ListBoxItem>
+                    1
+                </ListBoxItem>
+                <ListBoxItem>
+                    2
+                </ListBoxItem>
+                <ListBoxItem>
+                    3
+                </ListBoxItem>
+                <ListBoxItem>
+                    4
+                </ListBoxItem>
+                <ListBoxItem>
+                    5
+                </ListBoxItem>
+            </ListBox>-->
+            <TextBox Classes="TextBox Log">
+                123
+            </TextBox>
+        </Border>
+    </Design.PreviewWith>
+
+    <StyleInclude Source="/Views/styles/DataValidationErros.axaml" />
+
+    <Styles.Resources>
+
+        <Color x:Key="ListBoxItemBorderPointerOverColor">#00000000</Color>
+        <Color x:Key="ListBoxItemBorderSelectedColor">#ffff7043</Color>
+        <Color x:Key="ListBoxItemBackgroundPointerOverColor">#FFF2F2F2</Color>
+        <Color x:Key="ListBoxItemBackgroundSelectedColor">#FFF2F2F2</Color>
+        <Color x:Key="ListBoxBackgroundColor">#FFFFFFFF</Color>
+        <Color x:Key="ListBoxBorderColor">#ffbdbdbd</Color>
+
+        <Color x:Key="ButtonBorderPointeroverColor">#FF000000</Color>
+        <Color x:Key="ButtonBackgroundPointerOverColor">#FFFFFFFF</Color>
+        <Color x:Key="ButtonBackgroundColor">#FFFFFFFF</Color>
+        <Color x:Key="ButtonBorderColor">#ffbdbdbd</Color>
+
+        <Color x:Key="ItemsControlBackgroundColor">#FFFFFFFF</Color>
+        <Color x:Key="ItemsControlBorderColor">#ffbdbdbd</Color>
+
+    </Styles.Resources>
+
+    <Style Selector="TextBox">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="BorderThickness" Value="1"/>        
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+    
+    <Style Selector="TextBox DataValidationErrors">
+        <Setter Property="Template" Value="{DynamicResource TooltipDataValidationContentTemplate}"/>
+        <Setter Property="ErrorTemplate" Value="{DynamicResource TooltipDataValidationErrorTemplate}" />
+    </Style>
+    <Style Selector="TextBox.Comment">
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="MaxLength" Value="1024"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+    </Style>
+
+    <Style Selector="TextBox.Log">
+        <Setter Property="BorderThickness" Value="0"/>       
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="TextBox.Log:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="TextBox.Log:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+
+    <Style Selector="TextBlock.Header">
+        <Setter Property="FontWeight" Value="DemiBold"/>
+    </Style>
+
+    <Style Selector="TextBlock.Title">
+        <Setter Property="FontWeight" Value="DemiBold"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="MinWidth" Value="100"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+    <Style Selector="Button.Flat">
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOverColor}"/>
+        <!--<Setter Property="TextBlock.RenderTransform" Value="scale(1.0)" />-->
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderPointeroverColor}"/>
+    </Style>
+    <Style Selector="Button:not(:pointerover) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderColor}"/>
+    </Style>
+
+    <Style Selector="Button.Hyper">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#FF0BB3E8"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.Hyper:pointerover TextBlock">
+    </Style>
+    <Style Selector="Button.Hyper:not(:pointerover) TextBlock">
+        <Setter Property="TextDecorations" Value="Underline"/>
+    </Style>
+    <Style Selector="Button.Hyper TextBlock">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="TextBlock.Foreground" Value="#FF0BB3E8"/>
+    </Style>
+    
+    <Style Selector="ToggleButton">
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+    <Style Selector="ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="ToggleButton:not(:checked) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{DynamicResource ListBoxBackgroundColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="BorderBrush" Value="LightGray"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="BorderThickness" Value="1"/>        
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style Selector="ListBoxItem TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource ListBoxItemBorderPointerOverColor}"/>
+        <Setter Property="Background" Value="Transparent"/>        
+    </Style>
+    <Style Selector="ListBoxItem:not(:pointerover) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource ListBoxItemBorderSelectedColor}"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ItemsControl">
+        <Setter Property="Margin" Value="2"/>
+        <!--<Setter Property="Background" Value="{DynamicResource ItemsControlBackgroundColor}"/>-->
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <!--<Setter Property="BorderBrush" Value="{DynamicResource ItemsControlBorderColor}"/>-->
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+
+    <Style Selector="ItemsControl.Bordered">
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Background" Value="{DynamicResource ItemsControlBackgroundColor}"/>
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ItemsControlBorderColor}"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+
+
+    <Style Selector="ListBox:pointerover ScrollViewer">
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
+    <Style Selector="ListBox:not(:pointerover) ScrollViewer">
+        <Setter Property="VerticalScrollBarVisibility" Value="Hidden"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+    </Style>
+
+    <!-- Add Styles Here -->
+</Styles>
