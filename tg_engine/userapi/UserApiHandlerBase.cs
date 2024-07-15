@@ -58,7 +58,7 @@ namespace tg_engine.userapi
 
             this.logger = logger;
 
-            this.tgProvider = tgProvider;
+            this.tgProvider = tgProvider;          
 
             status = UserApiStatus.inactive;
         }
@@ -103,6 +103,13 @@ namespace tg_engine.userapi
                 default: return null;
             }
         }
+
+        private void TgProvider_MessageTXRequest(interlayer.messaging.MessageBase message)
+        {
+            //var peer = manager.Users.TryGetValue((long)message.telegram_id, out var u);
+            //await user.SendMessageAsync(u, message.text);
+
+        }
         #endregion
 
         #region public
@@ -124,16 +131,13 @@ namespace tg_engine.userapi
                 user = new Client(config);
                 
                 manager = user.WithUpdateManager(User_OnUpdate, state_path);
-                await user.LoginUserIfNeeded();
-                //var dialogs = await user.Messages_GetAllDialogs(); // dialogs = groups/channels/users
+                await user.LoginUserIfNeeded();            
+                //var dialogs = await user.Messages_GetAllDialogs();
                 //dialogs.CollectUsersChats(manager.Users, manager.Chats);
                 manager.SaveState(state_path);
 
-                
-                //user.OnUpdates += User_OnUpdates;
-                //user.OnOwnUpdates += User_OnOwnUpdates;
-                //user.OnOther += User_OnOther;
-                //var u = await user.LoginUserIfNeeded();
+                tgProvider.MessageTXRequest -= TgProvider_MessageTXRequest;
+                tgProvider.MessageTXRequest += TgProvider_MessageTXRequest;
 
                 status = UserApiStatus.active;
                 
@@ -176,27 +180,9 @@ namespace tg_engine.userapi
                     break;
             }
 
-
-
             logger.inf(tag, update.ToString());
             await Task.CompletedTask;
         }
-
-        //private async Task User_OnOther(IObject arg)
-        //{
-        //    await Task.CompletedTask;
-        //}
-
-        //private async Task User_OnOwnUpdates(UpdatesBase arg)
-        //{
-        //    await Task.CompletedTask;
-        //}
-
-        //private async Task User_OnUpdates(UpdatesBase arg)
-        //{
-        //    await Task.CompletedTask;
-        //}
-
         public void SetVerificationCode(string code)
         {
             logger.user_input(tag, $"Ввод кода верификации {code}");

@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using tg_engine_launcher.ViewModels;
 
 namespace tg_engine_launcher.Views.custom
 {
@@ -27,10 +28,14 @@ namespace tg_engine_launcher.Views.custom
         {
             base.ItemsCollectionChanged(sender, e);
 
-            Dispatcher.UIThread.InvokeAsync(() =>
+            var needScroll = ((loggerVM)DataContext).NeedScroll;
+            if (needScroll)
             {
-                ScrollIntoView(ItemCount - 1);
-            });            
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ScrollIntoView(ItemCount - 1);
+                });
+            }
         }
     }
 }

@@ -21,3 +21,4 @@ C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.dll
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\refint\logger.dll
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.pdb
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\ref\logger.dll
+C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.sourcelink.json

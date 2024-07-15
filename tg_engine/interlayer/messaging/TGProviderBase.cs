@@ -13,16 +13,18 @@ using TL;
 
 namespace tg_engine.interlayer.messaging
 {
-    public abstract class TGProviderBase
+    public abstract class TGProviderBase : IMessageObserver
     {
-        #region vars
-        Guid account_id;        
-
+        #region vars        
         IPostgreProvider postgreProvider;
         IMongoProvider mongoProvider;
         IChatsProvider chatsProvider;
         ILogger logger;
         string tag;
+        #endregion
+
+        #region prperties
+        public Guid account_id { get; }
         #endregion
 
         public TGProviderBase(Guid account_id, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ILogger logger) {
@@ -37,13 +39,6 @@ namespace tg_engine.interlayer.messaging
 
             chatsProvider = new ChatsProvider(postgreProvider);
         }
-
-        #region private
-        Task processMessage(MessageBase message)
-        {
-            return Task.CompletedTask;
-        }
-        #endregion
 
         #region helpers
         bool isIncoming(UpdateNewMessage unm)
@@ -112,21 +107,6 @@ namespace tg_engine.interlayer.messaging
                     logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
                 }
 
-                //var exists = await mongoProvider.CheckMessageExists(telegram_message_id);
-                //if (!exists)
-                //{
-                //    var message = new MessageBase()
-                //    {
-                //        chat_id = chat_id,
-                //        direction = direction,
-                //        telegram_message_id = telegram_message_id,
-                //        text = text,
-                //        date = date
-                //    };
-
-                //    await mongoProvider.SaveMessage(message);
-                //}
-
                 logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} exists={exists} time={stopwatch.ElapsedMilliseconds} ms");
 
                 stopwatch.Stop();
@@ -135,13 +115,15 @@ namespace tg_engine.interlayer.messaging
             {
                 
             }
-
-            //return Task.CompletedTask;
         }
 
         //Сообщение получено от Клиента и должно быть отправлено в ТГ 
         public Task OnMessageTX(MessageBase message) {
-            MessageTXRequest?.Invoke(message);
+
+            if (message.media == null && !string.IsNullOrEmpty(message.text))
+            {
+                MessageTXRequest?.Invoke(message);
+            }            
             return Task.CompletedTask;
         }
         #endregion

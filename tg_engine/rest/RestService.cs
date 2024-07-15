@@ -59,7 +59,7 @@ namespace tg_engine.rest
                             {
                                 (code, text) = await p.ProcessGetRequest(splt);
                             }                           
-                            break;                           
+                            break;                        
                     }
                 } catch (Exception ex)
                 {
@@ -90,6 +90,8 @@ namespace tg_engine.rest
 
                 try
                 {
+                    IRequestProcessor? processor = null;
+
                     switch (splt[1])
                     {
                         case "control":
@@ -100,6 +102,13 @@ namespace tg_engine.rest
                             }
                             break;
 
+                        case "messages":
+                            processor = RequestProcessors.FirstOrDefault(p => p is MessageTXRequestProcessor);
+                            if (processor != null)
+                            {
+                                (code, text) = await processor.ProcessPostRequest(splt, requestBody);
+                            }
+                            break;
 
                         //case "pushes":
 
@@ -168,8 +177,10 @@ namespace tg_engine.rest
 
 #if DEBUG
             listener.Prefixes.Add($"http://localhost:{settings.control_port}/control/");
+            listener.Prefixes.Add($"http://localhost:{settings.control_port}/messages/");
 #else
             listener.Prefixes.Add($"http://*:{{settings.control_port}}/control/");            
+            listener.Prefixes.Add($"http://*:{{settings.control_port}}/messages/");       
 #endif
             try
             {             
