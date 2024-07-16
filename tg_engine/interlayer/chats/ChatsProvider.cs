@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Driver;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,16 @@ namespace tg_engine.interlayer.chats
                 userChats.Add(userChat);
             }
             return userChat;
+        }
+
+        public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
+        {
+            var found = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.telegram_id == telegram_id);
+            if (found == null)
+            {
+                found = await postgreProvider.GetUserChat(account_id, telegram_id);
+            }
+            return found;
         }
     }
 }

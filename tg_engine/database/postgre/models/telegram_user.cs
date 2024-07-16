@@ -10,6 +10,7 @@ namespace tg_engine.database.postgre.models
     {
         public Guid id { get; set; }
         public long telegram_id { get; set; }
+        public long? access_hash { get; set; }   
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? username { get; set; }        

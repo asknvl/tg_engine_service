@@ -105,13 +105,49 @@ namespace tg_engine.database.postgre
                 else
                 {
                     res.chat = foundChat;
-                    res.user = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
+
+                    var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
+                    if (foundUser.access_hash == null && new_user.access_hash != null)
+                    {
+                        foundUser.access_hash = new_user.access_hash;
+                        await context.SaveChangesAsync();
+                    }
+
+                    res.user = foundUser;
                 }
 
             }
 
             return res;
         }
+        
+        public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
+        {
+
+            UserChat? res = null; 
+
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                var foundChat = await (from chat in context.telegram_chats
+                                 join user in context.telegram_users
+                                 on chat.telegram_user_id equals user.id
+                                 where chat.account_id == account_id && user.telegram_id == telegram_id
+                                 select chat).SingleOrDefaultAsync();
+
+                if (foundChat != null)
+                {
+                    var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
+
+                    res = new UserChat();
+                    res.chat = foundChat;
+                    res.user = foundUser;
+                }
+
+            }
+
+
+            return res;
+        }        
 
     }
 }

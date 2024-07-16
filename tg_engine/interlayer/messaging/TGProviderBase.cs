@@ -69,15 +69,20 @@ namespace tg_engine.interlayer.messaging
                 var u = new telegram_user()
                 {
                     telegram_id = user.ID,
+                    access_hash = user.access_hash,
                     firstname = user.first_name,
                     lastname = user.last_name,
-                    username = user.username
+                    username = user.username                    
                 };
 
-                Stopwatch stopwatch = new Stopwatch();
+                
 
+                Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                var userChat = await chatsProvider.CollectUserChat(account_id, u);                
+
+                var userChat = await chatsProvider.CollectUserChat(account_id, u);
+
+                logger.inf(tag, $"userChat:{userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
 
                 var chat_id = userChat.chat.id;
                 var direction = (isIncoming(unm)) ? "in" : "out";
@@ -96,40 +101,44 @@ namespace tg_engine.interlayer.messaging
                     text = text,
                     date = date
                 };
-
-                bool exists = false;
+                                
                 try
                 {
                     await mongoProvider.SaveMessage(message);
                 } catch (Exception e)
-                {
-                    exists = true;
+                {                
                     logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
                 }
 
-                logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} exists={exists} time={stopwatch.ElapsedMilliseconds} ms");
+                logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
 
                 stopwatch.Stop();
 
             } catch (Exception ex)
             {
-                
+                logger.err(tag, $"OnMessageRX: {ex.Message}");
             }
         }
 
         //Сообщение получено от Клиента и должно быть отправлено в ТГ 
-        public Task OnMessageTX(MessageBase message) {
+        public async Task OnMessageTX(MessageBase message) {
 
             if (message.media == null && !string.IsNullOrEmpty(message.text))
             {
-                MessageTXRequest?.Invoke(message);
+
+                long? access_hash = null;
+                var userChat = await chatsProvider.GetUserChat(account_id, message.telegram_id);
+                if (userChat != null)
+                    access_hash = userChat.user.access_hash;
+
+                MessageTXRequest?.Invoke(message, access_hash);
             }            
-            return Task.CompletedTask;
+            
         }
         #endregion
 
         #region events
-        public event Action<MessageBase> MessageTXRequest;
+        public event Action<MessageBase, long?> MessageTXRequest;
         #endregion
     }
 }

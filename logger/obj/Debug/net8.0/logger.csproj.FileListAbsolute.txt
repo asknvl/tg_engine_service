@@ -17,8 +17,8 @@ C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.Generate
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.AssemblyInfoInputs.cache
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.AssemblyInfo.cs
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.csproj.CoreCompileInputs.cache
+C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.sourcelink.json
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.dll
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\refint\logger.dll
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.pdb
 C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\ref\logger.dll
-C:\WORK\RaceUP\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.sourcelink.json

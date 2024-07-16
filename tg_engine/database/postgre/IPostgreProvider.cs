@@ -15,5 +15,6 @@ namespace tg_engine.database.postgre
         Task<List<channel_account>> GetChannelsAccounts();
         Task<List<DMStartupSettings>> GetStatupData();
         Task<UserChat> CreateUserAndChat(Guid account_id, telegram_user new_user);
+        Task<UserChat?> GetUserChat(Guid account_id, long telegram_id);
     }
 }

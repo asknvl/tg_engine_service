@@ -104,10 +104,33 @@ namespace tg_engine.userapi
             }
         }
 
-        private void TgProvider_MessageTXRequest(interlayer.messaging.MessageBase message)
+        private async void TgProvider_MessageTXRequest(interlayer.messaging.MessageBase message, long? access_hash)
         {
-            //var peer = manager.Users.TryGetValue((long)message.telegram_id, out var u);
-            //await user.SendMessageAsync(u, message.text);
+            try
+            {
+
+                //var u = await user.Users_GetFullUser(new InputUser((long)message.telegram_id, 0));
+                //if (u != null)
+                //{
+                //    await user.SendMessageAsync(u.users[0], message.text);
+                //}
+
+                var peer = manager.Users.TryGetValue((long)message.telegram_id, out var u);
+                if (u != null)                
+                {
+                    await user.SendMessageAsync(u, message.text);                    
+                } else
+                {
+                    var upeer = new InputPeerUser(message.telegram_id, (long)access_hash);
+                    await user.SendMessageAsync(upeer, message.text);
+                }
+
+
+
+            } catch (Exception ex)
+            {
+                logger.err(tag, $"TgProvider_MessageTXRequest: {ex.Message}");
+            }
 
         }
         #endregion
@@ -131,9 +154,15 @@ namespace tg_engine.userapi
                 user = new Client(config);
                 
                 manager = user.WithUpdateManager(User_OnUpdate, state_path);
-                await user.LoginUserIfNeeded();            
+                await user.LoginUserIfNeeded();
+
+
                 //var dialogs = await user.Messages_GetAllDialogs();
+
+                //var dialogs = await user.Messages_GetDialogs();
                 //dialogs.CollectUsersChats(manager.Users, manager.Chats);
+
+
                 manager.SaveState(state_path);
 
                 tgProvider.MessageTXRequest -= TgProvider_MessageTXRequest;
