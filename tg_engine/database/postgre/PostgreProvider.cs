@@ -80,13 +80,11 @@ namespace tg_engine.database.postgre
                                  where chat.account_id == account_id && user.telegram_id == new_user.telegram_id
                                  select chat).SingleOrDefault();
 
-
                 if (foundChat == null)
                 {
                     context.telegram_users.Add(new_user);
                     await context.SaveChangesAsync();
                     var telegram_user_id = new_user.id;
-
 
                     var new_chat = new telegram_chat()
                     {

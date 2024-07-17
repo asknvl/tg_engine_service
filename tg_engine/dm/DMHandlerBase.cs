@@ -41,7 +41,10 @@ namespace tg_engine.dm
             this.settings = settings;
             this.logger = logger;
 
-            userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash,  logger);
+            userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash, postgreProvider, mongoProvider, logger);
+
+            user = userApiFactory.Get(settings.account.id, settings.account.phone_number, settings.account.two_fa);
+            user.StatusChangedEvent += User_StatusChangedEvent;
 
             status = DMHandlerStatus.inactive;
         }
@@ -80,9 +83,6 @@ namespace tg_engine.dm
                 logger.err($"{tag}", "Уже запущен");
                 return;
             }                
-
-            user = userApiFactory.Get(settings.account.phone_number, settings.account.two_fa, tgProvider);
-            user.StatusChangedEvent += User_StatusChangedEvent;            
 
             try
             {

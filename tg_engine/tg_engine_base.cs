@@ -54,7 +54,7 @@ namespace tg_engine
                 if (found == null)
                 {
                     var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, logger);
-                    messageObservable.Add(dm.tgProvider);
+                    messageObservable.Add(/*dm.tgProvider*/dm.user);
                     DMHandlers.Add(dm);
 
                 }

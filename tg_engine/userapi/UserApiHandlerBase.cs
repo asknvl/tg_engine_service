@@ -1,16 +1,22 @@
 ﻿using logger;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using tg_engine.database.mongo;
+using tg_engine.database.postgre;
+using tg_engine.database.postgre.dtos;
+using tg_engine.database.postgre.models;
+using tg_engine.interlayer.chats;
 using tg_engine.interlayer.messaging;
 using TL;
 using WTelegram;
 
 namespace tg_engine.userapi
 {
-    public class UserApiHandlerBase
+    public class UserApiHandlerBase : IMessageObserver
     {
         #region properties
         public string phone_number { get; set; }
@@ -30,6 +36,8 @@ namespace tg_engine.userapi
                 StatusChangedEvent?.Invoke(_status);
             }
         }
+
+        public Guid account_id { get; }
         #endregion
 
         #region vars
@@ -44,11 +52,16 @@ namespace tg_engine.userapi
         string verifyCode;
         readonly ManualResetEventSlim verifyCodeReady = new();
 
+        IMongoProvider mongoProvider;
+        IPostgreProvider postgreProvider;
+
         protected TGProviderBase tgProvider;
+        protected ChatsProvider chatsProvider;
         #endregion
 
-        public UserApiHandlerBase(string phone_number, string _2fa_password, string api_id, string api_hash, TGProviderBase tgProvider, ILogger logger)
+        public UserApiHandlerBase(Guid account_id, string phone_number, string _2fa_password, string api_id, string api_hash, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ILogger logger)
         {
+            this.account_id = account_id;
             tag = $"usrapi ..{phone_number.Substring(phone_number.Length - 5, 4)}";
 
             this.phone_number = phone_number;
@@ -56,9 +69,13 @@ namespace tg_engine.userapi
             this.api_id = api_id;
             this.api_hash = api_hash;
 
-            this.logger = logger;
+            this.mongoProvider = mongoProvider;
+            this.postgreProvider = postgreProvider;
 
-            this.tgProvider = tgProvider;          
+            chatsProvider = new ChatsProvider(postgreProvider);
+            tgProvider = new tg_provider_v0(account_id, postgreProvider, mongoProvider, logger);
+
+            this.logger = logger;            
 
             status = UserApiStatus.inactive;
         }
@@ -102,36 +119,26 @@ namespace tg_engine.userapi
                 case "password": return _2fa_password;
                 default: return null;
             }
+        }      
+        #endregion
+
+        #region helpers
+        bool isIncoming(UpdateNewMessage unm)
+        {
+            var message = unm.message as Message;
+            if (message != null)
+                return !message.flags.HasFlag(TL.Message.Flags.out_);
+            else
+                throw new Exception("isIncoming: message=null");
         }
 
-        private async void TgProvider_MessageTXRequest(interlayer.messaging.MessageBase message, long? access_hash)
+        string getText(UpdateNewMessage unm)
         {
-            try
-            {
-
-                //var u = await user.Users_GetFullUser(new InputUser((long)message.telegram_id, 0));
-                //if (u != null)
-                //{
-                //    await user.SendMessageAsync(u.users[0], message.text);
-                //}
-
-                var peer = manager.Users.TryGetValue((long)message.telegram_id, out var u);
-                if (u != null)                
-                {
-                    await user.SendMessageAsync(u, message.text);                    
-                } else
-                {
-                    var upeer = new InputPeerUser(message.telegram_id, (long)access_hash);
-                    await user.SendMessageAsync(upeer, message.text);
-                }
-
-
-
-            } catch (Exception ex)
-            {
-                logger.err(tag, $"TgProvider_MessageTXRequest: {ex.Message}");
-            }
-
+            var message = unm.message as Message;
+            if (message != null)
+                return message.message;
+            else
+                throw new Exception("getText: message=null");
         }
         #endregion
 
@@ -156,18 +163,7 @@ namespace tg_engine.userapi
                 manager = user.WithUpdateManager(User_OnUpdate, state_path);
                 await user.LoginUserIfNeeded();
 
-
-                //var dialogs = await user.Messages_GetAllDialogs();
-
-                //var dialogs = await user.Messages_GetDialogs();
-                //dialogs.CollectUsersChats(manager.Users, manager.Chats);
-
-
-                manager.SaveState(state_path);
-
-                tgProvider.MessageTXRequest -= TgProvider_MessageTXRequest;
-                tgProvider.MessageTXRequest += TgProvider_MessageTXRequest;
-
+                manager.SaveState(state_path);            
                 status = UserApiStatus.active;
                 
             }
@@ -199,9 +195,46 @@ namespace tg_engine.userapi
                     {
 
                         manager.Users.TryGetValue(unm.message.Peer.ID, out var user);
-                        await tgProvider.OnMessageRX(unm, user);
 
-                        //logger.inf(tag, $"NewMessage from: {user.first_name} {user.last_name} {user.username} {user.id}");
+                        var tlUser = new telegram_user(user);
+
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
+                        var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
+
+                        logger.inf(tag, $"userChat:{userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
+
+                        var chat_id = userChat.chat.id;
+                        var direction = (isIncoming(unm)) ? "in" : "out";
+                        var telegram_message_id = unm.message.ID;
+                        var text = getText(unm);
+                        var date = unm.message.Date;
+
+                        var message = new interlayer.messaging.MessageBase()
+                        {
+                            chat_id = chat_id,
+                            direction = direction,
+                            telegram_id = userChat.user.telegram_id,
+                            telegram_message_id = telegram_message_id,
+                            text = text,
+                            date = date
+                        };
+
+                        try
+                        {
+                            await mongoProvider.SaveMessage(message);
+                        }
+                        catch (Exception e)
+                        {
+                            logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
+                        }
+
+                        stopwatch.Stop();
+
+                        logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
+
+                        
                     } catch (Exception ex)
                     {
                         logger.err(tag, ex.Message);
@@ -212,6 +245,52 @@ namespace tg_engine.userapi
             logger.inf(tag, update.ToString());
             await Task.CompletedTask;
         }
+
+        public async Task OnMessageTX(interlayer.messaging.MessageBase message)
+        {
+            try
+            {
+
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                TL.Message result = null;
+                var userChat = await chatsProvider.GetUserChat(account_id, message.telegram_id);
+
+                var peer = manager.Users.TryGetValue((long)message.telegram_id, out var u);
+                if (u != null)
+                {
+                    result = await user.SendMessageAsync(u, message.text);
+                }
+                else
+                {                    
+                    if (userChat != null)
+                    {
+                        var upeer = new InputPeerUser(message.telegram_id, (long)userChat.user.access_hash);
+                        result = await user.SendMessageAsync(upeer, message.text);
+                    }
+                }
+
+                if (result != null && userChat != null)
+                {
+                    message.chat_id = userChat.chat.id;
+                    message.direction = "out";
+                    message.telegram_message_id = result.ID;
+                    message.date = result.Date;
+
+                    await mongoProvider.SaveMessage(message);
+                    stopwatch.Stop();
+
+                    logger.inf(tag, $"{message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
+                }
+
+
+            } catch (Exception ex)
+            {
+                logger.err(tag, $"OnMessageTX: {ex.Message}");
+            }
+        }
+
         public void SetVerificationCode(string code)
         {
             logger.user_input(tag, $"Ввод кода верификации {code}");
@@ -224,7 +303,7 @@ namespace tg_engine.userapi
             user?.Dispose();
             verifyCodeReady.Set();
             status = UserApiStatus.inactive;
-        }
+        }        
         #endregion
 
         #region events        
