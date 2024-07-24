@@ -103,7 +103,7 @@ namespace tg_engine.rest
                             break;
 
                         case "messages":
-                            processor = RequestProcessors.FirstOrDefault(p => p is MessageTXRequestProcessor);
+                            processor = RequestProcessors.FirstOrDefault(p => p is MessageUpdatesRequestProcessor);
                             if (processor != null)
                             {
                                 (code, text) = await processor.ProcessPostRequest(splt, requestBody);
@@ -177,7 +177,7 @@ namespace tg_engine.rest
 
 #if DEBUG
             listener.Prefixes.Add($"http://localhost:{settings.control_port}/control/");
-            listener.Prefixes.Add($"http://localhost:{settings.control_port}/messages/");
+            listener.Prefixes.Add($"http://localhost:{settings.control_port}/updates/");
 #else
             listener.Prefixes.Add($"http://*:{{settings.control_port}}/control/");            
             listener.Prefixes.Add($"http://*:{{settings.control_port}}/messages/");       

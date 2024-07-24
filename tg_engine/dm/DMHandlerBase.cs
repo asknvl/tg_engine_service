@@ -24,8 +24,7 @@ namespace tg_engine.dm
 
         #region properties                
         public DMStartupSettings settings { get; private set; }
-        public UserApiHandlerBase user { get; private set; }        
-        public TGProviderBase tgProvider { get; private set; }
+        public UserApiHandlerBase user { get; private set; }                
         public DMHandlerStatus status { get; private set; }
         #endregion
 
@@ -35,8 +34,6 @@ namespace tg_engine.dm
 
             this.postgreProvider = postgreProvider;
             this.mongoProvider = mongoProvider;
-
-            tgProvider = new tg_provider_v0(settings.account.id, postgreProvider, mongoProvider, logger);
 
             this.settings = settings;
             this.logger = logger;

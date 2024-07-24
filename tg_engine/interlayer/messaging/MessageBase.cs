@@ -23,6 +23,9 @@ namespace tg_engine.interlayer.messaging
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;
         public bool is_read { get; set; }
+        public DateTime? read_date { get; set; } = null;
+        public bool is_deleted { get; set; }
+        public DateTime? deleted_date { get; set; } = null;
         public int? reply_to_message_id { get; set; }
         public List<MediaInfo>? media { get; set; }
         public DateTime created_at { get; set; } = DateTime.UtcNow;

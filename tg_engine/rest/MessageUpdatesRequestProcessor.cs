@@ -6,16 +6,17 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using tg_engine.interlayer.messaging;
+using tg_engine.rest.updates;
 
 namespace tg_engine.rest
 {
-    public class MessageTXRequestProcessor : IRequestProcessor, IMessageObservable
+    public class MessageUpdatesRequestProcessor : IRequestProcessor, IMessageUpdatesObservable
     {
         #region vars
-        List<IMessageObserver> messageObservers = new List<IMessageObserver>();
+        List<IMessageUpdatesObserver> messageUpdatesObservers = new List<IMessageUpdatesObserver>();
         #endregion
 
-        public MessageTXRequestProcessor() {            
+        public MessageUpdatesRequestProcessor() {            
         }
 
         #region dtos  
@@ -33,21 +34,21 @@ namespace tg_engine.rest
             public string type { get; set; }
             public string url { get; set; }
             public string file_id { get; set; }
-        }
+        }      
         #endregion
 
         #region helpers      
         #endregion
 
         #region public
-        public void Add(IMessageObserver observer)
+        public void Add(IMessageUpdatesObserver observer)
         {
-            if (observer != null && !messageObservers.Contains(observer))
-                messageObservers.Add(observer);
+            if (observer != null && !messageUpdatesObservers.Contains(observer))
+                messageUpdatesObservers.Add(observer);
         }
-        public void Remove(IMessageObserver observer)
+        public void Remove(IMessageUpdatesObserver observer)
         {
-            messageObservers.Remove(observer);
+            messageUpdatesObservers.Remove(observer);
         }
 
         public async Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route)
@@ -63,16 +64,19 @@ namespace tg_engine.rest
             var code = HttpStatusCode.NotFound;
             var responseText = code.ToString();
 
+            IMessageUpdatesObserver? observer = null;
+
             try
             {
                 switch (splt_route[2])
                 {
-                    case "send":
+                    case "sendMessage":
                         try
                         {
                             var message = JsonConvert.DeserializeObject<messageDto>(data);
 
-                            var observer = messageObservers.FirstOrDefault(o => o.account_id == message.account_id);
+                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == message.account_id);
+
                             if (observer != null)
                             {
 
@@ -96,7 +100,7 @@ namespace tg_engine.rest
                                     messageBase.media = messageBaseMedia;
                                 }
 
-                                await observer.OnMessageTX(messageBase);       
+                                await observer.OnNewMessage(messageBase);       
                                 
                                 code = HttpStatusCode.OK;
                                 responseText = code.ToString();
@@ -105,7 +109,36 @@ namespace tg_engine.rest
                         } catch (Exception ex)
                         {
                             code = HttpStatusCode.BadRequest;
-                            responseText = $"{code.ToString()}:{ex.Message}";
+                            responseText = $"{code}:{ex.Message}";
+                        }
+                        break;
+
+                    case "sendUpdate":
+                        try
+                        {
+                            var updateBase = JsonConvert.DeserializeObject<UpdateBase>(data);
+
+                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == updateBase.account_id);
+
+                            if (observer != null)
+                            {
+                                switch (updateBase.type)
+                                {
+                                    case UpdateType.readHistory:
+                                        var rh = JsonConvert.DeserializeObject<readHistory>(data);
+                                        observer?.OnNewUpdate(rh);
+                                        break;
+
+                                    default:
+                                        code = HttpStatusCode.BadRequest;
+                                        responseText = $"{code}";
+                                        break;
+                                }
+                            }
+                        } catch (Exception ex)
+                        {
+                            code = HttpStatusCode.BadRequest;
+                            responseText = $"{code}:{ex.Message}";
                         }
                         break;
 

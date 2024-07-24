@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace tg_engine.interlayer.messaging
 {
-    public interface IMessageObservable
+    public interface IMessageUpdatesObservable
     {
-        public void Add(IMessageObserver observer);
-        public void Remove(IMessageObserver observer);
+        public void Add(IMessageUpdatesObserver observer);
+        public void Remove(IMessageUpdatesObserver observer);
     }
 }

@@ -24,7 +24,11 @@ namespace tg_engine.database.mongo
             var connectionString = $"mongodb://{settings.user}:{settings.password}@{settings.host}";
             client = new MongoClient(connectionString);
             var database = client.GetDatabase(settings.db_name);
-            messages = database.GetCollection<MessageBase>("messages");        
+#if DEBUG
+            messages = database.GetCollection<MessageBase>("messages_test");
+#else
+            messages = database.GetCollection<MessageBase>("messages");
+#endif
 
             //var connectionString = $"mongodb://{username}:{password}@{host}:{port}/{databaseName}?authSource={databaseName}&authMechanism=SCRAM-SHA-256";
 
@@ -49,6 +53,46 @@ namespace tg_engine.database.mongo
             {
                 return await cursor.AnyAsync();
             }
+        }
+
+        public async Task<List<MessageBase>> MarkMessagesDeleted(int[] ids)
+        {
+            var filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
+
+            var cursor = await messages.FindAsync(filter);
+            var found = await cursor.ToListAsync();
+            
+            if (found.Count > 0)
+            {
+                var update = Builders<MessageBase>.Update
+                    .Set(m => m.is_deleted, true)
+                    .Set(m => m.updated_at, DateTime.UtcNow);
+
+                await messages.UpdateManyAsync(filter, update);
+            }
+            return found;
+        }
+
+        public async Task<int> MarkMessagesRead(Guid chat_id, string direction, int max_message_id)
+        {
+            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("is_read", false) &
+                         Builders<MessageBase>.Filter.Lte("telegram_message_id", max_message_id);
+
+            var cursor = await messages.FindAsync(filter);
+            var found = await cursor.ToListAsync();
+
+            if (found.Count > 0)
+            {
+                var update = Builders<MessageBase>.Update
+                    .Set(m => m.is_read, true)
+                    .Set(m => m.read_date, DateTime.UtcNow)
+                    .Set(m => m.updated_at, DateTime.UtcNow);
+
+                await messages.UpdateManyAsync(filter, update);
+            }
+            return max_message_id;
         }
         #endregion
     }
