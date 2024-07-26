@@ -102,7 +102,7 @@ namespace tg_engine.rest
                             }
                             break;
 
-                        case "messages":
+                        case "updates":
                             processor = RequestProcessors.FirstOrDefault(p => p is MessageUpdatesRequestProcessor);
                             if (processor != null)
                             {

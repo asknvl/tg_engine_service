@@ -13,7 +13,7 @@ namespace tg_engine.rest.updates
         public UpdateType type { get; set; }
     }
 
-    public enum UpdateType : int
+    public enum UpdateType
     {
         readHistory = 100
     }

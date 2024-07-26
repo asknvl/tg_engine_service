@@ -73,8 +73,11 @@ namespace tg_engine.database.mongo
             return found;
         }
 
-        public async Task<int> MarkMessagesRead(Guid chat_id, string direction, int max_message_id)
+        public async Task<(int, int)> MarkMessagesRead(Guid chat_id, string direction, int max_message_id)
         {
+            int maxId = 0;
+            int unreadCount = 0;
+
             var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
                          Builders<MessageBase>.Filter.Eq("direction", direction) &
                          Builders<MessageBase>.Filter.Eq("is_read", false) &
@@ -92,7 +95,15 @@ namespace tg_engine.database.mongo
 
                 await messages.UpdateManyAsync(filter, update);
             }
-            return max_message_id;
+
+            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("is_read", false);
+
+            unreadCount = (int)await messages.CountDocumentsAsync(filter);
+            maxId = max_message_id;
+
+            return (unreadCount, max_message_id);
         }
         #endregion
     }

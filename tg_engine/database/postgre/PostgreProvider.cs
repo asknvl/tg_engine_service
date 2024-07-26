@@ -96,6 +96,7 @@ namespace tg_engine.database.postgre
                     context.telegram_chats.Add(new_chat);
                     await context.SaveChangesAsync();
 
+                    res.is_new = true;
                     res.chat = new_chat;
                     res.user = new_user;
 
@@ -118,35 +119,88 @@ namespace tg_engine.database.postgre
 
             return res;
         }
-        
+
         public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
         {
 
-            UserChat? res = null; 
+            UserChat? res = null;
 
             using (var context = new PostgreDbContext(dbContextOptions))
             {
-                var foundChat = await (from chat in context.telegram_chats
-                                 join user in context.telegram_users
-                                 on chat.telegram_user_id equals user.id
-                                 where chat.account_id == account_id && user.telegram_id == telegram_id
-                                 select chat).SingleOrDefaultAsync();
-
-                if (foundChat != null)
+                try
                 {
+                    var foundChat = await (from chat in context.telegram_chats
+                                           join user in context.telegram_users
+                                           on chat.telegram_user_id equals user.id
+                                           where chat.account_id == account_id && user.telegram_id == telegram_id
+                                           select chat).SingleOrDefaultAsync();
+
+                    if (foundChat == null)
+                        throw new KeyNotFoundException($"Chat account_id={account_id} telegram_id={telegram_id} not found");
+
                     var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
+                    if (foundUser == null)
+                        throw new KeyNotFoundException($"Uset telegram_user_id={foundChat.telegram_user_id} not found");
 
                     res = new UserChat();
                     res.chat = foundChat;
                     res.user = foundUser;
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("GetUserChat error", ex);
                 }
 
             }
 
-
             return res;
-        }        
+        }
 
-    }
+        public async Task UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null)
+        {
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                try
+                {
+                    var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
+                    if (foundChat == null)
+                        throw new KeyNotFoundException($"Chat {chat_id} not found");
+
+                    foundChat.unread_count = unread_count ?? foundChat.unread_count;
+                    foundChat.read_inbox_max_id = read_inbox_max_id ?? foundChat.read_inbox_max_id;
+                    foundChat.read_outbox_max_id = read_outbox_max_id ?? foundChat.read_outbox_max_id;
+
+                    await context.SaveChangesAsync();
+
+                } catch (Exception ex)
+                {
+                    throw new Exception($"UpdateUnreadCount error", ex);
+                }
+            }
+        }
+
+        public async Task UpdateTopMessage(Guid chat_id, int top_message)
+        {
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                try
+                {
+                    var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
+                    if (foundChat == null)
+                        throw new KeyNotFoundException($"Chat {chat_id} not found");
+
+                    foundChat.top_message = top_message;
+
+                    await context.SaveChangesAsync();
+
+                } catch (Exception ex)
+                {
+                    throw new Exception("UpdateTopMessage error", ex);
+                }
+            }
+        }
+
+    }        
 }
 

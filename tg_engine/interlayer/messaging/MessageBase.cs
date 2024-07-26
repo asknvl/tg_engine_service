@@ -19,7 +19,7 @@ namespace tg_engine.interlayer.messaging
         public int telegram_message_id { get; set; }
         //public long? src_telegram_user_id { get; set; } = null;
         //public long? dst_telegram_user_id { get; set; } = null;        
-        public string? text { get; set; }   
+        public string? text { get; set; }
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;
         public bool is_read { get; set; }
@@ -30,6 +30,8 @@ namespace tg_engine.interlayer.messaging
         public List<MediaInfo>? media { get; set; }
         public DateTime created_at { get; set; } = DateTime.UtcNow;
         public DateTime? updated_at { get; set; } = null;
+        public bool is_business_bot_reply { get; set; } = false;
+        public string? business_bot_username { get; set; } = null;
     }
 
     public class MediaInfo

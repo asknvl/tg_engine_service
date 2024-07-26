@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace tg_engine.rest.updates
 {
     public class readHistory : UpdateBase
-    {
-        public int max_id {  get; set; }    
+    {      
+        public int max_id {  get; set; }        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using logger;
+using MongoDB.Driver;
 using Npgsql.Replication.PgOutput.Messages;
 using System;
 using System.Collections.Generic;
@@ -145,14 +146,33 @@ namespace tg_engine.userapi
                 throw new Exception("getText: message=null");
         }
 
-        async Task handleTextMessage(UpdateNewMessage unm, UserChat userChat)
+        async Task<int> handleTextMessage(UpdateNewMessage unm, UserChat userChat, Update update)
         {
          
             var chat_id = userChat.chat.id;
-            var direction = (isIncoming(unm)) ? "in" : "out";
-            var telegram_message_id = unm.message.ID;
+
+            bool incomnig = isIncoming(unm);
+            var direction = (incomnig) ? "in" : "out";
+
+            int telegram_message_id = unm.message.ID;
             var text = getText(unm);
             var date = unm.message.Date;
+
+            bool is_business_bot_reply = false;
+            string? business_bot_username = null;
+
+            if (!incomnig)
+            {                
+                var m = unm.message as Message;
+
+                is_business_bot_reply = m.flags2.HasFlag(Message.Flags2.has_via_business_bot_id);
+                if (is_business_bot_reply)
+                {
+                    var uc = await getUserChat(m.via_business_bot_id);
+                    if (uc != null)
+                        business_bot_username = uc.user.username;                    
+                }
+            }
 
             var message = new interlayer.messaging.MessageBase()
             {
@@ -161,22 +181,28 @@ namespace tg_engine.userapi
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,
                 text = text,
-                date = date
+                date = date,
+                is_business_bot_reply = is_business_bot_reply,
+                business_bot_username = business_bot_username
             };
 
             try
             {
                 await mongoProvider.SaveMessage(message);
+                //событие о новом сообщении                
+                await postgreProvider.UpdateTopMessage(chat_id, telegram_message_id);
             }
-            catch (Exception e)
+            catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
             {
                 logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
             }
 
-            logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (text)");
+            logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (text) is_bb={is_business_bot_reply} bb_un={business_bot_username}");
+
+            return telegram_message_id;
         }
 
-        async Task handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
+        async Task<int> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
         {
             Document document = mmd.document as Document;
 
@@ -209,13 +235,17 @@ namespace tg_engine.userapi
             try
             {
                 await mongoProvider.SaveMessage(message);
+                //событие о новом сообщении
+                await postgreProvider.UpdateTopMessage(chat_id, telegram_message_id);
             }
-            catch (Exception e)
+            catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
             {
                 logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
             }
 
             logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (media text={message.text})");
+
+            return telegram_message_id;
         }
 
         async Task handleMessageDeletion(int[] message_ids)
@@ -223,9 +253,11 @@ namespace tg_engine.userapi
             await mongoProvider.MarkMessagesDeleted(message_ids);
         }     
         
-        async Task handleMessageRead(UserChat userChat, string direction, int max_message_id)
+        async Task handleMessageRead(UserChat userChat, string direction, int max_id)
         {
-            await mongoProvider.MarkMessagesRead(userChat.chat.id, direction, max_message_id);
+            int unread_count = 0;
+            int max_read_id = 0;
+            (unread_count, max_read_id) = await mongoProvider.MarkMessagesRead(userChat.chat.id, direction, max_id);
         }
         #endregion
 
@@ -250,6 +282,9 @@ namespace tg_engine.userapi
                 manager = user.WithUpdateManager(User_OnUpdate, state_path);
                 await user.LoginUserIfNeeded();
 
+                var dialogs = await user.Messages_GetDialogs(limit: 100); //сделать 500 ?
+                dialogs.CollectUsersChats(manager.Users, manager.Chats);
+
                 manager.SaveState(state_path);            
                 status = UserApiStatus.active;
                 
@@ -270,18 +305,39 @@ namespace tg_engine.userapi
         }
 
 
-        async Task<UserChat> getUserChat(long id)
+        async Task<UserChat> getUserChat(long telegram_id)
         {
-            manager.Users.TryGetValue(id, out var user);
+            manager.Users.TryGetValue(telegram_id, out var user);
             var tlUser = new telegram_user(user);
             var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
             return userChat;
+        }
+
+        async Task<InputPeer?> getInputPeer(long telegram_id)
+        {
+            InputPeer? result = null;
+
+            var userChat = await chatsProvider.GetUserChat(account_id, telegram_id);
+
+            var peer = manager.Users.TryGetValue(telegram_id, out var u);
+            if (u != null)
+                result = u;            
+            else
+            {
+                if (userChat != null)
+                {
+                    result = new InputPeerUser(telegram_id, (long)userChat.user.access_hash);
+                    
+                }
+            }
+            return result;
         }
 
         private async Task User_OnUpdate(Update update)
         {
 
             UserChat userChat = null;
+            long telegram_id = 0;
 
             switch (update)
             {
@@ -290,14 +346,28 @@ namespace tg_engine.userapi
 
                 case UpdateReadHistoryInbox uhi:
                     //мы прочли
-                    userChat = await getUserChat(uhi.peer.ID);
-                    await handleMessageRead(userChat, "in", uhi.max_id);
+                    telegram_id = uhi.peer.ID;
+                    try
+                    {                        
+                        userChat = await getUserChat(telegram_id);
+                        await handleMessageRead(userChat, "in", uhi.max_id);
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"UpdateReadHisotryInbox: {telegram_id} {ex.Message} {ex?.InnerException?.Message}");
+                    }
                     break;
 
                 case UpdateReadHistoryOutbox uho:
                     //лид прочел
-                    userChat = await getUserChat(uho.peer.ID);
-                    await handleMessageRead(userChat, "out", uho.max_id);
+                    telegram_id = uho.peer.ID;
+                    try
+                    {                        
+                        userChat = await getUserChat(telegram_id);
+                        await handleMessageRead(userChat, "out", uho.max_id);
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"UpdateReadHisotryOutbox: {telegram_id} {ex.Message} {ex?.InnerException?.Message}");
+                    }
                     break;
 
                 case UpdateDeleteMessages udm:
@@ -309,14 +379,20 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(unm.message.Peer.ID);                            
+
+                        if (userChat.is_new)
+                        {
+                            //событие о новом чате
+                        }
+
                         logger.inf(tag, $"userChat:{userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
 
-                        var message = unm.message as Message;
+                        var message = unm.message as Message;                        
 
                         switch (message.media)
                         {
                             case null:
-                                await handleTextMessage(unm, userChat);                                
+                                await handleTextMessage(unm, userChat, update);                                
                                 break;
 
                             case MessageMediaDocument mmd:
@@ -326,7 +402,7 @@ namespace tg_engine.userapi
                             case MessageMediaPhoto mmp:
                                 break;
 
-                        }                        
+                        }    
 
                     } catch (Exception ex)
                     {
@@ -335,8 +411,7 @@ namespace tg_engine.userapi
                     break;
             }
 
-            logger.inf(tag, update.ToString());
-            await Task.CompletedTask;
+            logger.inf(tag, update.ToString());            
         }
 
         public async Task OnNewMessage(interlayer.messaging.MessageBase message)
@@ -374,6 +449,10 @@ namespace tg_engine.userapi
                     await mongoProvider.SaveMessage(message);
                     stopwatch.Stop();
 
+                    //собыьте о новом сообщении
+
+                    await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id);
+
                     logger.inf(tag, $"{message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
                 }
 
@@ -389,6 +468,14 @@ namespace tg_engine.userapi
             switch (update)
             {
                 case readHistory rh:                    
+                    try
+                    {
+                        var peer = await getInputPeer(rh.user_telegram_id);                        
+                        await user.ReadHistory(peer);
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate readHistory tg_id={update.user_telegram_id} {ex.Message}");
+                    }
                     break;
             }
 
