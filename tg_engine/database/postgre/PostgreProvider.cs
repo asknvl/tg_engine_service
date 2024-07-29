@@ -168,6 +168,8 @@ namespace tg_engine.database.postgre
                         throw new KeyNotFoundException($"Chat {chat_id} not found");
 
                     foundChat.unread_count = unread_count ?? foundChat.unread_count;
+                    foundChat.unread_mark = foundChat.unread_count > 0;
+
                     foundChat.read_inbox_max_id = read_inbox_max_id ?? foundChat.read_inbox_max_id;
                     foundChat.read_outbox_max_id = read_outbox_max_id ?? foundChat.read_outbox_max_id;
 
@@ -180,7 +182,7 @@ namespace tg_engine.database.postgre
             }
         }
 
-        public async Task UpdateTopMessage(Guid chat_id, int top_message)
+        public async Task UpdateTopMessage(Guid chat_id, int top_message, bool? add_unread = null)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
             {
@@ -191,6 +193,8 @@ namespace tg_engine.database.postgre
                         throw new KeyNotFoundException($"Chat {chat_id} not found");
 
                     foundChat.top_message = top_message;
+                    foundChat.unread_count = (add_unread == true) ? foundChat.unread_count + 1 : foundChat.unread_count;
+                    foundChat.unread_mark = foundChat.unread_count > 0;
 
                     await context.SaveChangesAsync();
 

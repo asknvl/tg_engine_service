@@ -64,9 +64,24 @@ namespace tg_engine.config
         public string password { get; set; } = "password";
     }
 
+    public class settings_hub
+    {
+        public string host { get; set; } = "host";
+        public string token { get; set; } = "token";
+    }
+
     public class settings_rest
     {
         public int control_port { get; set; } = 7070;
+    }
+
+    public class settings_s3
+    {
+        public string host { get; set; } = "host";
+        public int port { get; set; } = 29000;
+        public string bucket { get; set; } = "bucket";
+        public string user { get; set; } = "user";
+        public string password { get; set; } = "password";
     }
 
     public class tg_engine_variables
@@ -74,6 +89,8 @@ namespace tg_engine.config
         public settings_db accounts_settings_db { get; set; } = new();
         public settings_db messaging_settings_db { get; set; } = new();
         public settings_rest settings_rest { get; set; } = new();
+        public settings_hub settings_hub { get; set; } = new();
+        public settings_s3 settings_s3 { get; set; } = new();   
 
     }
     

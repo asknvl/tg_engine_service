@@ -96,8 +96,9 @@ namespace tg_engine.database.mongo
                 await messages.UpdateManyAsync(filter, update);
             }
 
+            //сколько входящих, непрочитанных
             filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
-                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("direction", "in") &
                          Builders<MessageBase>.Filter.Eq("is_read", false);
 
             unreadCount = (int)await messages.CountDocumentsAsync(filter);

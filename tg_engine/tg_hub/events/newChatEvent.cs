@@ -4,24 +4,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 
 namespace tg_engine.tg_hub.events
 {
     public class newChatEvent : EventBase
     {
-        public override EventType type => EventType.newChat;        
-        public Guid account_id { get; set; }
-        public Guid chat_id {  get; set; }  
-        public long telegram_id { get; set; }   
-        public string? firstname { get; set; }
-        public string? lastname { get; set; }   
-        public string? username { get; set; }   
-        public int uread_count { get; set; }    
+        public override string path => "events/new-chat";
 
-        public override string GetSerialized()
+        public newChatEvent(UserChat userChat)
         {
-            return JsonConvert.SerializeObject(this);
-        }
+            account_id = userChat.chat.account_id;
+            chat_id = userChat.chat.id;
+            telegram_id = userChat.user.telegram_id;
+
+            data = new chatData() {
+                firstname = userChat.user.firstname,
+                lastname = userChat.user.lastname,
+                username = userChat.user.username
+            };
+        }      
+    }
+
+    class chatData
+    {
+        public string? firstname { get; set; }
+        public string? lastname { get; set; }
+        public string? username { get; set; }
     }
 }

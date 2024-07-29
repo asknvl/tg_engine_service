@@ -7,6 +7,7 @@ using tg_engine.database.postgre;
 using tg_engine.dm;
 using tg_engine.interlayer.messaging;
 using tg_engine.rest;
+using tg_engine.tg_hub;
 
 namespace tg_engine
 {
@@ -21,6 +22,7 @@ namespace tg_engine
         IPostgreProvider postgreProvider;
         IMongoProvider mongoProvider;
         IRestService restService;
+        ITGHubProvider tgHubProvider;
         MessageUpdatesRequestProcessor messageUpdateRequestProcessor;
         #endregion
 
@@ -44,7 +46,7 @@ namespace tg_engine
         }
 
         #region private
-        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, IMessageUpdatesObservable messageObservable)
+        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IMessageUpdatesObservable messageUpdatesObservable)
         {
             foreach (var settings in dmStartupSettings)
             {
@@ -53,8 +55,8 @@ namespace tg_engine
                 var found = DMHandlers.FirstOrDefault(d => d.settings.account.id == settings.account.id);
                 if (found == null)
                 {
-                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, logger);
-                    messageObservable.Add(/*dm.tgProvider*/dm.user);
+                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, tgHubProvider, logger);
+                    messageUpdatesObservable.Add(/*dm.tgProvider*/dm.user);
                     DMHandlers.Add(dm);
 
                 }
@@ -76,7 +78,9 @@ namespace tg_engine
 
                 mongoProvider = new MongoProvider(vars.tg_engine_variables.messaging_settings_db);
 
-                await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, messageUpdateRequestProcessor);
+                tgHubProvider = new TGHubProvider(vars.tg_engine_variables.settings_hub);
+
+                await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, messageUpdateRequestProcessor);
 
                 logger?.inf_urgent(tag, $"Инициализация выполнена");
 
@@ -116,7 +120,7 @@ namespace tg_engine
         public virtual async Task ToggleDMHandlers(List<Guid> guids, bool state)
         {
             var dMStartupSettings = await postgreProvider.GetStatupData();
-            await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, messageUpdateRequestProcessor);
+            await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, messageUpdateRequestProcessor);
 
             if (guids == null || guids.Count == 0)
             {
