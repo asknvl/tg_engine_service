@@ -24,11 +24,11 @@ namespace tg_engine.database.mongo
             var connectionString = $"mongodb://{settings.user}:{settings.password}@{settings.host}";
             client = new MongoClient(connectionString);
             var database = client.GetDatabase(settings.db_name);
-#if DEBUG
-            messages = database.GetCollection<MessageBase>("messages_test");
-#else
+
+//          messages = database.GetCollection<MessageBase>("messages_test");
+
             messages = database.GetCollection<MessageBase>("messages");
-#endif
+
 
             //var connectionString = $"mongodb://{username}:{password}@{host}:{port}/{databaseName}?authSource={databaseName}&authMechanism=SCRAM-SHA-256";
 

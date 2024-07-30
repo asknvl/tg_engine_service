@@ -55,7 +55,7 @@ namespace tg_engine.tg_hub
                 response.EnsureSuccessStatusCode();
             } catch (Exception ex)
             {
-                throw new Exception($"SendEvent error {ex.Message}");
+                throw new Exception($"SendEvent error {ex.Message} {json}");
             }
         }
         #endregion

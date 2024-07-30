@@ -428,20 +428,24 @@ namespace tg_engine.userapi
 
                         var message = unm.message as Message;
 
-                        switch (message.media)
+                        if (message != null)
                         {
-                            case null:
-                                await handleTextMessage(unm, userChat);
-                                break;
 
-                            case MessageMediaDocument mmd:
-                                await handleMediaDocument(unm, mmd, userChat);
-                                break;
+                            switch (message.media)
+                            {
+                                case null:
+                                    await handleTextMessage(unm, userChat);
+                                    break;
 
-                            case MessageMediaPhoto mmp:
-                                await handlePhoto(unm, mmp, userChat);
-                                break;
+                                case MessageMediaDocument mmd:
+                                    await handleMediaDocument(unm, mmd, userChat);
+                                    break;
 
+                                case MessageMediaPhoto mmp:
+                                    await handlePhoto(unm, mmp, userChat);
+                                    break;
+
+                            }
                         }
 
                     }
@@ -452,7 +456,7 @@ namespace tg_engine.userapi
                     break;
             }
 
-            logger.inf(tag, update.ToString());
+            //logger.inf(tag, update.ToString());
         }
 
         public async Task OnNewMessage(interlayer.messaging.MessageBase message)

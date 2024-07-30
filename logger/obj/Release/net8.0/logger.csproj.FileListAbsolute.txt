@@ -1,0 +1,12 @@
+C:\sources\tg_engine_service\logger\bin\Release\net8.0\logger.deps.json
+C:\sources\tg_engine_service\logger\bin\Release\net8.0\logger.dll
+C:\sources\tg_engine_service\logger\bin\Release\net8.0\logger.pdb
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.GeneratedMSBuildEditorConfig.editorconfig
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.AssemblyInfoInputs.cache
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.AssemblyInfo.cs
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.csproj.CoreCompileInputs.cache
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.sourcelink.json
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.dll
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\refint\logger.dll
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\logger.pdb
+C:\sources\tg_engine_service\logger\obj\Release\net8.0\ref\logger.dll

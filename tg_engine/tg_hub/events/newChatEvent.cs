@@ -11,6 +11,7 @@ namespace tg_engine.tg_hub.events
 {
     public class newChatEvent : EventBase
     {
+        [JsonIgnore]
         public override string path => "events/new-chat";
 
         public newChatEvent(UserChat userChat)
