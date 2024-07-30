@@ -52,9 +52,10 @@ namespace tg_engine.tg_hub
             try
             {
                 var response = await httpClient.PostAsync(addr, data);
+                response.EnsureSuccessStatusCode();
             } catch (Exception ex)
             {
-                throw new Exception("SendEvent error", ex);
+                throw new Exception($"SendEvent error {ex.Message}");
             }
         }
         #endregion

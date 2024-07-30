@@ -71,49 +71,67 @@ namespace tg_engine.database.postgre
         {
             UserChat res = new UserChat();
 
-            using (var context = new PostgreDbContext(dbContextOptions))
+            try
             {
 
-                var foundChat = (from chat in context.telegram_chats
-                                 join user in context.telegram_users
-                                 on chat.telegram_user_id equals user.id
-                                 where chat.account_id == account_id && user.telegram_id == new_user.telegram_id
-                                 select chat).SingleOrDefault();
-
-                if (foundChat == null)
+                using (var context = new PostgreDbContext(dbContextOptions))
                 {
-                    context.telegram_users.Add(new_user);
-                    await context.SaveChangesAsync();
-                    var telegram_user_id = new_user.id;
 
-                    var new_chat = new telegram_chat()
+                    var foundChat = (from chat in context.telegram_chats
+                                     join user in context.telegram_users
+                                     on chat.telegram_user_id equals user.id
+                                     where chat.account_id == account_id && user.telegram_id == new_user.telegram_id
+                                     select chat).SingleOrDefault();
+
+                    if (foundChat == null)
                     {
-                        account_id = account_id,
-                        telegram_user_id = telegram_user_id,
-                        chat_type = "private"
-                    };
 
-                    context.telegram_chats.Add(new_chat);
-                    await context.SaveChangesAsync();
+                        Guid telegram_user_id;
 
-                    res.is_new = true;
-                    res.chat = new_chat;
-                    res.user = new_user;
+                        var foundUser = context.telegram_users.SingleOrDefault(u => u.telegram_id == new_user.telegram_id);
+                        if (foundUser == null)
+                        {
+                            context.telegram_users.Add(new_user);
+                            await context.SaveChangesAsync();
+                            telegram_user_id = new_user.id;
+                        }
+                        else                        
+                            telegram_user_id = foundUser.id;
 
-                }
-                else
-                {
-                    res.chat = foundChat;
+                        var new_chat = new telegram_chat()
+                        {
+                            account_id = account_id,
+                            telegram_user_id = telegram_user_id,
+                            chat_type = "private",
+                            unread_count = 0,
+                            unread_mark = false
+                        };
 
-                    var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
-                    if (foundUser.access_hash == null && new_user.access_hash != null)
-                    {
-                        foundUser.access_hash = new_user.access_hash;
+                        context.telegram_chats.Add(new_chat);
                         await context.SaveChangesAsync();
+
+                        res.is_new = true;
+                        res.chat = new_chat;
+                        res.user = new_user;
+
+                    }
+                    else
+                    {
+                        res.chat = foundChat;
+
+                        var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
+                        if (foundUser.access_hash == null && new_user.access_hash != null)
+                        {
+                            foundUser.access_hash = new_user.access_hash;
+                            await context.SaveChangesAsync();
+                        }
+
+                        res.user = foundUser;
                     }
 
-                    res.user = foundUser;
                 }
+            } catch (Exception ex)
+            {
 
             }
 

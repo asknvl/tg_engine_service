@@ -10,12 +10,13 @@ namespace tg_engine.tg_hub.events
 {
     public class newMessageEvent : EventBase
     {
+        [JsonIgnore]
         public override string path => "events/new-message";
         public newMessageEvent(Guid account_id, MessageBase message) { 
 
             this.account_id = account_id;
             chat_id = message.chat_id;
-            telegram_id = message.telegram_id;
+            telegram_id = "" + message.telegram_id;
 
             data = new messageData()
             {
