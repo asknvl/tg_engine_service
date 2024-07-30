@@ -49,6 +49,8 @@ namespace tg_engine.userapi
 
         #region vars
         string tag;
+        string state_path;
+
         protected Client user;
         UpdateManager manager;
         ILogger logger;
@@ -296,7 +298,7 @@ namespace tg_engine.userapi
 
             if (!Directory.Exists(updates_directory))
                 Directory.CreateDirectory(updates_directory);
-            var state_path = Path.Combine(updates_directory, $"{phone_number}.state");
+            state_path = Path.Combine(updates_directory, $"{phone_number}.state");
 
             try
             {
@@ -337,8 +339,10 @@ namespace tg_engine.userapi
         async Task<UserChat> getUserChat(long telegram_id)
         {
             manager.Users.TryGetValue(telegram_id, out var user);
+
             var tlUser = new telegram_user(user);
             var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
+
             return userChat;
         }
 
@@ -456,7 +460,7 @@ namespace tg_engine.userapi
                     break;
             }
 
-            //logger.inf(tag, update.ToString());
+            logger.inf(tag, update.ToString());
         }
 
         public async Task OnNewMessage(interlayer.messaging.MessageBase message)
@@ -538,6 +542,7 @@ namespace tg_engine.userapi
 
         public virtual void Stop()
         {
+            manager.SaveState(state_path);
             user?.Dispose();
             verifyCodeReady.Set();
             status = UserApiStatus.inactive;
