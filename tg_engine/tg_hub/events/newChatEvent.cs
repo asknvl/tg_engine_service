@@ -18,7 +18,7 @@ namespace tg_engine.tg_hub.events
         {
             account_id = userChat.chat.account_id;
             chat_id = userChat.chat.id;
-            telegram_id = "" + userChat.user.telegram_id;
+            telegram_id = userChat.user.telegram_id;
 
             data = new chatData() {
                 firstname = userChat.user.firstname,

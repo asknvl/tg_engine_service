@@ -12,7 +12,7 @@ namespace tg_engine.tg_hub.events
         public abstract string path { get; }
         public Guid account_id { get; protected set; }
         public Guid chat_id { get; protected set; }
-        public string telegram_id { get; protected set; }
+        public long telegram_id { get; protected set; }
         public Object data { get; protected set; }
         public string GetSerialized() => JsonConvert.SerializeObject(this);
     }   

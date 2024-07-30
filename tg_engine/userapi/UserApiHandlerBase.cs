@@ -313,8 +313,8 @@ namespace tg_engine.userapi
                 manager = user.WithUpdateManager(User_OnUpdate, state_path);
                 await user.LoginUserIfNeeded();
 
-                var dialogs = await user.Messages_GetDialogs(limit: 100); //сделать 500 ?
-                dialogs.CollectUsersChats(manager.Users, manager.Chats);
+                //var dialogs = await user.Messages_GetDialogs(limit: 100); //сделать 500 ?
+                //dialogs.CollectUsersChats(manager.Users, manager.Chats);
 
                 manager.SaveState(state_path);
                 status = UserApiStatus.active;
