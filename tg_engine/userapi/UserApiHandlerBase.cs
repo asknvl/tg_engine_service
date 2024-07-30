@@ -438,6 +438,7 @@ namespace tg_engine.userapi
                             switch (message.media)
                             {
                                 case null:
+                                case MessageMediaWebPage:
                                     await handleTextMessage(unm, userChat);
                                     break;
 
