@@ -43,7 +43,8 @@ namespace tg_engine.tg_hub.events
         public string? text { get; set; }
         public DateTime date { get; set; }
         public int? reply_to_message_id { get; set; }
-        public List<MediaInfo>? media { get; set; }
+
+        public MediaInfo? media { get; set; }
         public bool is_business_bot_reply { get; set; }
         public string? business_bot_username { get; set; }
     }

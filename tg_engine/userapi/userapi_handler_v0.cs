@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
 using tg_engine.interlayer.messaging;
+using tg_engine.s3;
 using tg_engine.tg_hub;
 
 namespace tg_engine.userapi
@@ -21,6 +22,7 @@ namespace tg_engine.userapi
                                   IPostgreProvider postgreProvider,
                                   IMongoProvider mongoProvider,
                                   ITGHubProvider tgHubProvider,
+                                  IS3Provider s3Provider,
                                   ILogger logger) : 
                                                          base(account_id,
                                                          phone_number,
@@ -30,6 +32,7 @@ namespace tg_engine.userapi
                                                          postgreProvider,
                                                          mongoProvider,
                                                          tgHubProvider,
+                                                         s3Provider,
                                                          logger)
         {
         }

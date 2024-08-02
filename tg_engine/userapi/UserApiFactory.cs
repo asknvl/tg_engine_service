@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
 using tg_engine.interlayer.messaging;
+using tg_engine.s3;
 using tg_engine.tg_hub;
 
 namespace tg_engine.userapi
@@ -20,8 +21,9 @@ namespace tg_engine.userapi
         IPostgreProvider postgreProvider;
         IMongoProvider mongoProvider;
         ITGHubProvider tgHubProvider;
+        IS3Provider s3Provider;
         #endregion
-        public UserApiFactory(string api_id, string api_hash, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, ILogger logger)
+        public UserApiFactory(string api_id, string api_hash, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
         {
             this.logger = logger;
             this.api_id = api_id;
@@ -30,10 +32,11 @@ namespace tg_engine.userapi
             this.postgreProvider = postgreProvider;
             this.mongoProvider = mongoProvider;
             this.tgHubProvider = tgHubProvider;
+            this.s3Provider = s3Provider;
         }
         public UserApiHandlerBase Get(Guid account_id, string phone_number, string _2fa_password)
         {
-            return new userapi_handler_v0(account_id, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, logger);
+            return new userapi_handler_v0(account_id, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
         }
     }
 }

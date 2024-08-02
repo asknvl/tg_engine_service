@@ -1,4 +1,5 @@
 ﻿using logger;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Npgsql.Replication.PgOutput.Messages;
 using System;
@@ -14,12 +15,14 @@ using tg_engine.database.postgre.models;
 using tg_engine.interlayer.chats;
 using tg_engine.interlayer.messaging;
 using tg_engine.rest.updates;
+using tg_engine.s3;
 using tg_engine.tg_hub;
 using tg_engine.tg_hub.events;
 using TL;
 using TL.Layer46;
 using WTelegram;
 using static System.Net.Mime.MediaTypeNames;
+using IL = tg_engine.interlayer.messaging;
 
 namespace tg_engine.userapi
 {
@@ -65,11 +68,14 @@ namespace tg_engine.userapi
         IPostgreProvider postgreProvider;
         ITGHubProvider tgHubProvider;
 
+        IS3Provider s3Provider;
+
         protected ChatsProvider chatsProvider;
+        MessageConstructor messageConstructor = new MessageConstructor();
         #endregion
 
         public UserApiHandlerBase(Guid account_id, string phone_number, string _2fa_password, string api_id, string api_hash,
-                                  IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, ILogger logger)
+                                  IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
         {
             this.account_id = account_id;
             tag = $"usrapi ..{phone_number.Substring(phone_number.Length - 5, 4)}";
@@ -82,6 +88,7 @@ namespace tg_engine.userapi
             this.mongoProvider = mongoProvider;
             this.postgreProvider = postgreProvider;
             this.tgHubProvider = tgHubProvider;
+            this.s3Provider = s3Provider;   
 
             chatsProvider = new ChatsProvider(postgreProvider);
 
@@ -153,45 +160,47 @@ namespace tg_engine.userapi
                 throw new Exception("getText: message=null");
         }
 
-        async Task<int> handleTextMessage(UpdateNewMessage unm, UserChat userChat)
+        async Task<IL.MessageBase> handleTextMessage(UpdateNewMessage unm, UserChat userChat)
         {
 
-            var chat_id = userChat.chat.id;
+            //var chat_id = userChat.chat.id;
 
-            bool incomnig = isIncoming(unm);
-            var direction = (incomnig) ? "in" : "out";
+            //bool incomnig = isIncoming(unm);
+            //var direction = (incomnig) ? "in" : "out";
 
-            int telegram_message_id = unm.message.ID;
-            var text = getText(unm);
-            var date = unm.message.Date;
+            //int telegram_message_id = unm.message.ID;
+            //var text = getText(unm);
+            //var date = unm.message.Date;
 
-            bool is_business_bot_reply = false;
-            string? business_bot_username = null;
+            //bool is_business_bot_reply = false;
+            //string? business_bot_username = null;
 
-            if (!incomnig)
-            {
-                var m = unm.message as Message;
+            //if (!incomnig)
+            //{
+            //    var m = unm.message as Message;
 
-                is_business_bot_reply = m.flags2.HasFlag(Message.Flags2.has_via_business_bot_id);
-                if (is_business_bot_reply)
-                {
-                    var uc = await getUserChat(m.via_business_bot_id);
-                    if (uc != null)
-                        business_bot_username = uc.user.username;
-                }
-            }
+            //    is_business_bot_reply = m.flags2.HasFlag(Message.Flags2.has_via_business_bot_id);
+            //    if (is_business_bot_reply)
+            //    {
+            //        var uc = await getUserChat(m.via_business_bot_id);
+            //        if (uc != null)
+            //            business_bot_username = uc.user.username;
+            //    }
+            //}
 
-            var message = new interlayer.messaging.MessageBase()
-            {
-                chat_id = chat_id,
-                direction = direction,
-                telegram_id = userChat.user.telegram_id,
-                telegram_message_id = telegram_message_id,
-                text = text,
-                date = date,
-                is_business_bot_reply = is_business_bot_reply,
-                business_bot_username = business_bot_username
-            };
+            //var message = new interlayer.messaging.MessageBase()
+            //{
+            //    chat_id = chat_id,
+            //    direction = direction,
+            //    telegram_id = userChat.user.telegram_id,
+            //    telegram_message_id = telegram_message_id,
+            //    text = text,
+            //    date = date,
+            //    is_business_bot_reply = is_business_bot_reply,
+            //    business_bot_username = business_bot_username
+            //};
+
+            var message = await messageConstructor.Text(userChat, unm, getUserChat);
 
             try
             {
@@ -199,19 +208,19 @@ namespace tg_engine.userapi
                 //событие о новом сообщении                
                 await tgHubProvider.SendEvent(new newMessageEvent(account_id, message));
 
-                await postgreProvider.UpdateTopMessage(chat_id, telegram_message_id, add_unread: incomnig);
+                await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, add_unread: message.direction.Equals("in"));
             }
             catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
             {
-                logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
+                logger.warn(tag, $"Сообщение с telegram_message_id={message.telegram_message_id} уже существует");
             }
 
-            logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (text) is_bb={is_business_bot_reply} bb_un={business_bot_username}");
+            logger.inf(tag, $"{message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (text) is_bb={message.is_business_bot_reply} bb_un={message.business_bot_username}");
 
-            return telegram_message_id;
+            return message;
         }
 
-        async Task<int> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
+        async Task<IL.MessageBase> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
         {
             Document document = mmd.document as Document;
 
@@ -224,12 +233,71 @@ namespace tg_engine.userapi
 
             if (document != null)
             {
-                var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
-                if (sticker != null)
+                //var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
+                //if (sticker != null)
+                //{
+                //    var stickerAttr = sticker as TL.DocumentAttributeSticker;
+                //    text = stickerAttr.alt;
+                //}
+
+                switch (document.mime_type)
                 {
-                    var stickerAttr = sticker as TL.DocumentAttributeSticker;
-                    text = stickerAttr.alt;
+                    case "application/x-tgsticker":
+                        var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
+                        if (sticker != null)
+                        {
+                            var stickerAttr = sticker as TL.DocumentAttributeSticker;
+                            text = stickerAttr.alt;
+                        }
+                        break;
+
+                    case "image/jpeg":                        
+                        break;
+
+                    case "video/mp4":
+
+                        DocumentAttributeVideo videoAttr = new DocumentAttributeVideo();
+
+                        var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo);
+                        if (video != null)
+                        {
+                            videoAttr = video as TL.DocumentAttributeVideo;
+                            bool is_round = videoAttr.flags.HasFlag(DocumentAttributeVideo.Flags.round_message);
+                        }
+
+                        MemoryStream stream = new MemoryStream();
+                        await user.DownloadFileAsync(document, stream);
+                        byte[] bytes = stream.ToArray();
+                        using (var news = new MemoryStream(bytes))
+                        {
+                            var u = await user.UploadFileAsync(news, $"{document.Filename}");
+                            var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
+
+                            //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
+
+                            var doc = new InputMediaUploadedDocument()
+                            {
+                                file = u,
+                                mime_type = "video/mp4",
+                                attributes = new[] {
+                                    new DocumentAttributeVideo {
+                                        duration = videoAttr.duration,
+                                        w = videoAttr.w,
+                                        h = videoAttr.h,
+                                        flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
+                                    }
+                                }                                
+                            };
+
+                            //await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
+                            await user.SendMessageAsync(upeer, "", doc);
+
+                        }
+
+                        break;
                 }
+
+
             }
 
             var message = new interlayer.messaging.MessageBase()
@@ -257,15 +325,69 @@ namespace tg_engine.userapi
 
             logger.inf(tag, $"{direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} (media text={message.text})");
 
-            return telegram_message_id;
+            return message;
         }
 
-        async Task handlePhoto(UpdateNewMessage unm, MessageMediaPhoto mmp, UserChat userChat)
+        async Task<IL.MessageBase> handleImage(UpdateNewMessage unm, MessageMediaPhoto mmp, UserChat userChat)
         {
+
+            IL.MessageBase message = null;
+
             Photo photo = (Photo)mmp.photo;
-            Stream stream = new MemoryStream();
-            await user.DownloadFileAsync(photo, stream);
-            
+
+            if (photo != null)
+            {
+
+                MemoryStream stream = new MemoryStream();
+                await user.DownloadFileAsync(photo, stream);
+                var storage_id = await s3Provider.Upload(stream.ToArray());
+
+                message = await messageConstructor.Image(userChat, unm, getUserChat, photo, storage_id);
+
+                
+
+                //try
+                //{
+                //    await mongoProvider.SaveMessage(message);
+                //    //событие о новом сообщении
+                //    await tgHubProvider.SendEvent(new newMessageEvent(account_id, message));
+
+                //    await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, add_unread: incomnig);
+                //}
+                //catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+                //{
+                //    logger.warn(tag, $"Сообщение с telegram_message_id={telegram_message_id} уже существует");
+                //}
+
+                //var bytes = await s3Provider.Download("123.jpeg");
+
+
+                //byte[] bytes = stream.ToArray();
+
+                //using (var news = new MemoryStream(bytes))
+                //{
+                //    var u = await user.UploadFileAsync(news, "123.jpeg");
+
+                //    var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
+
+                //    //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
+
+                //    await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
+
+                //}
+
+            }
+
+            return message;
+
+            //FileStream file = new FileStream()
+
+            //InputMediaPhoto imp = new InputMediaPhoto();
+            //imp.
+            //User usr = null;
+            //manager.Users.TryGetValue(userChat.user.telegram_id, out usr);
+
+            //await user.SendMediaAsync(usr, $"{unm.message}", u);
         }
 
         async Task handleMessageDeletion(int[] message_ids)
@@ -435,23 +557,39 @@ namespace tg_engine.userapi
                         if (message != null)
                         {
 
+                            IL.MessageBase messageBase = null;
+
                             switch (message.media)
                             {
                                 case null:
                                 case MessageMediaWebPage:
-                                    await handleTextMessage(unm, userChat);
+                                    messageBase = await handleTextMessage(unm, userChat);
                                     break;
 
                                 case MessageMediaDocument mmd:
-                                    await handleMediaDocument(unm, mmd, userChat);
+                                    messageBase = await handleMediaDocument(unm, mmd, userChat);
                                     break;
 
                                 case MessageMediaPhoto mmp:
-                                    await handlePhoto(unm, mmp, userChat);
+                                    messageBase = await handleImage(unm, mmp, userChat);
                                     break;
 
                             }
-                        }
+
+                            try
+                            {
+                                await mongoProvider.SaveMessage(messageBase);
+                                //событие о новом сообщении                
+                                await tgHubProvider.SendEvent(new newMessageEvent(account_id, messageBase));
+
+                                await postgreProvider.UpdateTopMessage(messageBase.chat_id, messageBase.telegram_message_id, add_unread: messageBase.direction.Equals("in"));
+                            }
+                            catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+                            {
+                                logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует");
+                            }
+
+                        }                       
 
                     }
                     catch (Exception ex)

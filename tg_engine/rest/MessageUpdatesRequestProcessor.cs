@@ -85,20 +85,20 @@ namespace tg_engine.rest
                                 messageBase.telegram_id = message.user_telegram_id;
                                 messageBase.text = message.text;
 
-                                if (message.media != null)
-                                {
-                                    var messageBaseMedia = new List<MediaInfo>();
-                                    foreach (var media in message.media)
-                                    {
-                                        messageBaseMedia.Add(new MediaInfo() {
-                                            type = media.type,
-                                            file_id = media.file_id,                                            
-                                            url = media.url
-                                        });
-                                    }
+                                //if (message.media != null)
+                                //{
+                                //    var messageBaseMedia = new List<MediaInfo>();
+                                //    foreach (var media in message.media)
+                                //    {
+                                //        messageBaseMedia.Add(new MediaInfo() {
+                                //            type = media.type,
+                                //            file_id = media.file_id,                                            
+                                //            url = media.url
+                                //        });
+                                //    }
 
-                                    messageBase.media = messageBaseMedia;
-                                }
+                                //    messageBase.media = messageBaseMedia;
+                                //}
 
                                 await observer.OnNewMessage(messageBase);       
                                 

@@ -27,7 +27,7 @@ namespace tg_engine.interlayer.messaging
         public bool is_deleted { get; set; }
         public DateTime? deleted_date { get; set; } = null;
         public int? reply_to_message_id { get; set; }
-        public List<MediaInfo>? media { get; set; }
+        public MediaInfo? media { get; set; }
         public DateTime created_at { get; set; } = DateTime.UtcNow;
         public DateTime? updated_at { get; set; } = null;
         public bool is_business_bot_reply { get; set; } = false;
@@ -36,8 +36,26 @@ namespace tg_engine.interlayer.messaging
 
     public class MediaInfo
     {
-        public string type { get; set; }
-        public string url { get; set; }
-        public string file_id { get; set; }
+        /// <summary>
+        /// image,
+        /// circle,
+        /// photo,
+        /// video,
+        /// voice
+        /// </summary>
+        public string type { get; set; }  
+        public long media_telegram_id { get; set; }
+        public long access_hash { get; set; }
+        //public string url { get; set; }
+        public string storage_id { get; set; }
+    }
+
+    public static class MediaTypes
+    {
+        public const string image = "image";
+        public const string circle = "circle";
+        public const string photo = "photo";
+        public const string video = "video";
+        public const string voice = "voice";
     }
 }
