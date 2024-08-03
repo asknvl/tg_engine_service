@@ -175,6 +175,43 @@ namespace tg_engine.database.postgre
             return res;
         }
 
+        public async Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id)
+        {
+
+            UserChat? res = null;
+
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                try
+                {
+                    var foundChat = await (from chat in context.telegram_chats
+                                           join user in context.telegram_users
+                                           on chat.telegram_user_id equals user.id
+                                           where chat.account_id == account_id && user.id == telegram_user_id
+                                           select chat).SingleOrDefaultAsync();
+
+                    if (foundChat == null)
+                        throw new KeyNotFoundException($"Chat account_id={account_id} telegram_user_id={telegram_user_id} not found");
+
+                    var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
+                    if (foundUser == null)
+                        throw new KeyNotFoundException($"Uset telegram_user_id={foundChat.telegram_user_id} not found");
+
+                    res = new UserChat();
+                    res.chat = foundChat;
+                    res.user = foundUser;
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("GetUserChat error", ex);
+                }
+
+            }
+
+            return res;
+        }
+
         public async Task UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null)
         {
             using (var context = new PostgreDbContext(dbContextOptions))

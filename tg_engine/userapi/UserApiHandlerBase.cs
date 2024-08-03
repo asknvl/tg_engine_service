@@ -483,22 +483,7 @@ namespace tg_engine.userapi
 
                                     //событие о новом сообщении                
                                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
-                                    //обновить счетчик непрочитанных для входящих и top_message
-                                    
-
-                                    //if (userChat.is_new)
-                                    //{
-                                    //    //событие о новом чате
-                                    //    try
-                                    //    {
-                                    //        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name, messageBase.text, messageBase.date));
-                                    //        logger.inf(tag, $"userChat:{source_name} {userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
-                                    //    }
-                                    //    catch (Exception ex)
-                                    //    {
-                                    //        logger.err(tag, ex.Message);
-                                    //    }
-                                    //}
+                                    //обновить счетчик непрочитанных для входящих и top_message                             
 
 
                                     logger.inf(tag, $"{messageBase.direction}:" +
@@ -515,9 +500,6 @@ namespace tg_engine.userapi
                                 }
                             }
                         }
-
-
-                       
 
                     }
                     catch (Exception ex)
@@ -539,7 +521,7 @@ namespace tg_engine.userapi
         #endregion
 
         #region public       
-        public async Task OnNewMessage(interlayer.messaging.MessageBase message)
+        public async Task OnNewMessage(IL.MessageBase message)
         {
             try
             {
@@ -560,11 +542,25 @@ namespace tg_engine.userapi
                 {
                     if (userChat != null)
                     {
-
+                        peer = new InputPeerUser(message.telegram_id, (long)userChat.user.access_hash);
                     }
                 }
 
+                switch (message.media)
+                {
+                    case null:
+                        break;
 
+                    case MediaInfo mediaInfo:
+
+                        switch (mediaInfo.type)
+                        {
+                            case MediaTypes.image:
+                                break;
+                        }
+
+                        break;
+                }
 
 
                 //if (u != null)

@@ -43,5 +43,15 @@ namespace tg_engine.interlayer.chats
             }
             return found;
         }
+
+        public async Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id)
+        {
+            var found = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.id == telegram_user_id);
+            if (found == null)
+            {
+                found = await postgreProvider.GetUserChat(account_id, telegram_user_id);
+            }
+            return found;
+        }
     }
 }

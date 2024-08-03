@@ -25,15 +25,14 @@ namespace tg_engine.rest
             public Guid account_id { get; set; }
             public Guid chat_id { get; set; }
             public long user_telegram_id { get; set; }
-            public List<mediaDto>? media { get; set; } 
+            public mediaDto? media { get; set; } 
             public string text { get; set; }
         }
 
         class mediaDto()
         {
-            public string type { get; set; }
-            public string url { get; set; }
-            public string file_id { get; set; }
+            public string type { get; set; }            
+            public string storage_id { get; set; }
         }      
         #endregion
 
@@ -85,20 +84,7 @@ namespace tg_engine.rest
                                 messageBase.telegram_id = message.user_telegram_id;
                                 messageBase.text = message.text;
 
-                                //if (message.media != null)
-                                //{
-                                //    var messageBaseMedia = new List<MediaInfo>();
-                                //    foreach (var media in message.media)
-                                //    {
-                                //        messageBaseMedia.Add(new MediaInfo() {
-                                //            type = media.type,
-                                //            file_id = media.file_id,                                            
-                                //            url = media.url
-                                //        });
-                                //    }
-
-                                //    messageBase.media = messageBaseMedia;
-                                //}
+                                
 
                                 await observer.OnNewMessage(messageBase);       
                                 
