@@ -9,7 +9,8 @@ namespace tg_engine.dm
 {
     public class DMStartupSettings
     {
-        public string source {  get; set; } 
+        public Guid source_id { get; set; }
+        public string source_name {  get; set; }         
         public account account { get; set; }
     }
 }

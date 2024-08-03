@@ -33,7 +33,7 @@ namespace tg_engine.dm
 
         public DMHandlerBase(DMStartupSettings settings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
         {
-            tag = $"dm {settings.source}";
+            tag = $"dm {settings.source_name}";
 
             this.postgreProvider = postgreProvider;
             this.mongoProvider = mongoProvider;
@@ -44,7 +44,7 @@ namespace tg_engine.dm
 
             userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
 
-            user = userApiFactory.Get(settings.account.id, settings.account.phone_number, settings.account.two_fa);
+            user = userApiFactory.Get(settings.account.id, settings.source_id, settings.source_name, settings.account.phone_number, settings.account.two_fa);
             user.StatusChangedEvent += User_StatusChangedEvent;
 
             status = DMHandlerStatus.inactive;

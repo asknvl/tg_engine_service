@@ -8,7 +8,7 @@ namespace tg_engine.s3
 {
     public interface IS3Provider
     {
-        Task Upload(string storage_id, byte[] bytes);
+        Task<string> Upload(byte[] bytes);
         Task<byte[]> Download(string storage_id);
     }
 }

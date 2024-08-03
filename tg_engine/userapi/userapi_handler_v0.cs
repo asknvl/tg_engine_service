@@ -15,6 +15,8 @@ namespace tg_engine.userapi
     public class userapi_handler_v0 : UserApiHandlerBase
     {
         public userapi_handler_v0(Guid account_id,
+                                  Guid source_id,
+                                  string source_name,
                                   string phone_number,
                                   string _2fa_password,
                                   string api_id,
@@ -25,6 +27,8 @@ namespace tg_engine.userapi
                                   IS3Provider s3Provider,
                                   ILogger logger) : 
                                                          base(account_id,
+                                                         source_id,
+                                                         source_name,
                                                          phone_number,
                                                          _2fa_password,
                                                          api_id,

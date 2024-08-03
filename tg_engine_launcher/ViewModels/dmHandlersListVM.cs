@@ -97,7 +97,7 @@ namespace tg_engine_launcher.ViewModels
                         {
 
                             Id = item.id,
-                            Source = item.source,
+                            Source = item.source_name,
                             PhoneNumber = item.phone_number,
                             Status = (dmHandlerStatus)item.status
                         };
@@ -105,7 +105,7 @@ namespace tg_engine_launcher.ViewModels
                         DMHandlers.Add(dm);
                     } else
                     {
-                        found.Source = item.source;
+                        found.Source = item.source_name;
                         found.PhoneNumber = item.phone_number;
                         found.Status = (dmHandlerStatus)item.status;
                     }                    

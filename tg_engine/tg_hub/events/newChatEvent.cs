@@ -14,24 +14,83 @@ namespace tg_engine.tg_hub.events
         [JsonIgnore]
         public override string path => "events/new-chat";
 
-        public newChatEvent(UserChat userChat)
+        public newChatEvent(UserChat userChat, Guid source_id, string source_name) : base(userChat)
         {
-            account_id = userChat.chat.account_id;
-            chat_id = userChat.chat.id;
-            telegram_id = userChat.user.telegram_id;
+            data = new data()
+            {
+                chat = new chatData()
+                {
+                    id = userChat.chat.id,
+                    chat_type = userChat.chat.chat_type,
+                    account_id = userChat.chat.account_id,
+                    telegram_user_id = userChat.chat.telegram_user_id,
+                    is_deleted = userChat.chat.is_deleted,
+                    unread_mark = userChat.chat.unread_mark,
+                    top_message = userChat.chat.top_message,
+                    top_message_text = userChat.chat.top_message_text,
+                    top_message_date = userChat.chat.top_message_date,
+                    read_inbox_max_id = userChat.chat.read_inbox_max_id,
+                    read_outbox_max_id = userChat.chat.read_outbox_max_id,
+                    unread_count = userChat.chat.unread_count                    
+                },
 
-            data = new chatData() {
-                firstname = userChat.user.firstname,
-                lastname = userChat.user.lastname,
-                username = userChat.user.username
+                user = new userData()
+                {
+                    id = userChat.user.id,
+                    telegram_id = userChat.user.telegram_id,
+                    firstname = userChat.user.firstname,    
+                    lastname = userChat.user.lastname,
+                    username = userChat.user.username
+                },
+
+                source = new sourceData()
+                {                    
+                    source_id = source_id,
+                    source_name = source_name
+                }
+
             };
         }      
     }
 
+    class data
+    {
+        public chatData chat { get; set; }
+        public userData user { get; set; } 
+        public sourceData source { get; set; }
+    }
+
     class chatData
     {
+        public Guid id { get; set; }
+        public Guid account_id { get; set; }
+        public Guid telegram_user_id { get; set; }
+        public bool is_deleted { get; set; }
+        public string chat_type { get; set; }
+        public bool? unread_mark { get; set; }
+        public int? top_message { get; set; }
+        public string? top_message_text { get; set; }
+        public DateTime? top_message_date { get; set; }
+        public int? read_inbox_max_id { get; set; }
+        public int? read_outbox_max_id { get; set; }
+        public int? unread_count { get; set; } = 0;
+    }
+
+    class userData
+    {
+        public Guid id { get; set; }
+        public long telegram_id { get; set; }       
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? username { get; set; }
+
+    }
+
+    class sourceData 
+    {
+        public Guid id { get; set; }    
+        public Guid source_id { get; set; }
+        public string source_name { get; set; }
+
     }
 }

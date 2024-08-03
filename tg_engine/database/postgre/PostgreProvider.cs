@@ -46,7 +46,8 @@ namespace tg_engine.database.postgre
                             join source in context.sources on channel.id equals source.channel_id
                             select new
                             {
-                                source = source.source_name,
+                                source_name = source.source_name,
+                                source_id = source.id,
                                 account = account
                             };
 
@@ -56,10 +57,9 @@ namespace tg_engine.database.postgre
                 {
                     res.Add(new DMStartupSettings()
                     {
-
-                        source = q.source,
+                        source_name = q.source_name,
+                        source_id = q.source_id,
                         account = q.account
-
                     });
                 }
 
@@ -200,7 +200,7 @@ namespace tg_engine.database.postgre
             }
         }
 
-        public async Task UpdateTopMessage(Guid chat_id, int top_message, bool? add_unread = null)
+        public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
             {
@@ -211,10 +211,15 @@ namespace tg_engine.database.postgre
                         throw new KeyNotFoundException($"Chat {chat_id} not found");
 
                     foundChat.top_message = top_message;
+                    foundChat.top_message_text = top_message_text;
+                    foundChat.top_message_date = top_message_date;  
+
                     foundChat.unread_count = (add_unread == true) ? foundChat.unread_count + 1 : foundChat.unread_count;
                     foundChat.unread_mark = foundChat.unread_count > 0;
 
                     await context.SaveChangesAsync();
+
+                    return foundChat;
 
                 } catch (Exception ex)
                 {

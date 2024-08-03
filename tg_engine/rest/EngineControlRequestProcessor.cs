@@ -23,7 +23,8 @@ namespace tg_engine.rest
         class dmHandlerDto
         {
             public Guid id { get; set; }
-            public string source { get; set; }
+            public Guid source_id { get; set; }
+            public string source_name { get; set; }
             public string phone_number { get; set; }
             public int status { get; set; }
         }
@@ -42,8 +43,9 @@ namespace tg_engine.rest
 
             foreach (var dm in tg_engine.DMHandlers) {
                 res.Add(new dmHandlerDto() {
-                    id = dm.settings.account.id,
-                    source = dm.settings.source,
+                    id = dm.settings.account.id,            
+                    source_id = dm.settings.source_id,
+                    source_name = dm.settings.source_name,
                     phone_number = dm.settings.account.phone_number,
                     status = (int)dm.status
                 });

@@ -52,7 +52,7 @@ namespace tg_engine
         {
             foreach (var settings in dmStartupSettings)
             {
-                Debug.WriteLine($"{settings.source} {settings.account.phone_number}");
+                Debug.WriteLine($"{settings.source_name} {settings.account.phone_number}");
 
                 var found = DMHandlers.FirstOrDefault(d => d.settings.account.id == settings.account.id);
                 if (found == null)

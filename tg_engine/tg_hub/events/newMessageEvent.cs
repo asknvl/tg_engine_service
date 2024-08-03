@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using tg_engine.database.postgre.dtos;
 using tg_engine.interlayer.messaging;
 
 namespace tg_engine.tg_hub.events
@@ -12,11 +13,7 @@ namespace tg_engine.tg_hub.events
     {
         [JsonIgnore]
         public override string path => "events/new-message";
-        public newMessageEvent(Guid account_id, MessageBase message) { 
-
-            this.account_id = account_id;
-            chat_id = message.chat_id;
-            telegram_id = message.telegram_id;
+        public newMessageEvent(UserChat userChat, MessageBase message) : base(userChat) { 
 
             data = new messageData()
             {

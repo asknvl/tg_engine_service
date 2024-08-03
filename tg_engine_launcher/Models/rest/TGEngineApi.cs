@@ -41,7 +41,8 @@ namespace tg_engine_launcher.Models.rest
         public class dmHandlerDto
         {
             public Guid id { get; set; }
-            public string source { get; set; }
+            public Guid source_id { get; set; }
+            public string source_name { get; set; }
             public string phone_number { get; set; }
             public int status { get; set; }
         }
