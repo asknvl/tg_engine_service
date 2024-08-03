@@ -246,7 +246,7 @@ namespace tg_engine.userapi
                         using (var news = new MemoryStream(bytes))
                         {
                             var u = await user.UploadFileAsync(news, $"{document.Filename}");
-                            var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
+                            //var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
 
                             //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
 
@@ -264,28 +264,28 @@ namespace tg_engine.userapi
                                 }                                
                             };
 
-                            InputMediaUploadedDocument d = new InputMediaUploadedDocument()
-                            {
-                                file = new InputFile()
-                                {
-                                    id = u.ID,
-                                    Parts = 1                                    
-                                },
-                                mime_type = "video/mp4",
-                                attributes = new[] {
-                                    new DocumentAttributeVideo {
-                                        duration = videoAttr.duration,
-                                        w = videoAttr.w,
-                                        h = videoAttr.h,
-                                        flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
-                                    }
-                                }
-                            };
+                            //InputMediaUploadedDocument d = new InputMediaUploadedDocument()
+                            //{
+                            //    file = new InputFile()
+                            //    {
+                            //        id = u.ID,
+                            //        Parts = 1                                    
+                            //    },
+                            //    mime_type = "video/mp4",
+                            //    attributes = new[] {
+                            //        new DocumentAttributeVideo {
+                            //            duration = videoAttr.duration,
+                            //            w = videoAttr.w,
+                            //            h = videoAttr.h,
+                            //            flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
+                            //        }
+                            //    }
+                            //};
 
 
-                            //await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
-                            await user.SendMessageAsync(upeer, "", doc);
-                            await user.SendMessageAsync(upeer, "", d);
+                            
+                            //await user.SendMessageAsync(upeer, "", doc);
+                            //await user.SendMessageAsync(upeer, "", d);
 
                         }
                         break;
@@ -340,19 +340,19 @@ namespace tg_engine.userapi
                 message = await messageConstructor.Image(userChat, unm, getUserChat, photo, storage_id);
 
 
-                byte[] bytes = stream.ToArray();
+                //byte[] bytes = stream.ToArray();
 
-                using (var news = new MemoryStream(bytes))
-                {
-                    var u = await user.UploadFileAsync(news, "123.jpeg");
+                //using (var news = new MemoryStream(bytes))
+                //{
+                //    var u = await user.UploadFileAsync(news, "123.jpeg");
 
-                    var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
+                //    var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
 
-                    //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
+                //    //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
 
-                    await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
+                //    await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
 
-                }
+                //}
 
             }
 
