@@ -48,14 +48,16 @@ namespace tg_engine.tg_hub
             var addr = $"{url}/{hevent.path}";
             var json = hevent.GetSerialized();
             var data = new StringContent(json, Encoding.UTF8, "application/json");
+            string res = "";
 
             try
             {
                 var response = await httpClient.PostAsync(addr, data);
+                res = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
             } catch (Exception ex)
             {
-                throw new Exception($"SendEvent error {ex.Message} {json}");
+                throw new Exception($"SendEvent error {ex.Message} {res}");
             }
         }
         #endregion

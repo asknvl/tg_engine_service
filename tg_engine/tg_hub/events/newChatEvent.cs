@@ -45,7 +45,7 @@ namespace tg_engine.tg_hub.events
 
                 source = new sourceData()
                 {                    
-                    source_id = source_id,
+                    id = source_id,
                     source_name = source_name
                 }
 
@@ -88,8 +88,7 @@ namespace tg_engine.tg_hub.events
 
     class sourceData 
     {
-        public Guid id { get; set; }    
-        public Guid source_id { get; set; }
+        public Guid id { get; set; }            
         public string source_name { get; set; }
 
     }
