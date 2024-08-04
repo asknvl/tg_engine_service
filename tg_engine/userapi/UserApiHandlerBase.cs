@@ -22,6 +22,7 @@ using TL;
 using TL.Layer46;
 using WTelegram;
 using static System.Net.Mime.MediaTypeNames;
+using static tg_engine.rest.MessageUpdatesRequestProcessor;
 using IL = tg_engine.interlayer.messaging;
 
 namespace tg_engine.userapi
@@ -56,7 +57,7 @@ namespace tg_engine.userapi
         string tag;
         string state_path;
 
-        protected Client user;
+        protected Client client;
         UpdateManager manager;
         ILogger logger;
 
@@ -241,11 +242,11 @@ namespace tg_engine.userapi
                         }
 
                         MemoryStream stream = new MemoryStream();
-                        await user.DownloadFileAsync(document, stream);
+                        await client.DownloadFileAsync(document, stream);
                         byte[] bytes = stream.ToArray();
                         using (var news = new MemoryStream(bytes))
                         {
-                            var u = await user.UploadFileAsync(news, $"{document.Filename}");
+                            var u = await client.UploadFileAsync(news, $"{document.Filename}");
                             //var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
 
                             //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
@@ -334,7 +335,7 @@ namespace tg_engine.userapi
             {
 
                 MemoryStream stream = new MemoryStream();
-                await user.DownloadFileAsync(photo, stream);
+                await client.DownloadFileAsync(photo, stream);
                 var storage_id = await s3Provider.Upload(stream.ToArray());
 
                 message = await messageConstructor.Image(userChat, unm, getUserChat, photo, storage_id);
@@ -521,7 +522,7 @@ namespace tg_engine.userapi
         #endregion
 
         #region public       
-        public async Task OnNewMessage(IL.MessageBase message)
+        public async Task OnNewMessage(messageDto messageDto)
         {
             try
             {
@@ -530,36 +531,37 @@ namespace tg_engine.userapi
                 stopwatch.Start();
 
                 TL.Message result = null;
-                var userChat = await chatsProvider.GetUserChat(account_id, message.telegram_id);
+                var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
                 InputPeer peer = null;  
+                manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
-                manager.Users.TryGetValue((long)message.telegram_id, out var u);
-                if (u != null)
+                if (user != null)
                 {
-                    peer = u;
+                    peer = user;
                 } else
                 {
                     if (userChat != null)
                     {
-                        peer = new InputPeerUser(message.telegram_id, (long)userChat.user.access_hash);
+                        peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
                     }
                 }
 
-                switch (message.media)
-                {
-                    case null:
-                        break;
+                switch (messageDto.media)                {                  
 
-                    case MediaInfo mediaInfo:
+                    case mediaDto mediaInfo:
 
                         switch (mediaInfo.type)
                         {
                             case MediaTypes.image:
                                 break;
                         }
-
                         break;
+
+                    default:
+                        result = await client.SendMessageAsync(peer, messageDto.text);
+                        break;
+                        
                 }
 
 
@@ -576,21 +578,25 @@ namespace tg_engine.userapi
                 //    }
                 //}
 
+                IL.MessageBase messageBase = new();
+
                 if (result != null && userChat != null)
                 {
-                    message.chat_id = userChat.chat.id;
-                    message.direction = "out";
-                    message.telegram_message_id = result.ID;
-                    message.date = result.Date;
+                    messageBase.chat_id = userChat.chat.id;
+                    messageBase.direction = "out";
+                    messageBase.text = messageDto.text;
+                    messageBase.telegram_message_id = result.ID;
+                    messageBase.date = result.Date;
 
-                    await mongoProvider.SaveMessage(message);
+
+                    await mongoProvider.SaveMessage(messageBase);
                     stopwatch.Stop();
 
                     //собыьте о новом сообщении
 
-                    await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа" , message.date);
+                    await postgreProvider.UpdateTopMessage(messageBase.chat_id, messageBase.telegram_message_id, messageBase.text ?? "Медиа" , messageBase.date);
 
-                    logger.inf(tag, $"{message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
+                    logger.inf(tag, $"{messageBase.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
                 }
 
 
@@ -608,7 +614,7 @@ namespace tg_engine.userapi
                     try
                     {
                         var peer = await getInputPeer(rh.user_telegram_id);
-                        await user.ReadHistory(peer);
+                        await client.ReadHistory(peer);
                     }
                     catch (Exception ex)
                     {
@@ -634,10 +640,10 @@ namespace tg_engine.userapi
                     return;
                 }
 
-                user = new Client(config);
+                client = new Client(config);
 
-                manager = user.WithUpdateManager(User_OnUpdate, state_path);
-                await user.LoginUserIfNeeded();
+                manager = client.WithUpdateManager(User_OnUpdate, state_path);
+                await client.LoginUserIfNeeded();
 
                 //var dialogs = await user.Messages_GetDialogs(limit: 100); //сделать 500 ?
                 //dialogs.CollectUsersChats(manager.Users, manager.Chats);
@@ -650,13 +656,13 @@ namespace tg_engine.userapi
             {
                 processRpcException(ex);
                 status = UserApiStatus.inactive;
-                user.Dispose();
+                client.Dispose();
                 throw;
             }
             catch (Exception ex)
             {
                 status = UserApiStatus.inactive;
-                user.Dispose();
+                client.Dispose();
                 throw;
             }
         }
@@ -669,7 +675,7 @@ namespace tg_engine.userapi
         public virtual void Stop()
         {
             manager.SaveState(state_path);
-            user?.Dispose();
+            client?.Dispose();
             verifyCodeReady.Set();
             status = UserApiStatus.inactive;
         }

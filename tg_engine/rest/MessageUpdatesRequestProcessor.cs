@@ -20,16 +20,16 @@ namespace tg_engine.rest
         }
 
         #region dtos  
-        class messageDto()
+        public class messageDto()
         {
             public Guid account_id { get; set; }
             public Guid chat_id { get; set; }
-            public long user_telegram_id { get; set; }
+            public Guid telegram_user_id { get; set; }
             public mediaDto? media { get; set; } 
             public string text { get; set; }
         }
 
-        class mediaDto()
+        public class mediaDto()
         {
             public string type { get; set; }            
             public string storage_id { get; set; }
@@ -78,15 +78,7 @@ namespace tg_engine.rest
 
                             if (observer != null)
                             {
-
-                                var messageBase = new MessageBase();
-                                messageBase.chat_id = message.chat_id;
-                                messageBase.telegram_id = message.user_telegram_id;
-                                messageBase.text = message.text;
-
-                                
-
-                                await observer.OnNewMessage(messageBase);       
+                                await observer.OnNewMessage(message);       
                                 
                                 code = HttpStatusCode.OK;
                                 responseText = code.ToString();
