@@ -38,7 +38,7 @@ namespace tg_engine_launcher.ViewModels
 
         public dmHandlersListVM() {
 
-            enginApi = new TGEngineApi("http://localhost:8080");
+            enginApi = new TGEngineApi("http://localhost:7000");
 
             #region commands
             startAllCmd = ReactiveCommand.CreateFromTask(async () => {
