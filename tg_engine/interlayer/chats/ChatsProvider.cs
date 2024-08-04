@@ -22,14 +22,14 @@ namespace tg_engine.interlayer.chats
         }
 
         public async Task<UserChat> CollectUserChat(Guid account_id, telegram_user user)
-        {
-            bool res = true;
+        {            
             var userChat = userChats.FirstOrDefault(uc => uc.chat.account_id == account_id && uc.user.telegram_id == user.telegram_id);
-            if (userChat == null)
-            {              
-                res = false;
-                userChat = await postgreProvider.CreateUserAndChat(account_id, user);
+            if (userChat == null)            {                       
+                userChat = await postgreProvider.CreateUserAndChat(account_id, user);                                
                 userChats.Add(userChat);
+            } else
+            {
+                userChat.is_new = false;
             }
             return userChat;
         }

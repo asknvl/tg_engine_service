@@ -92,9 +92,7 @@ namespace tg_engine.interlayer.messaging
 
             message.media = new MediaInfo()
             {
-                type = MediaTypes.image,
-                media_telegram_id = photo.ID,
-                access_hash = photo.access_hash,
+                type = MediaTypes.image,                
                 storage_id = storage_id
 
             };

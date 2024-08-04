@@ -175,13 +175,9 @@ namespace tg_engine.rest
         {
             var listener = new HttpListener();
 
-#if DEBUG
-            listener.Prefixes.Add($"http://localhost:{settings.control_port}/control/");
-            listener.Prefixes.Add($"http://localhost:{settings.control_port}/updates/");
-#else
-            listener.Prefixes.Add($"http://*:{{settings.control_port}}/control/");            
-            listener.Prefixes.Add($"http://*:{{settings.control_port}}/messages/");       
-#endif
+            listener.Prefixes.Add($"http://{settings.host}:{settings.port}/control/");
+            listener.Prefixes.Add($"http://{settings.host}:{settings.port}/updates/");            
+
             try
             {             
                 listener.Start();
@@ -192,7 +188,7 @@ namespace tg_engine.rest
                 throw;
             }
 
-            logger.inf_urgent(tag, $"HTTP сервер запущен, порт {settings.control_port}");
+            logger.inf_urgent(tag, $"HTTP сервер запущен, порт {settings.port}");
 
             while (true)
             {

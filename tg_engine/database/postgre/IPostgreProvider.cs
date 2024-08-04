@@ -17,7 +17,7 @@ namespace tg_engine.database.postgre
         Task<UserChat> CreateUserAndChat(Guid account_id, telegram_user new_user);
         Task<UserChat?> GetUserChat(Guid account_id, long telegram_id);
         Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id);
-        Task UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null);
+        Task<telegram_chat> UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null);
         Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null);
     }
 }

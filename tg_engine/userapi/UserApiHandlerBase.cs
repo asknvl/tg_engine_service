@@ -149,7 +149,6 @@ namespace tg_engine.userapi
         async Task<UserChat> getUserChat(long telegram_id)
         {
             manager.Users.TryGetValue(telegram_id, out var user);
-
             var tlUser = new telegram_user(user);
             var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
 
@@ -292,20 +291,6 @@ namespace tg_engine.userapi
                         break;
 
                     case "":
-
-                        //var media = new InputMediaUploadedDocument
-                        //{
-                        //    file = new InputDocumentFileLocation
-                        //    {
-                        //        id = file.id,
-                        //        access_hash = file.access_hash,
-                        //        file_reference = file.file_reference,
-                        //        thumb_size = file.thumb?.size.ToString() ?? ""
-                        //    },
-                        //    mime_type = "text/plain",
-                        //    attributes = new[] { new DocumentAttributeFilename { file_name = "file.txt" } }
-                        //};
-
                         break;
                 }
 
@@ -339,26 +324,11 @@ namespace tg_engine.userapi
                 var storage_id = await s3Provider.Upload(stream.ToArray());
 
                 message = await messageConstructor.Image(userChat, unm, getUserChat, photo, storage_id);
-
-
-                //byte[] bytes = stream.ToArray();
-
-                //using (var news = new MemoryStream(bytes))
-                //{
-                //    var u = await user.UploadFileAsync(news, "123.jpeg");
-
-                //    var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
-
-                //    //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
-
-                //    await user.SendMessageAsync(upeer, "123", new InputMediaUploadedPhoto() { file = u });
-
-                //}
-
             }
 
             return message;           
         }
+        //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids)
         {
             await mongoProvider.MarkMessagesDeleted(message_ids);
@@ -367,18 +337,24 @@ namespace tg_engine.userapi
         {
             int unread_count = 0;
             int max_read_id = 0;
+            telegram_chat updatedChat = null;
+
             (unread_count, max_read_id) = await mongoProvider.MarkMessagesRead(userChat.chat.id, direction, max_id);
 
             switch (direction)
             {
                 case "in":
-                    await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_inbox_max_id: max_read_id);
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_inbox_max_id: max_read_id);
                     break;
 
                 case "out":
-                    await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
-                    break;
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
+                    break;                
             }
+
+            if (updatedChat != null)
+                userChat.chat = updatedChat;
+
         }
         private async Task User_OnUpdate(Update update)
         {
@@ -398,6 +374,7 @@ namespace tg_engine.userapi
                     {
                         userChat = await getUserChat(telegram_id);
                         await handleMessageRead(userChat, "in", uhi.max_id);
+                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                     }
                     catch (Exception ex)
                     {
@@ -411,7 +388,8 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(telegram_id);
-                        await handleMessageRead(userChat, "out", uho.max_id);
+                        await handleMessageRead(userChat, "out", uho.max_id);                        
+                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                     }
                     catch (Exception ex)
                     {
@@ -464,7 +442,7 @@ namespace tg_engine.userapi
                                                                            messageBase.date,
                                                                            add_unread: messageBase.direction.Equals("in"));
 
-                                    if (userChat.is_new)
+                                    if (/*userChat.is_new*/true) //временно посылаем новый чат, чтобы на фронте все обновилось
                                     {
 
                                         userChat.chat = updatedChat;
@@ -472,7 +450,9 @@ namespace tg_engine.userapi
                                         try
                                         {
                                             await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
-                                            logger.inf(tag, $"userChat:{source_name} {userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
+
+                                            if (userChat.is_new) //тоже временное уловие
+                                                logger.inf(tag, $"userChat:{source_name} {userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
                                         }
                                         catch (Exception ex)
                                         {
@@ -515,9 +495,97 @@ namespace tg_engine.userapi
         #endregion
 
         #region rx message
-        async Task SendTextMessage(InputPeer peer, string text)
+        async Task<TL.Message> SendTextMessage(InputPeer peer, string text)
+        {
+            return await client.SendMessageAsync(peer, text);            
+        }
+
+
+        class mediaCahceItem {
+            public long file_id { get; set; }
+            public byte[] file_reference { get; set; }
+            public long acess_hash { get; set; }
+
+        }
+
+        Dictionary<string, mediaCahceItem> cachedMedia = new();
+
+        async Task<TL.Message> SendImage(InputPeer peer, string? text, string storage_id, IL.MessageBase message)
         {
 
+            bool needUpload = !(cachedMedia.ContainsKey(storage_id));
+            Message res = null;
+
+            if (!needUpload)
+            {
+                try
+                {
+                    var cached = cachedMedia[storage_id];
+
+                    var media = new InputMediaPhoto
+                    {
+                        id = new InputPhoto()
+                        {
+                            id = cached.file_id,
+                            access_hash = cached.acess_hash,
+                            file_reference = cached.file_reference
+                        }
+                    };
+
+                    res = await client.SendMessageAsync(peer, text, media);
+
+                    message.media = new MediaInfo()
+                    {
+                        storage_id = storage_id
+                    };
+
+                }
+                catch (Exception ex)
+                {
+                    needUpload = true;
+                }
+            }
+
+            if (needUpload)
+            {
+
+                var bytes = await s3Provider.Download(storage_id);
+                using (var stream = new MemoryStream(bytes))
+                {
+
+                    var file = await client.UploadFileAsync(stream, $"{storage_id}.jpeg");
+
+                    var uploadedPhoto = new InputMediaUploadedPhoto()
+                    {
+                        file = file
+                    };
+
+                    res = await client.SendMessageAsync(peer, text, uploadedPhoto);
+
+                    var mediaPhoto = (MessageMediaPhoto)res.media;
+                    var photo = (Photo)mediaPhoto.photo;
+
+                    mediaCahceItem cahed = new mediaCahceItem()
+                    {
+                        file_reference = photo.file_reference,
+                        file_id = photo.ID,
+                        acess_hash = photo.access_hash
+                    };
+
+                    if (cachedMedia.ContainsKey(storage_id))
+                        cachedMedia.Remove(storage_id);
+
+                    cachedMedia.Add(storage_id, cahed);
+
+                    message.media = new MediaInfo()
+                    {
+                        type = MediaTypes.image,
+                        storage_id = storage_id,
+                    };
+                }
+            }
+
+            return res;
         }
         #endregion
 
@@ -536,6 +604,8 @@ namespace tg_engine.userapi
                 InputPeer peer = null;  
                 manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
+                IL.MessageBase message = new();
+
                 if (user != null)
                 {
                     peer = user;
@@ -553,50 +623,38 @@ namespace tg_engine.userapi
 
                         switch (mediaInfo.type)
                         {
-                            case MediaTypes.image:
+                            case MediaTypes.image:                                
+                                result = await SendImage(peer, messageDto.text, mediaInfo.storage_id, message);
                                 break;
                         }
                         break;
 
                     default:
-                        result = await client.SendMessageAsync(peer, messageDto.text);
+                        result = await SendTextMessage(peer, messageDto.text);                        
                         break;
                         
-                }
-
-
-                //if (u != null)
-                //{
-                //    result = await user.SendMessageAsync(u, message.text);
-                //}
-                //else
-                //{
-                //    if (userChat != null)
-                //    {
-                //        var upeer = new InputPeerUser(message.telegram_id, (long)userChat.user.access_hash);
-                //        result = await user.SendMessageAsync(upeer, message.text);
-                //    }
-                //}
-
-                IL.MessageBase messageBase = new();
+                }               
 
                 if (result != null && userChat != null)
                 {
-                    messageBase.chat_id = userChat.chat.id;
-                    messageBase.direction = "out";
-                    messageBase.text = messageDto.text;
-                    messageBase.telegram_message_id = result.ID;
-                    messageBase.date = result.Date;
+                    message.chat_id = userChat.chat.id;
+                    message.direction = "out";
+                    message.text = messageDto.text;
+                    message.telegram_message_id = result.ID;
+                    message.date = result.Date;
 
 
-                    await mongoProvider.SaveMessage(messageBase);
+                    await mongoProvider.SaveMessage(message);
                     stopwatch.Stop();
 
                     //собыьте о новом сообщении
 
-                    await postgreProvider.UpdateTopMessage(messageBase.chat_id, messageBase.telegram_message_id, messageBase.text ?? "Медиа" , messageBase.date);
+                    await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа" , message.date);                 
 
-                    logger.inf(tag, $"{messageBase.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
+                    //var bytes = Encoding.ASCII.GetBytes(s);
+
+
+                    logger.inf(tag, $"{message.chat_id} {message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
                 }
 
 

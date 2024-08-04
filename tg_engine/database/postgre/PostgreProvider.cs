@@ -212,7 +212,7 @@ namespace tg_engine.database.postgre
             return res;
         }
 
-        public async Task UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null)
+        public async Task<telegram_chat> UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
             {
@@ -229,6 +229,8 @@ namespace tg_engine.database.postgre
                     foundChat.read_outbox_max_id = read_outbox_max_id ?? foundChat.read_outbox_max_id;
 
                     await context.SaveChangesAsync();
+
+                    return foundChat;
 
                 } catch (Exception ex)
                 {

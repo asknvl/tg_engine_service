@@ -44,9 +44,9 @@ namespace tg_engine.interlayer.messaging
         /// voice
         /// </summary>
         public string type { get; set; }  
-        public long media_telegram_id { get; set; }
-        public long access_hash { get; set; }
-        //public string url { get; set; }
+        //public long? media_telegram_id { get; set; }        
+        //public long access_hash { get; set; }
+        public string storage_url { get; set; }
         public string storage_id { get; set; }
     }
 

@@ -72,7 +72,8 @@ namespace tg_engine.config
 
     public class settings_rest
     {
-        public int control_port { get; set; } = 7070;
+        public string host { get; set; } = "localhost";        
+        public int port { get; set; } = 7070;
     }
 
     public class settings_s3

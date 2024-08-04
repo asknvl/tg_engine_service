@@ -58,7 +58,7 @@ namespace tg_engine.s3
 
             } catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception($"S3 Upload error: {ex.Message}");
             }
         }
 
@@ -88,7 +88,7 @@ namespace tg_engine.s3
                 
             } catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception($"S3 Download error: {ex.Message}");
             }
         }
         #endregion
