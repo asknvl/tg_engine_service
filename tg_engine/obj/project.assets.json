@@ -76,6 +76,32 @@
           }
         }
       },
+      "Lsj.MediaInfo.Core.Native/22.12.0": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/win-x64/native/libmediaInfo.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          },
+          "runtimes/win-x86/native/libmediaInfo.dll": {
+            "assetType": "native",
+            "rid": "win-x86"
+          }
+        }
+      },
+      "Lsj.MediaInfo.Wrapper.Core/22.12.1": {
+        "type": "package",
+        "dependencies": {
+          "Lsj.MediaInfo.Core.Native": "22.12.0",
+          "Microsoft.Extensions.Logging.Abstractions": "6.0.2"
+        },
+        "compile": {
+          "lib/net6.0/MediaInfo.Wrapper.Core.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/MediaInfo.Wrapper.Core.dll": {}
+        }
+      },
       "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
         "type": "package",
         "compile": {
@@ -1468,6 +1494,38 @@
         "lib/netstandard2.0/Humanizer.dll",
         "lib/netstandard2.0/Humanizer.xml",
         "logo.png"
+      ]
+    },
+    "Lsj.MediaInfo.Core.Native/22.12.0": {
+      "sha512": "7tuCKs62iGG9HquJWfv2ASew/9AmR4CB52UwY/yNeBLEKX1UIYTAkf7fFQUkeHjDa7GNLmanJdtISMIy5icOfw==",
+      "type": "package",
+      "path": "lsj.mediainfo.core.native/22.12.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "History.txt",
+        "icon.png",
+        "lsj.mediainfo.core.native.22.12.0.nupkg.sha512",
+        "lsj.mediainfo.core.native.nuspec",
+        "runtimes/win-x64/native/libmediaInfo.dll",
+        "runtimes/win-x86/native/libmediaInfo.dll"
+      ]
+    },
+    "Lsj.MediaInfo.Wrapper.Core/22.12.1": {
+      "sha512": "eKPaKw7Ic7h160PMBrNDr/Jus14ehB4b2b1tQnmIHpxa/snQ6A4Nt+9cWtbuvTkZzaycjrSsNEYqFQfaEpCtQQ==",
+      "type": "package",
+      "path": "lsj.mediainfo.wrapper.core/22.12.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "MediaInfo_90x90.png",
+        "lib/net5.0/MediaInfo.Wrapper.Core.dll",
+        "lib/net6.0/MediaInfo.Wrapper.Core.dll",
+        "lib/netstandard2.0/MediaInfo.Wrapper.Core.dll",
+        "lib/netstandard2.1/MediaInfo.Wrapper.Core.dll",
+        "lsj.mediainfo.wrapper.core.22.12.1.nupkg.sha512",
+        "lsj.mediainfo.wrapper.core.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
@@ -3488,6 +3546,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "AWSSDK.S3 >= 3.7.400.1",
+      "Lsj.MediaInfo.Wrapper.Core >= 22.12.1",
       "Microsoft.EntityFrameworkCore >= 8.0.6",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.6",
       "Microsoft.EntityFrameworkCore.Relational >= 8.0.6",
@@ -3550,6 +3609,10 @@
           "AWSSDK.S3": {
             "target": "Package",
             "version": "[3.7.400.1, )"
+          },
+          "Lsj.MediaInfo.Wrapper.Core": {
+            "target": "Package",
+            "version": "[22.12.1, )"
           },
           "Microsoft.EntityFrameworkCore": {
             "target": "Package",

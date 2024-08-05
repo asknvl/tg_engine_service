@@ -64,10 +64,31 @@ namespace tg_engine
                 }
             }
         }
+
+        //class progress : IProgress<ProgressInfo>
+        //{
+        //    ILogger logger;
+
+        //    public progress(ILogger logger)
+        //    {
+        //        this.logger = logger;
+        //    }
+
+        //    public void Report(ProgressInfo value)
+        //    {
+        //        logger.warn("progress", $"{value.TotalBytes}");
+        //    }
+        //}
+
         async Task initService()
         {
             try
             {
+
+                //logger.warn(tag, "Загрузка ffmpeg...");
+                //await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, new progress(logger));
+                //logger.warn(tag, "ffmpeg загружен");
+
                 var vars = variables.getInstance();
 
                 restService = new RestService(logger, vars.tg_engine_variables.settings_rest);

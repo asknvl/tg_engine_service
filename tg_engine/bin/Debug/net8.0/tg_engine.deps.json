@@ -9,6 +9,7 @@
       "tg_engine/1.0.0": {
         "dependencies": {
           "AWSSDK.S3": "3.7.400.1",
+          "Lsj.MediaInfo.Wrapper.Core": "22.12.1",
           "Microsoft.EntityFrameworkCore": "8.0.6",
           "Microsoft.EntityFrameworkCore.Design": "8.0.6",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.6",
@@ -70,6 +71,32 @@
           "lib/net6.0/Humanizer.dll": {
             "assemblyVersion": "2.14.0.0",
             "fileVersion": "2.14.1.48190"
+          }
+        }
+      },
+      "Lsj.MediaInfo.Core.Native/22.12.0": {
+        "runtimeTargets": {
+          "runtimes/win-x64/native/libmediaInfo.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "22.12.0.0"
+          },
+          "runtimes/win-x86/native/libmediaInfo.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "22.12.0.0"
+          }
+        }
+      },
+      "Lsj.MediaInfo.Wrapper.Core/22.12.1": {
+        "dependencies": {
+          "Lsj.MediaInfo.Core.Native": "22.12.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
+        },
+        "runtime": {
+          "lib/net6.0/MediaInfo.Wrapper.Core.dll": {
+            "assemblyVersion": "22.12.1.0",
+            "fileVersion": "22.12.1.0"
           }
         }
       },
@@ -864,6 +891,20 @@
       "sha512": "sha512-lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
+    },
+    "Lsj.MediaInfo.Core.Native/22.12.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7tuCKs62iGG9HquJWfv2ASew/9AmR4CB52UwY/yNeBLEKX1UIYTAkf7fFQUkeHjDa7GNLmanJdtISMIy5icOfw==",
+      "path": "lsj.mediainfo.core.native/22.12.0",
+      "hashPath": "lsj.mediainfo.core.native.22.12.0.nupkg.sha512"
+    },
+    "Lsj.MediaInfo.Wrapper.Core/22.12.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eKPaKw7Ic7h160PMBrNDr/Jus14ehB4b2b1tQnmIHpxa/snQ6A4Nt+9cWtbuvTkZzaycjrSsNEYqFQfaEpCtQQ==",
+      "path": "lsj.mediainfo.wrapper.core/22.12.1",
+      "hashPath": "lsj.mediainfo.wrapper.core.22.12.1.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/6.0.0": {
       "type": "package",

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using tg_engine.database.postgre.dtos;
-using tg_engine.interlayer.messaging;
+using IL = tg_engine.interlayer.messaging;
 
 namespace tg_engine.tg_hub.events
 {
@@ -13,7 +13,7 @@ namespace tg_engine.tg_hub.events
     {
         [JsonIgnore]
         public override string path => "events/new-message";
-        public newMessageEvent(UserChat userChat, MessageBase message) : base(userChat) { 
+        public newMessageEvent(UserChat userChat, IL.MessageBase message) : base(userChat) { 
 
             data = new messageData()
             {
@@ -41,7 +41,7 @@ namespace tg_engine.tg_hub.events
         public DateTime date { get; set; }
         public int? reply_to_message_id { get; set; }
 
-        public MediaInfo? media { get; set; }
+        public IL.MediaInfo? media { get; set; }
         public bool is_business_bot_reply { get; set; }
         public string? business_bot_username { get; set; }
     }

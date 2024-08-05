@@ -1,4 +1,5 @@
 ﻿using logger;
+using MediaInfo;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Npgsql.Replication.PgOutput.Messages;
@@ -19,10 +20,11 @@ using tg_engine.s3;
 using tg_engine.tg_hub;
 using tg_engine.tg_hub.events;
 using TL;
-using TL.Layer46;
 using WTelegram;
 using static System.Net.Mime.MediaTypeNames;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
+ 
+
 using IL = tg_engine.interlayer.messaging;
 
 namespace tg_engine.userapi
@@ -247,8 +249,9 @@ namespace tg_engine.userapi
                         {
                             var u = await client.UploadFileAsync(news, $"{document.Filename}");
                             //var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
-
                             //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
+
+                            //var media = new MediaInfoWrapper(news);
 
                             var doc = new InputMediaUploadedDocument()
                             {
@@ -534,7 +537,7 @@ namespace tg_engine.userapi
 
                     res = await client.SendMessageAsync(peer, text, media);
 
-                    message.media = new MediaInfo()
+                    message.media = new IL.MediaInfo()
                     {
                         storage_id = storage_id
                     };
@@ -577,7 +580,7 @@ namespace tg_engine.userapi
 
                     cachedMedia.Add(storage_id, cahed);
 
-                    message.media = new MediaInfo()
+                    message.media = new IL.MediaInfo()
                     {
                         type = MediaTypes.image,
                         storage_id = storage_id,
@@ -649,7 +652,10 @@ namespace tg_engine.userapi
 
                     //собыьте о новом сообщении
 
-                    await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа" , message.date);                 
+                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа" , message.date);
+                    userChat.chat = updatedChat;
+                    await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
                     //var bytes = Encoding.ASCII.GetBytes(s);
 

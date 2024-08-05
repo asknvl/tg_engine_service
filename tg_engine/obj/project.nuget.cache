@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "9jIHuSfWEWhFxQNulep2AWqjW6TOqkBTTFJ9JyXQ+isKa1MFQStfABeuxXMNmxYCXTz0gumSCUAQt/Pcw747hg==",
+  "dgSpecHash": "2U4/EPhgERt9Ws5NPSkeR4IGNT1Toa81vjwMYMkahquzzShlKaT8c2OIt/40VvGSvA70nvsLwIRUeurdytK/wQ==",
   "success": true,
   "projectFilePath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,8 @@
     "C:\\Users\\asknvl\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\asknvl\\.nuget\\packages\\lsj.mediainfo.core.native\\22.12.0\\lsj.mediainfo.core.native.22.12.0.nupkg.sha512",
+    "C:\\Users\\asknvl\\.nuget\\packages\\lsj.mediainfo.wrapper.core\\22.12.1\\lsj.mediainfo.wrapper.core.22.12.1.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.3.3\\microsoft.codeanalysis.analyzers.3.3.3.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.codeanalysis.common\\4.5.0\\microsoft.codeanalysis.common.4.5.0.nupkg.sha512",
