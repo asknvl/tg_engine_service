@@ -185,7 +185,7 @@ namespace tg_engine.rest
             catch (Exception ex)
             {
                 logger.err(tag, $"Не удалось запустить HTTP сервер {ex.Message}");
-                throw;
+                throw new Exception($"Не удалось запустить HTTP сервер {ex.Message}");
             }
 
             logger.inf_urgent(tag, $"HTTP сервер запущен, порт {settings.port}");

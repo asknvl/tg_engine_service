@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = logger
-build_property.ProjectDir = C:\WORK\RaceUP\sources\tg_engine_service\logger\
+build_property.ProjectDir = C:\sources\tg_engine_service\logger\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
