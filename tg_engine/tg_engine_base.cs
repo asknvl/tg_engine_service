@@ -42,6 +42,23 @@ namespace tg_engine
         {
             this.logger = logger;
 
+            WTelegram.Helpers.Log += (lvl, str) => {
+                switch (lvl)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:                    
+                        logger.warn(tag, $"userapi: {str}");
+                        break;
+
+                    default:
+                        break;
+                }
+            };
+
             #region dependencies              
             messageUpdateRequestProcessor = new MessageUpdatesRequestProcessor();
             #endregion

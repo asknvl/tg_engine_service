@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5afbe3b6849ca8d5db940b6cebd40f15ca744f3c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+93fc9e67f0b970df5d42810cff1d7779e2b9e07e")]
 [assembly: System.Reflection.AssemblyProductAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

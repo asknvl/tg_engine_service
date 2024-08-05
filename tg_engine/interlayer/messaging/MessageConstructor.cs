@@ -98,6 +98,19 @@ namespace tg_engine.interlayer.messaging
             };
             return message;
         }
+
+        public async Task<MessageBase> Circle(UserChat userChat, UpdateNewMessage unm, Func<long, Task<UserChat>> getUserChat, string storage_id)
+        {
+            var message = await getBase(userChat, unm, getUserChat);
+
+            message.media = new MediaInfo()
+            {
+                type = MediaTypes.circle,
+                storage_id = storage_id
+            };
+
+            return message;
+        }
         #endregion
     }
 }

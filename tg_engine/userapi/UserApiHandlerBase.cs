@@ -204,6 +204,37 @@ namespace tg_engine.userapi
             var message = await messageConstructor.Text(userChat, unm, getUserChat);          
             return message;
         }
+
+        async Task<IL.MessageBase> handleCircle(UpdateNewMessage unm, Document document, UserChat userChat)
+        {
+            IL.MessageBase message = null;
+
+            MemoryStream stream = new MemoryStream();
+
+            await client.DownloadFileAsync(document, stream);
+
+            return message;
+        }
+
+        async Task<IL.MessageBase> handleVideo(UpdateNewMessage unm, Document document, UserChat userChat)
+        {
+            IL.MessageBase message = null;
+
+            MemoryStream stream = new MemoryStream();
+            try
+            {
+                await client.DownloadFileAsync(document, stream, progress: new Client.ProgressCallback( (l,a) => {
+                    logger.inf(tag, $"{l} {a}");
+                }));
+
+            } catch (Exception ex)
+            {
+
+            }
+
+            return message;
+        }
+
         async Task<IL.MessageBase> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
         {
             Document document = mmd.document as Document;
@@ -240,55 +271,12 @@ namespace tg_engine.userapi
                         {
                             videoAttr = video as TL.DocumentAttributeVideo;
                             bool is_round = videoAttr.flags.HasFlag(DocumentAttributeVideo.Flags.round_message);
-                        }
 
-                        MemoryStream stream = new MemoryStream();
-                        await client.DownloadFileAsync(document, stream);
-                        byte[] bytes = stream.ToArray();
-                        using (var news = new MemoryStream(bytes))
-                        {
-                            var u = await client.UploadFileAsync(news, $"{document.Filename}");
-                            //var upeer = new InputPeerUser(unm.message.Peer.ID, (long)userChat.user.access_hash);
-                            //var result = await user.SendMediaAsync(upeer, "123", u, mimeType: s.ToString());
+                            if (is_round)
+                                await handleCircle(unm, document, userChat);
+                            else
+                                await handleVideo(unm, document, userChat);
 
-                            //var media = new MediaInfoWrapper(news);
-
-                            var doc = new InputMediaUploadedDocument()
-                            {
-                                file = u,
-                                mime_type = "video/mp4",
-                                attributes = new[] {
-                                    new DocumentAttributeVideo {
-                                        duration = videoAttr.duration,
-                                        w = videoAttr.w,
-                                        h = videoAttr.h,
-                                        flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
-                                    }
-                                }                                
-                            };
-
-                            //InputMediaUploadedDocument d = new InputMediaUploadedDocument()
-                            //{
-                            //    file = new InputFile()
-                            //    {
-                            //        id = u.ID,
-                            //        Parts = 1                                    
-                            //    },
-                            //    mime_type = "video/mp4",
-                            //    attributes = new[] {
-                            //        new DocumentAttributeVideo {
-                            //            duration = videoAttr.duration,
-                            //            w = videoAttr.w,
-                            //            h = videoAttr.h,
-                            //            flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
-                            //        }
-                            //    }
-                            //};
-
-
-                            
-                            //await user.SendMessageAsync(upeer, "", doc);
-                            //await user.SendMessageAsync(upeer, "", d);
 
                         }
                         break;
