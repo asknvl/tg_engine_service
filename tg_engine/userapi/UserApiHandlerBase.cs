@@ -177,24 +177,13 @@ namespace tg_engine.userapi
             return result;
         }
 
-        bool isIncoming(UpdateNewMessage unm)
+        string getExtensionFromMimeType(string input)
         {
-            var message = unm.message as Message;
-            if (message != null)
-                return !message.flags.HasFlag(TL.Message.Flags.out_);
-            else
-                throw new Exception("isIncoming: message=null");
-        }
-
-        string getText(UpdateNewMessage unm)
-        {
-            var message = unm.message as Message;
-            if (message != null)
-            {
-                return message.message;
-            }
-            else
-                throw new Exception("getText: message=null");
+            var res = input;
+            var index = input.IndexOf('/');
+            if (index >= 0)
+                res = input.Substring(index + 1);
+            return res;
         }
         #endregion
 
@@ -205,101 +194,6 @@ namespace tg_engine.userapi
             return message;
         }
 
-        async Task<IL.MessageBase> handleCircle(UpdateNewMessage unm, Document document, UserChat userChat)
-        {
-            IL.MessageBase message = null;
-
-            MemoryStream stream = new MemoryStream();
-
-            await client.DownloadFileAsync(document, stream);
-
-            return message;
-        }
-
-        async Task<IL.MessageBase> handleVideo(UpdateNewMessage unm, Document document, UserChat userChat)
-        {
-            IL.MessageBase message = null;
-
-            MemoryStream stream = new MemoryStream();
-            try
-            {
-                await client.DownloadFileAsync(document, stream, progress: new Client.ProgressCallback( (l,a) => {
-                    logger.inf(tag, $"{l} {a}");
-                }));
-
-            } catch (Exception ex)
-            {
-
-            }
-
-            return message;
-        }
-
-        async Task<IL.MessageBase> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
-        {
-            Document document = mmd.document as Document;
-
-            var chat_id = userChat.chat.id;
-            bool incomnig = isIncoming(unm);
-            var direction = (incomnig) ? "in" : "out";
-            var telegram_message_id = unm.message.ID;
-            var date = unm.message.Date;
-            string? text = null;
-
-            if (document != null)
-            {
-                switch (document.mime_type)
-                {
-                    case "application/x-tgsticker":
-                        var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
-                        if (sticker != null)
-                        {
-                            var stickerAttr = sticker as TL.DocumentAttributeSticker;
-                            text = stickerAttr.alt;
-                        }
-                        break;
-
-                    case "image/jpeg":                        
-                        break;
-
-                    case "video/mp4":
-
-                        DocumentAttributeVideo videoAttr = new DocumentAttributeVideo();
-
-                        var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo);
-                        if (video != null)
-                        {
-                            videoAttr = video as TL.DocumentAttributeVideo;
-                            bool is_round = videoAttr.flags.HasFlag(DocumentAttributeVideo.Flags.round_message);
-
-                            if (is_round)
-                                await handleCircle(unm, document, userChat);
-                            else
-                                await handleVideo(unm, document, userChat);
-
-
-                        }
-                        break;
-
-                    case "":
-                        break;
-                }
-
-
-            }
-
-            var message = new IL.MessageBase()
-            {
-                chat_id = chat_id,
-                direction = direction,
-                telegram_id = userChat.user.telegram_id,
-                telegram_message_id = telegram_message_id,
-                text = text,
-                date = date
-            };         
-
-            return message;
-        }
         async Task<IL.MessageBase> handleImage(UpdateNewMessage unm, MessageMediaPhoto mmp, UserChat userChat)
         {
 
@@ -311,14 +205,50 @@ namespace tg_engine.userapi
             {
 
                 MemoryStream stream = new MemoryStream();
-                await client.DownloadFileAsync(photo, stream);
-                var storage_id = await s3Provider.Upload(stream.ToArray());
+                var ext = await client.DownloadFileAsync(photo, stream);
+                var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
 
-                message = await messageConstructor.Image(userChat, unm, getUserChat, photo, storage_id);
+                message = await messageConstructor.Image(userChat, unm, photo, getUserChat, s3info);
             }
 
-            return message;           
+            return message;
         }
+
+        async Task<IL.MessageBase> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
+        {
+            Document document = mmd.document as Document;
+
+            IL.MessageBase? message = null;
+
+            if (document != null)
+            {
+
+                MemoryStream stream = new MemoryStream();
+                var ext = await client.DownloadFileAsync(document, stream);
+                var s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+
+                //мб нужно кешировать
+
+                switch (document.mime_type)
+                {
+                    case "application/x-tgsticker":
+                        message = await messageConstructor.Sticker(userChat, unm, document, getUserChat, s3info);
+                        break;
+
+                    case "image/jpeg":                        
+                        break;
+
+                    case "video/mp4":
+                        message = await messageConstructor.Video(userChat, unm, document, getUserChat, s3info);
+                        break;
+
+                    case "":
+                        break;
+                }
+            }
+
+            return message;
+        }        
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids)
         {
@@ -578,6 +508,114 @@ namespace tg_engine.userapi
 
             return res;
         }
+
+        async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string storage_id, IL.MessageBase message)
+        {
+            bool needUpload = !(cachedMedia.ContainsKey(storage_id));
+            Message res = null;
+
+            if (!needUpload)
+            {
+                try
+                {
+                    var cached = cachedMedia[storage_id];
+
+                    var document = new InputMediaDocument()
+                    {
+                        id = new InputDocument()
+                        {
+                            id = cached.file_id,
+                            access_hash = cached.acess_hash,
+                            file_reference = cached.file_reference
+                        }
+                    };
+
+                    res = await client.SendMessageAsync(peer, text, document);
+
+                }
+                catch (Exception ex)
+                {
+                    needUpload = true;
+                }
+            }
+
+            if (needUpload)
+            {
+                var bytes = await s3Provider.Download(storage_id);
+                using (var stream = new MemoryStream(bytes))
+                {
+                    var mediaProperties = new MediaInfoWrapper(new MemoryStream(bytes));
+                    var file = await client.UploadFileAsync(stream, $"{storage_id}");
+
+                    string? mime_type = null;
+                    DocumentAttribute[]? attributes = null;
+
+                    var inputFile = new InputFile()
+                    {
+                        id = file.ID,
+                        parts = file.Parts
+                    };
+
+                    switch (type)
+                    {
+                        case MediaTypes.circle:
+                            mime_type = "video/mp4";
+                            attributes = new[] {
+                                new DocumentAttributeVideo {
+                                    duration = mediaProperties.Duration / 1000.0,
+                                    w = mediaProperties.Width,
+                                    h = mediaProperties.Height,
+                                    flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
+                                }
+                            };
+                            break;
+                        case MediaTypes.video:
+                            mime_type = "video/mp4";
+                            attributes = new[] {
+                                new DocumentAttributeVideo {
+                                    duration = mediaProperties.Duration / 1000,
+                                    w = mediaProperties.Width,
+                                    h = mediaProperties.Height,
+                                    flags = DocumentAttributeVideo.Flags.supports_streaming
+                                }
+                            };
+                            break;
+                    }
+
+                    var document = new InputMediaUploadedDocument()
+                    {
+                        file = inputFile,
+                        mime_type = mime_type,
+                        attributes = attributes
+                    };
+
+                    res = await client.SendMessageAsync(peer, text, document);
+
+                    var mmd = res.media as MessageMediaDocument;
+                    var doc = mmd?.document as Document;
+
+                    mediaCahceItem cahed = new mediaCahceItem()
+                    {
+                        file_reference = doc.file_reference,
+                        file_id = doc.ID,
+                        acess_hash = doc.access_hash
+                    };
+
+                    if (cachedMedia.ContainsKey(storage_id))
+                        cachedMedia.Remove(storage_id);
+
+                    cachedMedia.Add(storage_id, cahed);
+
+                    message.media = new IL.MediaInfo()
+                    {
+                        type = type,
+                        storage_id = storage_id
+                    };
+                }
+            }
+
+            return res;
+        }
         #endregion
 
         #region public       
@@ -617,6 +655,12 @@ namespace tg_engine.userapi
                             case MediaTypes.image:                                
                                 result = await SendImage(peer, messageDto.text, mediaInfo.storage_id, message);
                                 break;
+
+                                case MediaTypes.video:
+                                case MediaTypes.circle:
+                                result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.storage_id, message);
+                                break;
+
                         }
                         break;
 

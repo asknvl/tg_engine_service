@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 using tg_engine.interlayer.chats;
+using tg_engine.s3;
 using TL;
+using static MediaInfo.NativeMethods;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static tg_engine.s3.S3Provider;
 
 namespace tg_engine.interlayer.messaging
 {
@@ -86,27 +89,73 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Image(UserChat userChat, UpdateNewMessage unm, Func<long, Task<UserChat>> getUserChat, Photo photo, string storage_id)
+        public async Task<MessageBase> Image(UserChat userChat, UpdateNewMessage unm, Photo photo, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
         {
             var message = await getBase(userChat, unm, getUserChat);
 
             message.media = new MediaInfo()
             {
                 type = MediaTypes.image,                
-                storage_id = storage_id
+                file_name = null,
+                extension = s3info.extension,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
 
             };
             return message;
         }
 
-        public async Task<MessageBase> Circle(UserChat userChat, UpdateNewMessage unm, Func<long, Task<UserChat>> getUserChat, string storage_id)
+        public async Task<MessageBase> Video(UserChat userChat, UpdateNewMessage unm, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
         {
             var message = await getBase(userChat, unm, getUserChat);
+            string mediaType = MediaTypes.video;
+
+            var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
+            if (video != null)
+            {                
+                mediaType = video.flags.HasFlag(DocumentAttributeVideo.Flags.round_message) ? MediaTypes.circle : MediaTypes.video;                
+            }
+
+            var m = unm.message as TL.Message;
+            if (m != null)
+            {
+                message.text = m.message;
+            }
+
+            message.media = new MediaInfo()
+            {
+                type = mediaType,
+                file_name = document.Filename,
+                extension = s3info.extension,   
+                length = document.size,
+                duration = video.duration,
+                width = video.w,
+                height = video.h,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
+            };
+
+            return message;
+        }
+
+        public async Task<MessageBase> Sticker(UserChat userChat, UpdateNewMessage unm, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        {
+            var message = await getBase(userChat, unm, getUserChat);
+
+            var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
+            if (sticker != null)
+            {
+                var stickerAttr = sticker as TL.DocumentAttributeSticker;
+                message.text = stickerAttr.alt;
+            }
 
             message.media = new MediaInfo()
             {
                 type = MediaTypes.circle,
-                storage_id = storage_id
+                extension = s3info.extension,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
+               
             };
 
             return message;

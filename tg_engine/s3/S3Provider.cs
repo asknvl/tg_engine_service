@@ -31,13 +31,13 @@ namespace tg_engine.s3
                         ServiceURL = $"{settings.host}:{settings.port}",
                         ForcePathStyle = true
                     }
-            );
+            );           
         }
 
         #region public 
-        public async Task<string> Upload(byte[] bytes)
+        public async Task<S3ItemInfo> Upload(byte[] bytes, string extension)
         {
-            string key = $"{Guid.NewGuid()}";
+            string key = $"{Guid.NewGuid()}.{extension}";
 
             try
             {
@@ -54,7 +54,21 @@ namespace tg_engine.s3
                     var response = await client.PutObjectAsync(putRequest);
                 }
 
-                return key;
+                var request = new GetPreSignedUrlRequest()
+                {
+                    BucketName = settings.bucket,
+                    Key = key,
+                    Expires = DateTime.UtcNow.AddYears(1)
+                };
+                                
+                var url = await client.GetPreSignedURLAsync(request);
+
+                return new S3ItemInfo()
+                {
+                    storage_id = key,
+                    extension = extension,
+                    url = url
+                };
 
             } catch (Exception ex)
             {
@@ -90,7 +104,7 @@ namespace tg_engine.s3
             {
                 throw new Exception($"S3 Download error: {ex.Message}");
             }
-        }
+        }        
         #endregion
     }
 }

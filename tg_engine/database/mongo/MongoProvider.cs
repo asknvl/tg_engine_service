@@ -26,12 +26,7 @@ namespace tg_engine.database.mongo
             var database = client.GetDatabase(settings.db_name);
 
             messages = database.GetCollection<MessageBase>("messages_test");
-
             //messages = database.GetCollection<MessageBase>("messages");
-
-
-            //var connectionString = $"mongodb://{username}:{password}@{host}:{port}/{databaseName}?authSource={databaseName}&authMechanism=SCRAM-SHA-256";
-
         }
 
         public async Task SaveMessage(MessageBase message)

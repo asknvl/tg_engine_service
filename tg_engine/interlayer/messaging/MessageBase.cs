@@ -35,19 +35,16 @@ namespace tg_engine.interlayer.messaging
     }
 
     public class MediaInfo
-    {
-        /// <summary>
-        /// image,
-        /// circle,
-        /// photo,
-        /// video,
-        /// voice
-        /// </summary>
+    {        
         public string type { get; set; }  
-        //public long? media_telegram_id { get; set; }        
-        //public long access_hash { get; set; }
-        public string storage_url { get; set; }
+        public string? file_name { get; set; }
+        public string? extension { get; set; }
+        public long? length { get; set; }
+        public double? duration { get; set; }        
+        public int? width { get; set;}
+        public int? height { get; set;}   
         public string storage_id { get; set; }
+        public string storage_url { get; set; }
     }
 
     public static class MediaTypes
@@ -57,5 +54,6 @@ namespace tg_engine.interlayer.messaging
         public const string photo = "photo";
         public const string video = "video";
         public const string voice = "voice";
+        public const string sticker = "sticker";
     }   
 }
