@@ -559,16 +559,15 @@ namespace tg_engine.userapi
                 using (var stream = new MemoryStream(bytes))
                 {
                     var mediaProperties = new MediaInfoWrapper(new MemoryStream(bytes));
-                    var file = await client.UploadFileAsync(stream, $"{file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b}"); });
+                    int cntr = 0;
+                    var file = await client.UploadFileAsync(stream, $"{file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
 
                     string? mime_type = null;
                     DocumentAttribute[]? attributes = null;
 
-                    var inputFile = new InputFile()
-                    {
-                        id = file.ID,
-                        parts = file.Parts                      
-                    };
+                    InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
+                    inputFile.ID = file.ID;
+                    inputFile.Parts = file.Parts;
 
                     switch (type)
                     {
