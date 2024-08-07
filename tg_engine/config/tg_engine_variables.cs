@@ -78,8 +78,7 @@ namespace tg_engine.config
 
     public class settings_s3
     {
-        public string host { get; set; } = "host";
-        public int port { get; set; } = 29000;
+        public string host { get; set; } = "host";        
         public string bucket { get; set; } = "bucket";
         public string user { get; set; } = "user";
         public string password { get; set; } = "password";

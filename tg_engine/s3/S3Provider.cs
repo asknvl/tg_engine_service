@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using tg_engine.config;
+using static System.Net.WebRequestMethods;
 
 namespace tg_engine.s3
 {
@@ -27,8 +28,8 @@ namespace tg_engine.s3
                     settings.user,
                     settings.password,
                     new AmazonS3Config
-                    {
-                        ServiceURL = $"{settings.host}:{settings.port}",
+                    {                        
+                        ServiceURL = $"{settings.host}",
                         ForcePathStyle = true
                     }
             );           

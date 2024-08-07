@@ -31,9 +31,9 @@ namespace tg_engine.rest
 
         public class mediaDto()
         {
-            public string type { get; set; }            
-            public string storage_id { get; set; }
-            public long? media_telegram_id { get; set; }
+            public string type { get; set; }      
+            public string? file_name { get; set; }
+            public string storage_id { get; set; }            
         }      
         #endregion
 

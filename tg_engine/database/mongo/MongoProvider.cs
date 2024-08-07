@@ -25,8 +25,8 @@ namespace tg_engine.database.mongo
             client = new MongoClient(connectionString);
             var database = client.GetDatabase(settings.db_name);
 
-            messages = database.GetCollection<MessageBase>("messages_test");
-            //messages = database.GetCollection<MessageBase>("messages");
+            //messages = database.GetCollection<MessageBase>("messages_test");
+            messages = database.GetCollection<MessageBase>("messages");
         }
 
         public async Task SaveMessage(MessageBase message)

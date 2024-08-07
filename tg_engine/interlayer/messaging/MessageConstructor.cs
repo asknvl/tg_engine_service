@@ -8,10 +8,6 @@ using tg_engine.database.postgre.models;
 using tg_engine.interlayer.chats;
 using tg_engine.s3;
 using TL;
-using static MediaInfo.NativeMethods;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static tg_engine.s3.S3Provider;
 
 namespace tg_engine.interlayer.messaging
 {
@@ -105,6 +101,35 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
+        public async Task<MessageBase> Photo(UserChat userChat, UpdateNewMessage unm, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        {
+            var message = await getBase(userChat, unm, getUserChat);
+            string mediaType = MediaTypes.photo;
+
+            var photo = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeImageSize) as TL.DocumentAttributeImageSize;
+
+            var m = unm.message as TL.Message;
+            if (m != null)
+            {
+                message.text = m.message;
+            }
+
+            message.media = new MediaInfo()
+            {
+                type = mediaType,
+                file_name = document.Filename,
+                extension = s3info.extension,
+                length = document.size,
+                duration = null,
+                width = photo?.w,
+                height = photo?.h,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
+            };
+
+            return message;
+        }
+
         public async Task<MessageBase> Video(UserChat userChat, UpdateNewMessage unm, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
         {
             var message = await getBase(userChat, unm, getUserChat);
@@ -128,9 +153,9 @@ namespace tg_engine.interlayer.messaging
                 file_name = document.Filename,
                 extension = s3info.extension,   
                 length = document.size,
-                duration = video.duration,
-                width = video.w,
-                height = video.h,
+                duration = video?.duration,
+                width = video?.w,
+                height = video?.h,
                 storage_id = s3info.storage_id,
                 storage_url = s3info.url
             };
@@ -142,21 +167,9 @@ namespace tg_engine.interlayer.messaging
         {
             var message = await getBase(userChat, unm, getUserChat);
 
-            var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker);
-            if (sticker != null)
-            {
-                var stickerAttr = sticker as TL.DocumentAttributeSticker;
-                message.text = stickerAttr.alt;
-            }
+            var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker) as DocumentAttributeSticker;
 
-            message.media = new MediaInfo()
-            {
-                type = MediaTypes.circle,
-                extension = s3info.extension,
-                storage_id = s3info.storage_id,
-                storage_url = s3info.url
-               
-            };
+            message.text = sticker?.alt;
 
             return message;
         }

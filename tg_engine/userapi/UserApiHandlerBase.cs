@@ -23,7 +23,7 @@ using TL;
 using WTelegram;
 using static System.Net.Mime.MediaTypeNames;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
- 
+
 
 using IL = tg_engine.interlayer.messaging;
 
@@ -96,7 +96,7 @@ namespace tg_engine.userapi
             this.mongoProvider = mongoProvider;
             this.postgreProvider = postgreProvider;
             this.tgHubProvider = tgHubProvider;
-            this.s3Provider = s3Provider;   
+            this.s3Provider = s3Provider;
 
             chatsProvider = new ChatsProvider(postgreProvider);
 
@@ -190,7 +190,7 @@ namespace tg_engine.userapi
         #region updates
         async Task<IL.MessageBase> handleTextMessage(UpdateNewMessage unm, UserChat userChat)
         {
-            var message = await messageConstructor.Text(userChat, unm, getUserChat);          
+            var message = await messageConstructor.Text(userChat, unm, getUserChat);
             return message;
         }
 
@@ -224,8 +224,14 @@ namespace tg_engine.userapi
             {
 
                 MemoryStream stream = new MemoryStream();
-                var ext = await client.DownloadFileAsync(document, stream);
+                var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
+
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();                                
                 var s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+                stopwatch.Stop();
+
+                logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");
 
                 //мб нужно кешировать
 
@@ -235,7 +241,8 @@ namespace tg_engine.userapi
                         message = await messageConstructor.Sticker(userChat, unm, document, getUserChat, s3info);
                         break;
 
-                    case "image/jpeg":                        
+                    case "image/jpeg":
+                        message = await messageConstructor.Photo(userChat, unm, document, getUserChat, s3info);
                         break;
 
                     case "video/mp4":
@@ -248,7 +255,7 @@ namespace tg_engine.userapi
             }
 
             return message;
-        }        
+        }
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids)
         {
@@ -270,7 +277,7 @@ namespace tg_engine.userapi
 
                 case "out":
                     updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
-                    break;                
+                    break;
             }
 
             if (updatedChat != null)
@@ -309,7 +316,7 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(telegram_id);
-                        await handleMessageRead(userChat, "out", uho.max_id);                        
+                        await handleMessageRead(userChat, "out", uho.max_id);
                         await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                     }
                     catch (Exception ex)
@@ -353,11 +360,11 @@ namespace tg_engine.userapi
                             if (messageBase != null)
                             {
                                 try
-                                {                                   
+                                {
 
                                     await mongoProvider.SaveMessage(messageBase);
 
-                                    var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,                                                                           
+                                    var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
                                                                            messageBase.telegram_message_id,
                                                                            messageBase.text ?? "Медиа",
                                                                            messageBase.date,
@@ -418,11 +425,12 @@ namespace tg_engine.userapi
         #region rx message
         async Task<TL.Message> SendTextMessage(InputPeer peer, string text)
         {
-            return await client.SendMessageAsync(peer, text);            
+            return await client.SendMessageAsync(peer, text);
         }
 
 
-        class mediaCahceItem {
+        class mediaCahceItem
+        {
             public long file_id { get; set; }
             public byte[] file_reference { get; set; }
             public long acess_hash { get; set; }
@@ -509,7 +517,7 @@ namespace tg_engine.userapi
             return res;
         }
 
-        async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string storage_id, IL.MessageBase message)
+        async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string? file_name, string storage_id, IL.MessageBase message)
         {
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
             Message res = null;
@@ -541,11 +549,17 @@ namespace tg_engine.userapi
 
             if (needUpload)
             {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 var bytes = await s3Provider.Download(storage_id);
+                stopwatch.Stop();
+
+                logger.inf(tag, $"S3 dowload t={stopwatch.ElapsedMilliseconds}");
+
                 using (var stream = new MemoryStream(bytes))
                 {
                     var mediaProperties = new MediaInfoWrapper(new MemoryStream(bytes));
-                    var file = await client.UploadFileAsync(stream, $"{storage_id}");
+                    var file = await client.UploadFileAsync(stream, $"{file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b}"); });
 
                     string? mime_type = null;
                     DocumentAttribute[]? attributes = null;
@@ -553,30 +567,44 @@ namespace tg_engine.userapi
                     var inputFile = new InputFile()
                     {
                         id = file.ID,
-                        parts = file.Parts
+                        parts = file.Parts                      
                     };
 
                     switch (type)
                     {
                         case MediaTypes.circle:
                             mime_type = "video/mp4";
-                            attributes = new[] {
+                            attributes = new DocumentAttribute[] {
                                 new DocumentAttributeVideo {
                                     duration = mediaProperties.Duration / 1000.0,
                                     w = mediaProperties.Width,
                                     h = mediaProperties.Height,
                                     flags = DocumentAttributeVideo.Flags.supports_streaming | DocumentAttributeVideo.Flags.round_message
+                                },
+                                new DocumentAttributeFilename {
+                                    file_name = file_name
                                 }
                             };
                             break;
                         case MediaTypes.video:
                             mime_type = "video/mp4";
-                            attributes = new[] {
+                            attributes = new DocumentAttribute[] {
                                 new DocumentAttributeVideo {
-                                    duration = mediaProperties.Duration / 1000,
+                                    duration = mediaProperties.Duration / 1000.0,
                                     w = mediaProperties.Width,
                                     h = mediaProperties.Height,
                                     flags = DocumentAttributeVideo.Flags.supports_streaming
+                                },
+                                new DocumentAttributeFilename {
+                                    file_name = file_name
+                                }
+                            };
+                            break;
+                        case MediaTypes.photo:
+                            mime_type = "image/jpeg";
+                            attributes = new DocumentAttribute[] {
+                                new DocumentAttributeFilename {
+                                   file_name = file_name
                                 }
                             };
                             break;
@@ -630,7 +658,7 @@ namespace tg_engine.userapi
                 TL.Message result = null;
                 var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
-                InputPeer peer = null;  
+                InputPeer peer = null;
                 manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
                 IL.MessageBase message = new();
@@ -638,7 +666,8 @@ namespace tg_engine.userapi
                 if (user != null)
                 {
                     peer = user;
-                } else
+                }
+                else
                 {
                     if (userChat != null)
                     {
@@ -646,29 +675,31 @@ namespace tg_engine.userapi
                     }
                 }
 
-                switch (messageDto.media)                {                  
+                switch (messageDto.media)
+                {
 
                     case mediaDto mediaInfo:
 
                         switch (mediaInfo.type)
                         {
-                            case MediaTypes.image:                                
+                            case MediaTypes.image:
                                 result = await SendImage(peer, messageDto.text, mediaInfo.storage_id, message);
                                 break;
 
-                                case MediaTypes.video:
-                                case MediaTypes.circle:
-                                result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.storage_id, message);
+                            case MediaTypes.video:
+                            case MediaTypes.circle:
+                            case MediaTypes.photo:
+                                result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.file_name, mediaInfo.storage_id, message);
                                 break;
 
                         }
                         break;
 
                     default:
-                        result = await SendTextMessage(peer, messageDto.text);                        
+                        result = await SendTextMessage(peer, messageDto.text);
                         break;
-                        
-                }               
+
+                }
 
                 if (result != null && userChat != null)
                 {
@@ -684,7 +715,7 @@ namespace tg_engine.userapi
 
                     //собыьте о новом сообщении
 
-                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа" , message.date);
+                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа", message.date);
                     userChat.chat = updatedChat;
                     await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
