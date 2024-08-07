@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:2:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:2:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\interlayer\\messaging\\messageconstructor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\interlayer\\messaging\\messageconstructor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:2:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:2:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{30634235-5F14-444C-99FF-DFFBB35FE826}|tg_engine_launcher\\tg_engine_launcher.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine_launcher\\models\\rest\\tgengineapi.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -215,7 +215,7 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 149,
+          "DockedWidth": 250,
           "SelectedChildIndex": 1,
           "Children": [
             {
@@ -241,8 +241,8 @@
               "Title": "UserApiHandlerBase.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs*",
-              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs*",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
+              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ViewState": "AQIAAF0AAAAAAAAAAAAswL0AAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-06T08:55:39.758Z",
@@ -750,7 +750,7 @@
           ]
         },
         {
-          "DockedWidth": 399,
+          "DockedWidth": 298,
           "SelectedChildIndex": 6,
           "Children": [
             {
@@ -779,13 +779,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "MessageConstructor.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "RelativeDocumentMoniker": "tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "RelativeToolTip": "tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
-              "ViewState": "AQIAAHYAAAAAAAAAAAAwwIoAAAAIAAAA",
+              "ViewState": "AQIAAHwAAAAAAAAAAAAwwJwAAAAoAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-02T21:46:25.175Z",
               "EditorCaption": ""
@@ -871,7 +871,7 @@
       },
       "DocumentGroups": [
         {
-          "DockedWidth": 116,
+          "DockedWidth": 152,
           "SelectedChildIndex": 0,
           "Children": [
             {
@@ -882,7 +882,7 @@
               "RelativeDocumentMoniker": "..\\..\\..\\..\\Users\\asknvl\\AppData\\Local\\SourceServer\\3cb645d8990ecfa18eb305197a185b891b4af7e42c93da42439d8cd7ec43f572\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\Users\\asknvl\\AppData\\Local\\SourceServer\\3cb645d8990ecfa18eb305197a185b891b4af7e42c93da42439d8cd7ec43f572\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "..\\..\\..\\..\\Users\\asknvl\\AppData\\Local\\SourceServer\\3cb645d8990ecfa18eb305197a185b891b4af7e42c93da42439d8cd7ec43f572\\tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAABcCAAAAAAAAAAAAADICAAAWAAAA",
+              "ViewState": "AQIAAA4CAAAAAAAAAAAAADICAAAWAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-06T12:34:16.982Z",
               "EditorCaption": ""
@@ -890,18 +890,18 @@
           ]
         },
         {
-          "DockedWidth": 284,
+          "DockedWidth": 248,
           "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "UserApiHandlerBase.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs*",
-              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs*",
-              "ViewState": "AQIAABcCAAAAAAAAAAAswEECAAAkAAAA",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
+              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
+              "ViewState": "AQIAAPQBAAAAAAAAAAAwwP8BAAAwAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-05T14:16:00.22Z",
               "EditorCaption": ""
