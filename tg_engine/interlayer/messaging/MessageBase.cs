@@ -16,9 +16,7 @@ namespace tg_engine.interlayer.messaging
         public Guid chat_id { get; set; }
         public string direction { get; set; }
         public long telegram_id { get; set; }
-        public int telegram_message_id { get; set; }
-        //public long? src_telegram_user_id { get; set; } = null;
-        //public long? dst_telegram_user_id { get; set; } = null;        
+        public int telegram_message_id { get; set; }        
         public string? text { get; set; }
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;

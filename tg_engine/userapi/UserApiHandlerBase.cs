@@ -1,14 +1,7 @@
 ﻿using logger;
 using MediaInfo;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Npgsql.Replication.PgOutput.Messages;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
 using tg_engine.database.postgre.dtos;
@@ -21,9 +14,7 @@ using tg_engine.tg_hub;
 using tg_engine.tg_hub.events;
 using TL;
 using WTelegram;
-using static System.Net.Mime.MediaTypeNames;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
-
 
 using IL = tg_engine.interlayer.messaging;
 
