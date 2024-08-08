@@ -275,8 +275,11 @@ namespace tg_engine.userapi
                 userChat.chat = updatedChat;
 
         }
+
         private async Task User_OnUpdate(Update update)
         {
+
+            
 
             UserChat userChat = null;
             long telegram_id = 0;
@@ -758,8 +761,8 @@ namespace tg_engine.userapi
                 }
 
                 client = new Client(config);
-
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
+
                 await client.LoginUserIfNeeded();
 
                 //var dialogs = await user.Messages_GetDialogs(limit: 100); //сделать 500 ?
@@ -782,7 +785,8 @@ namespace tg_engine.userapi
                 client.Dispose();
                 throw;
             }
-        }
+        }        
+
         public void SetVerificationCode(string code)
         {
             logger.user_input(tag, $"Ввод кода верификации {code}");

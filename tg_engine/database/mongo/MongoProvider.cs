@@ -61,6 +61,7 @@ namespace tg_engine.database.mongo
             {
                 var update = Builders<MessageBase>.Update
                     .Set(m => m.is_deleted, true)
+                    .Set(m => m.deleted_date, DateTime.UtcNow)
                     .Set(m => m.updated_at, DateTime.UtcNow);
 
                 await messages.UpdateManyAsync(filter, update);
