@@ -1,5 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MongoDB.Bson.Serialization.Serializers;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,17 @@ namespace tg_engine.s3
                     }
             );           
         }
+
+        #region helpers
+        string getExtensionFromMimeType(string input)
+        {
+            var res = input;
+            var index = input.IndexOf('/');
+            if (index >= 0)
+                res = input.Substring(index + 1);
+            return res;
+        }
+        #endregion
 
         #region public 
         public async Task<S3ItemInfo> Upload(byte[] bytes, string extension)
@@ -77,9 +89,10 @@ namespace tg_engine.s3
             }
         }
 
-        public async Task<byte[]> Download(string storage_id)
+        public async Task<(byte[], S3ItemInfo)> Download(string storage_id)
         {
-            byte[] res = new byte[0];
+            byte[] bytes = new byte[0];
+            S3ItemInfo s3info = new S3ItemInfo(); 
 
             try
             {
@@ -95,17 +108,70 @@ namespace tg_engine.s3
                     using (var memoryStream = new MemoryStream())
                     {
                         await responseStream.CopyToAsync(memoryStream);
-                        res = memoryStream.ToArray();        
+                        bytes = memoryStream.ToArray();        
                     }
-                }                
 
-                return res;
+                    s3info.extension = getExtensionFromMimeType(response.Headers.ContentType);
+                }
+
+                var request = new GetPreSignedUrlRequest()
+                {
+                    BucketName = settings.bucket,
+                    Key = storage_id,
+                    Expires = DateTime.UtcNow.AddYears(1)
+                };
+
+                var url = await client.GetPreSignedURLAsync(request);
+
+                s3info.storage_id = storage_id;
+                s3info.url = url;
+
+                return (bytes, s3info);
                 
             } catch (Exception ex)
             {
                 throw new Exception($"S3 Download error: {ex.Message}");
             }
-        }        
+        }    
+        
+        public async Task<S3ItemInfo> GetInfo(string storage_id)
+        {            
+            S3ItemInfo s3info = new S3ItemInfo();
+
+            try
+            {
+                var getRequest = new GetObjectRequest
+                {
+                    BucketName = settings.bucket,
+                    Key = storage_id
+                };
+
+                using (var response = await client.GetObjectAsync(getRequest))
+                {
+                    s3info.extension = getExtensionFromMimeType(response.Headers.ContentType);
+                }
+                
+
+                var request = new GetPreSignedUrlRequest()
+                {
+                    BucketName = settings.bucket,
+                    Key = storage_id,
+                    Expires = DateTime.UtcNow.AddYears(1)
+                };
+
+                var url = await client.GetPreSignedURLAsync(request);
+
+                s3info.storage_id = storage_id;
+                s3info.url = url;                
+
+                return s3info;
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"S3 Download error: {ex.Message}");
+            }
+        }
         #endregion
     }
 }

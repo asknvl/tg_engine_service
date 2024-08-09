@@ -448,6 +448,9 @@ namespace tg_engine.userapi
 
             if (!needUpload)
             {
+
+                var s3info = await s3Provider.GetInfo(storage_id);
+
                 try
                 {
                     var cached = cachedMedia[storage_id];
@@ -464,9 +467,17 @@ namespace tg_engine.userapi
 
                     res = await client.SendMessageAsync(peer, text, media);
 
+                    //message.media = new IL.MediaInfo()
+                    //{
+                    //    storage_id = storage_id
+                    //};
+
                     message.media = new IL.MediaInfo()
                     {
-                        storage_id = storage_id
+                        type = MediaTypes.image,
+                        storage_id = s3info.storage_id,
+                        storage_url = s3info.url,
+                        extension = s3info.extension
                     };
 
                 }
@@ -479,7 +490,10 @@ namespace tg_engine.userapi
             if (needUpload)
             {
 
-                var bytes = await s3Provider.Download(storage_id);
+                byte[] bytes = null;
+                S3ItemInfo s3info = null;
+
+                (bytes, s3info) = await s3Provider.Download(storage_id);
                 using (var stream = new MemoryStream(bytes))
                 {
 
@@ -510,7 +524,9 @@ namespace tg_engine.userapi
                     message.media = new IL.MediaInfo()
                     {
                         type = MediaTypes.image,
-                        storage_id = storage_id,
+                        storage_id = s3info.storage_id,
+                        storage_url = s3info.url,
+                        extension = s3info.extension
                     };
                 }
             }
@@ -539,6 +555,8 @@ namespace tg_engine.userapi
                         }
                     };
 
+
+
                     res = await client.SendMessageAsync(peer, text, document);
 
                 }
@@ -552,7 +570,10 @@ namespace tg_engine.userapi
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                var bytes = await s3Provider.Download(storage_id);
+                byte[] bytes = null;
+                S3ItemInfo s3info = null;
+
+                (bytes, s3info) = await s3Provider.Download(storage_id);
                 stopwatch.Stop();
 
                 logger.inf(tag, $"S3 dowload t={stopwatch.ElapsedMilliseconds}");
@@ -636,8 +657,10 @@ namespace tg_engine.userapi
 
                     message.media = new IL.MediaInfo()
                     {
-                        type = type,
-                        storage_id = storage_id
+                        type = MediaTypes.image,
+                        storage_id = s3info.storage_id,
+                        storage_url = s3info.url,
+                        extension = s3info.extension
                     };
                 }
             }
@@ -762,6 +785,7 @@ namespace tg_engine.userapi
                     try
                     {                        
                         await client.ReadHistory(peer, rh.max_id);
+                        await handleMessageRead(userChat, "in", rh.max_id); 
                     }
                     catch (Exception ex)
                     {

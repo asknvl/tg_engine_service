@@ -9,7 +9,8 @@ namespace tg_engine.s3
     public interface IS3Provider
     {
         Task<S3ItemInfo> Upload(byte[] bytes, string extension);
-        Task<byte[]> Download(string storage_id);
+        Task<(byte[], S3ItemInfo)> Download(string storage_id);
+        Task<S3ItemInfo> GetInfo(string storage_id);
     }
 
     public class S3ItemInfo
