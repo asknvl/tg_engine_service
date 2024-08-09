@@ -258,7 +258,7 @@ namespace tg_engine.userapi
         {
             await mongoProvider.MarkMessagesDeleted(message_ids);
         }
-        async Task handleMessageRead(UserChat userChat, string direction, int max_id)
+        async Task<UserChat> handleMessageRead(UserChat userChat, string direction, int max_id)
         {
             int unread_count = 0;
             int max_read_id = 0;
@@ -280,6 +280,7 @@ namespace tg_engine.userapi
             if (updatedChat != null)
                 userChat.chat = updatedChat;
 
+           return userChat;
         }
 
         private async Task User_OnUpdate(Update update)
@@ -302,7 +303,7 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(telegram_id);
-                        await handleMessageRead(userChat, "in", uhi.max_id);
+                        userChat = await handleMessageRead(userChat, "in", uhi.max_id);
                         await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                     }
                     catch (Exception ex)
@@ -317,7 +318,7 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(telegram_id);
-                        await handleMessageRead(userChat, "out", uho.max_id);
+                        userChat = await handleMessageRead(userChat, "out", uho.max_id);
                         await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                     }
                     catch (Exception ex)
@@ -445,11 +446,11 @@ namespace tg_engine.userapi
 
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
             Message res = null;
+            S3ItemInfo s3info = null;
 
             if (!needUpload)
             {
-
-                var s3info = await s3Provider.GetInfo(storage_id);
+                s3info = await s3Provider.GetInfo(storage_id);
 
                 try
                 {
@@ -467,19 +468,6 @@ namespace tg_engine.userapi
 
                     res = await client.SendMessageAsync(peer, text, media);
 
-                    //message.media = new IL.MediaInfo()
-                    //{
-                    //    storage_id = storage_id
-                    //};
-
-                    message.media = new IL.MediaInfo()
-                    {
-                        type = MediaTypes.image,
-                        storage_id = s3info.storage_id,
-                        storage_url = s3info.url,
-                        extension = s3info.extension
-                    };
-
                 }
                 catch (Exception ex)
                 {
@@ -491,8 +479,6 @@ namespace tg_engine.userapi
             {
 
                 byte[] bytes = null;
-                S3ItemInfo s3info = null;
-
                 (bytes, s3info) = await s3Provider.Download(storage_id);
                 using (var stream = new MemoryStream(bytes))
                 {
@@ -519,17 +505,17 @@ namespace tg_engine.userapi
                     if (cachedMedia.ContainsKey(storage_id))
                         cachedMedia.Remove(storage_id);
 
-                    cachedMedia.Add(storage_id, cahed);
-
-                    message.media = new IL.MediaInfo()
-                    {
-                        type = MediaTypes.image,
-                        storage_id = s3info.storage_id,
-                        storage_url = s3info.url,
-                        extension = s3info.extension
-                    };
+                    cachedMedia.Add(storage_id, cahed);                    
                 }
             }
+
+            message.media = new IL.MediaInfo()
+            {
+                type = MediaTypes.image,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url,
+                extension = s3info.extension
+            };
 
             return res;
         }
@@ -538,9 +524,12 @@ namespace tg_engine.userapi
         {
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
             Message res = null;
+            S3ItemInfo s3info = null;
 
             if (!needUpload)
             {
+                 s3info = await s3Provider.GetInfo(storage_id);
+
                 try
                 {
                     var cached = cachedMedia[storage_id];
@@ -555,8 +544,6 @@ namespace tg_engine.userapi
                         }
                     };
 
-
-
                     res = await client.SendMessageAsync(peer, text, document);
 
                 }
@@ -570,8 +557,7 @@ namespace tg_engine.userapi
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                byte[] bytes = null;
-                S3ItemInfo s3info = null;
+                byte[] bytes = null;                
 
                 (bytes, s3info) = await s3Provider.Download(storage_id);
                 stopwatch.Stop();
@@ -653,17 +639,17 @@ namespace tg_engine.userapi
                     if (cachedMedia.ContainsKey(storage_id))
                         cachedMedia.Remove(storage_id);
 
-                    cachedMedia.Add(storage_id, cahed);
-
-                    message.media = new IL.MediaInfo()
-                    {
-                        type = MediaTypes.image,
-                        storage_id = s3info.storage_id,
-                        storage_url = s3info.url,
-                        extension = s3info.extension
-                    };
+                    cachedMedia.Add(storage_id, cahed);                    
                 }
             }
+
+            message.media = new IL.MediaInfo()
+            {
+                type = MediaTypes.image,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url,
+                extension = s3info.extension
+            };
 
             return res;
         }
@@ -674,7 +660,6 @@ namespace tg_engine.userapi
         {
             try
             {
-
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
@@ -740,15 +725,13 @@ namespace tg_engine.userapi
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа", message.date);
                     userChat.chat = updatedChat;
-                    await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
-                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
-                    //var bytes = Encoding.ASCII.GetBytes(s);
+                    await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));                   
 
 
                     logger.inf(tag, $"{message.chat_id} {message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
                 }
-
 
             }
             catch (Exception ex)
@@ -785,7 +768,8 @@ namespace tg_engine.userapi
                     try
                     {                        
                         await client.ReadHistory(peer, rh.max_id);
-                        await handleMessageRead(userChat, "in", rh.max_id); 
+                        await handleMessageRead(userChat, "in", rh.max_id);
+                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
                     }
                     catch (Exception ex)
                     {

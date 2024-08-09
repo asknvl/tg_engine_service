@@ -21,7 +21,7 @@
             TAG = tag;
             this.Type = type;
             Text = text;
-            Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         }
 
         public override string ToString()
