@@ -141,8 +141,14 @@ namespace tg_engine.userapi
         #region helpers
         async Task<UserChat> getUserChat(long telegram_id)
         {
-            manager.Users.TryGetValue(telegram_id, out var user);
-            var tlUser = new telegram_user(user);
+            bool isOk = manager.Users.TryGetValue(telegram_id, out var user);
+            telegram_user tlUser = new();
+            if (isOk)
+                tlUser = new telegram_user(user);
+            else 
+                tlUser.telegram_id = telegram_id;                   
+            
+
             var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
 
             return userChat;
@@ -279,8 +285,6 @@ namespace tg_engine.userapi
         private async Task User_OnUpdate(Update update)
         {
 
-            
-
             UserChat userChat = null;
             long telegram_id = 0;
 
@@ -291,6 +295,9 @@ namespace tg_engine.userapi
 
                 case UpdateReadHistoryInbox uhi:
                     //мы прочли
+
+                    var uc = manager.UserOrChat(uhi.peer);
+
                     telegram_id = uhi.peer.ID;
                     try
                     {
