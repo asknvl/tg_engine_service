@@ -645,8 +645,9 @@ namespace tg_engine.userapi
 
             message.media = new IL.MediaInfo()
             {
-                type = MediaTypes.image,
+                type = type,
                 storage_id = s3info.storage_id,
+                file_name = file_name,
                 storage_url = s3info.url,
                 extension = s3info.extension
             };
