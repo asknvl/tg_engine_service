@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using tg_engine.interlayer.messaging;
 using tg_engine.rest.updates;
+using TL;
 
 namespace tg_engine.rest
 {
@@ -64,23 +65,23 @@ namespace tg_engine.rest
             var code = HttpStatusCode.NotFound;
             var responseText = code.ToString();
 
-            IMessageUpdatesObserver? observer = null;
+            IMessageUpdatesObserver? observer = null;            
 
             try
             {
-                switch (splt_route[2])
+
+                var updReq = splt_route[2];
+
+                switch (updReq)
                 {
-                    case "sendMessage":
+                    case "send-message":
                         try
                         {
                             var message = JsonConvert.DeserializeObject<messageDto>(data);
-
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == message.account_id);
-
                             if (observer != null)
                             {
-                                await observer.OnNewMessage(message);       
-                                
+                                await observer.OnNewMessage(message);
                                 code = HttpStatusCode.OK;
                                 responseText = code.ToString();
                             }
@@ -88,38 +89,57 @@ namespace tg_engine.rest
                         } catch (Exception ex)
                         {
                             code = HttpStatusCode.BadRequest;
-                            responseText = $"{code}:{ex.Message}";
+                            responseText = $"{updReq}: {ex.Message}";
                         }
                         break;
 
-                    case "sendUpdate":
+                    case "read-history":
                         try
                         {
-                            var updateBase = JsonConvert.DeserializeObject<UpdateBase>(data);
-
-                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == updateBase.account_id);
-
+                            var update = JsonConvert.DeserializeObject<readHistory>(data);
+                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
                             if (observer != null)
                             {
-                                switch (updateBase.type)
-                                {
-                                    case UpdateType.readHistory:
-                                        var rh = JsonConvert.DeserializeObject<readHistory>(data);
-                                        observer?.OnNewUpdate(rh);
-                                        break;
-
-                                    default:
-                                        code = HttpStatusCode.BadRequest;
-                                        responseText = $"{code}";
-                                        break;
-                                }
+                                await observer.OnNewUpdate(update);
+                                code = HttpStatusCode.OK;
+                                responseText = code.ToString();
                             }
+
                         } catch (Exception ex)
                         {
                             code = HttpStatusCode.BadRequest;
-                            responseText = $"{code}:{ex.Message}";
+                            responseText = $"{updReq}: {ex.Message}";
                         }
                         break;
+
+                    //case "sendUpdate":
+                    //    try
+                    //    {
+                    //        var updateBase = JsonConvert.DeserializeObject<UpdateBase>(data);
+
+                    //        observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == updateBase.account_id);
+
+                    //        if (observer != null)
+                    //        {
+                    //            switch (updateBase.type)
+                    //            {
+                    //                case UpdateType.readHistory:
+                    //                    var rh = JsonConvert.DeserializeObject<readHistory>(data);
+                    //                    observer?.OnNewUpdate(rh);
+                    //                    break;
+
+                    //                default:
+                    //                    code = HttpStatusCode.BadRequest;
+                    //                    responseText = $"{code}";
+                    //                    break;
+                    //            }
+                    //        }
+                    //    } catch (Exception ex)
+                    //    {
+                    //        code = HttpStatusCode.BadRequest;
+                    //        responseText = $"{code}:{ex.Message}";
+                    //    }
+                    //    break;
 
                     default:
                         break;
@@ -127,6 +147,7 @@ namespace tg_engine.rest
             }
             catch (Exception ex)
             {
+                responseText = $"{code} {ex.Message}";
             }
 
             await Task.CompletedTask;

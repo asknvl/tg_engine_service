@@ -735,17 +735,37 @@ namespace tg_engine.userapi
         }
         public async Task OnNewUpdate(UpdateBase update)
         {
+
+            var userChat = await chatsProvider.GetUserChat(account_id, update.telegram_user_id);
+            InputPeer peer = null;
+
+            manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
+
+            if (user != null)
+            {
+                peer = user;
+            }
+            else
+            {
+                if (userChat != null)
+                {
+                    peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
+                }
+            }
+
+            if (peer == null)
+                return;
+
             switch (update)
             {
                 case readHistory rh:
                     try
-                    {
-                        var peer = await getInputPeer(rh.user_telegram_id);
-                        await client.ReadHistory(peer);
+                    {                        
+                        await client.ReadHistory(peer, rh.max_id);
                     }
                     catch (Exception ex)
                     {
-                        logger.err(tag, $"OnNewUpdate readHistory tg_id={update.user_telegram_id} {ex.Message}");
+                        logger.err(tag, $"OnNewUpdate readHistory tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
                     }
                     break;
             }

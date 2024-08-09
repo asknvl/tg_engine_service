@@ -9,12 +9,7 @@ namespace tg_engine.rest.updates
     public class UpdateBase
     {
         public Guid account_id { get; set; }
-        public long user_telegram_id { get; set; }        
-        public UpdateType type { get; set; }
-    }
-
-    public enum UpdateType
-    {
-        readHistory = 100
-    }
+        public Guid chat_id { get; set; }
+        public Guid telegram_user_id {  get; set; }         
+    }    
 }
