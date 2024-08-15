@@ -118,6 +118,12 @@ namespace tg_engine.database.postgre
                     }
                     else
                     {
+                        if (foundChat.source_id == null)
+                        {
+                            foundChat.source_id = source_id;
+                            await context.SaveChangesAsync();
+                        }
+
                         res.chat = foundChat;
 
                         var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);

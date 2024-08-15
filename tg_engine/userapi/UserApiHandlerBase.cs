@@ -269,11 +269,13 @@ namespace tg_engine.userapi
             switch (direction)
             {
                 case "in":
-                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_inbox_max_id: max_read_id);
+                    //updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_inbox_max_id: max_read_id);
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_inbox_count: unread_count, read_inbox_max_id: max_read_id);
                     break;
 
                 case "out":
-                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
+                    //updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_outbox_count: unread_count, read_outbox_max_id: max_read_id);
                     break;
             }
 
@@ -339,6 +341,10 @@ namespace tg_engine.userapi
 
                         var message = unm.message as Message;
 
+                        var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
+                        if (exists)
+                            return;
+
                         if (message != null)
                         {
                             IL.MessageBase messageBase = null;
@@ -366,11 +372,18 @@ namespace tg_engine.userapi
 
                                     await mongoProvider.SaveMessage(messageBase);
 
+                                    //var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
+                                    //                                       messageBase.telegram_message_id,
+                                    //                                       messageBase.text ?? "Медиа",
+                                    //                                       messageBase.date,
+                                    //                                       add_unread: messageBase.direction.Equals("in"));
+
                                     var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
-                                                                           messageBase.telegram_message_id,
-                                                                           messageBase.text ?? "Медиа",
-                                                                           messageBase.date,
-                                                                           add_unread: messageBase.direction.Equals("in"));
+                                                                                             messageBase.direction,
+                                                                                             messageBase.telegram_message_id,
+                                                                                             messageBase.text ?? "Медиа",
+                                                                                             messageBase.date);
+
 
                                     if (/*userChat.is_new*/true) //временно посылаем новый чат, чтобы на фронте все обновилось
                                     {
@@ -724,7 +737,13 @@ namespace tg_engine.userapi
 
                     //собыьте о новом сообщении
 
-                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа", message.date);
+                    //var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа", message.date);
+
+                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
+                                                                             message.direction,
+                                                                             message.telegram_message_id,
+                                                                             message.text ?? "Медиа", message.date);
+
                     userChat.chat = updatedChat;
 
                     await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));

@@ -49,6 +49,17 @@ namespace tg_engine.database.mongo
                 return await cursor.AnyAsync();
             }
         }
+        public async Task<bool> CheckMessageExists(Guid chat_id, int message_id)
+        {
+            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("telegram_message_id", message_id);
+
+            var document = await messages.Find(filter)
+                                         .Limit(1)
+                                         .FirstOrDefaultAsync();
+            return document != null;
+
+        }
 
         public async Task<List<MessageBase>> MarkMessagesDeleted(int[] ids)
         {
