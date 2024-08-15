@@ -69,6 +69,13 @@ namespace tg_engine.database.mongo
             return found;
         }
 
+        /// <summary>
+        /// Помечает сообщения в монго как прочитанные 
+        /// </summary>
+        /// <param name="chat_id"></param>
+        /// <param name="direction">Входящие или исходящие</param>
+        /// <param name="max_message_id"></param>
+        /// <returns>Вохвращает количество непрочитанных и айди последнего прочитанного</returns>
         public async Task<(int, int)> MarkMessagesRead(Guid chat_id, string direction, int max_message_id)
         {
             int maxId = 0;
@@ -93,8 +100,12 @@ namespace tg_engine.database.mongo
             }
 
             //сколько входящих, непрочитанных
-            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+            /*filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
                          Builders<MessageBase>.Filter.Eq("direction", "in") &
+                         Builders<MessageBase>.Filter.Eq("is_read", false);*/
+
+            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
                          Builders<MessageBase>.Filter.Eq("is_read", false);
 
             unreadCount = (int)await messages.CountDocumentsAsync(filter);

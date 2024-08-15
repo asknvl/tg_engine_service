@@ -13,6 +13,7 @@ namespace tg_engine.database.postgre.models
         public Guid id { get; set; }
         public Guid account_id { get; set; }
         public Guid telegram_user_id { get; set; }
+        public Guid source_id { get; set; }
         public string chat_type { get; set; }
         public bool is_deleted { get; set; }
         public bool? unread_mark { get; set; }
@@ -22,5 +23,9 @@ namespace tg_engine.database.postgre.models
         public int? read_inbox_max_id { get; set; }
         public int? read_outbox_max_id { get; set; }
         public int? unread_count { get; set; } = 0;
+        public int? unread_inbox_count { get; set; } = 0;
+        public bool? unread_inbox_mark { get; set; } = false;
+        public int? unread_outbox_count { get; set; } = 0;
+        public bool? unread_outbox_mark { get; set; } = false;
     }
 }

@@ -149,7 +149,7 @@ namespace tg_engine.userapi
                 tlUser.telegram_id = telegram_id;                   
             
 
-            var userChat = await chatsProvider.CollectUserChat(account_id, tlUser);
+            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser);
 
             return userChat;
         }
