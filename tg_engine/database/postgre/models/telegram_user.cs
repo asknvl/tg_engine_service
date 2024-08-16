@@ -29,5 +29,24 @@ namespace tg_engine.database.postgre.models
             lastname = user.last_name;
             username = user.username;
         }
+
+        public override bool Equals(object p)
+        {
+            var user = p as telegram_user;
+            if (user == null)
+                return false;
+
+            var hashOk = user.access_hash == access_hash;
+            var fnOk = user.firstname == firstname;
+            var lnOk = user.lastname == lastname;
+            var unOk = user.username == username;
+
+            return hashOk && fnOk && lnOk && unOk;  
+        }
+
+        public override string ToString()
+        {
+            return $"tg_id={telegram_id} hash={access_hash} {firstname} {lastname} {username}";
+        }
     }
 }

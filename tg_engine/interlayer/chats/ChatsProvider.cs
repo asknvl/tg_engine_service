@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using logger;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,13 @@ namespace tg_engine.interlayer.chats
     public class ChatsProvider : IChatsProvider
     {
         #region vars
+        ILogger logger;
         IPostgreProvider postgreProvider;
         List<UserChat> userChats = new();
         #endregion
 
-        public ChatsProvider(IPostgreProvider postgreProvider) { 
+        public ChatsProvider(IPostgreProvider postgreProvider, ILogger logger) { 
+            this.logger = logger;
             this.postgreProvider = postgreProvider;
         }
 
@@ -32,6 +35,15 @@ namespace tg_engine.interlayer.chats
             else
             {
                 userChat.is_new = false;
+
+                if (!user.Equals(userChat.user))
+                {
+                    logger.warn("ChatsProvider", $"needUpdate {userChat.user} to {user}");
+                    userChats.Remove(userChat);
+                    userChat = await postgreProvider.CreateUserAndChat(account_id, source_id, user);
+                    userChats.Add(userChat);
+                }
+
             }
             return userChat;
         }

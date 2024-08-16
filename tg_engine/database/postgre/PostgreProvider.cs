@@ -95,7 +95,7 @@ namespace tg_engine.database.postgre
                             await context.SaveChangesAsync();
                             telegram_user_id = new_user.id;
                         }
-                        else                        
+                        else
                             telegram_user_id = foundUser.id;
 
                         var new_chat = new telegram_chat()
@@ -127,17 +127,46 @@ namespace tg_engine.database.postgre
                         res.chat = foundChat;
 
                         var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
-                        if (foundUser.access_hash == null && new_user.access_hash != null)
-                        {
-                            foundUser.access_hash = new_user.access_hash;
-                            await context.SaveChangesAsync();
-                        }
 
-                        res.user = foundUser;
+                        if (foundUser != null)
+                        {
+
+                            if ((foundUser.access_hash == null && new_user.access_hash != null) || (new_user.access_hash != null && foundUser.access_hash != new_user.access_hash))
+                            {
+                                foundUser.access_hash = new_user.access_hash;
+                                await context.SaveChangesAsync();
+                            }
+
+                            var nfn = new_user.firstname;
+                            var nln = new_user.lastname;
+                            var nun = new_user.username;
+
+                            var fn = foundUser.firstname;
+                            var ln = foundUser.lastname;    
+                            var un = foundUser.username;
+
+                            var needUpdate = (!string.IsNullOrEmpty(nfn) && !nfn.Equals(fn)) ||
+                                             (!string.IsNullOrEmpty(nln) && !nln.Equals(ln)) ||
+                                             (!string.IsNullOrEmpty(nun) && !nun.Equals(un));
+
+
+
+                            if (needUpdate)
+                            {
+                                foundUser.firstname = nfn;
+                                foundUser.lastname = nln;
+                                foundUser.username = nun;
+
+                                await context.SaveChangesAsync();
+                            }
+
+                            res.user = foundUser;
+                        }
                     }
 
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }

@@ -89,9 +89,9 @@ namespace tg_engine.userapi
             this.tgHubProvider = tgHubProvider;
             this.s3Provider = s3Provider;
 
-            chatsProvider = new ChatsProvider(postgreProvider);
-
             this.logger = logger;
+
+            chatsProvider = new ChatsProvider(postgreProvider, logger);
 
             status = UserApiStatus.inactive;
         }
