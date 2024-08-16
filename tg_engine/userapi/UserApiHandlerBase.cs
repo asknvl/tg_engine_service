@@ -339,6 +339,8 @@ namespace tg_engine.userapi
                     {
                         userChat = await getUserChat(unm.message.Peer.ID);
 
+                        logger.dbg(tag, $"getUserChat: {userChat.user}");
+
                         var message = unm.message as Message;
 
                         var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
