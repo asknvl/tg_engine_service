@@ -50,22 +50,26 @@ namespace tg_engine.interlayer.chats
 
         public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
         {
-            var found = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.telegram_id == telegram_id);
-            if (found == null)
+            var userChat = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.telegram_id == telegram_id);
+            if (userChat == null)
             {
-                found = await postgreProvider.GetUserChat(account_id, telegram_id);
+                userChat = await postgreProvider.GetUserChat(account_id, telegram_id);
+                if (userChat != null)
+                    userChats.Add(userChat);
             }
-            return found;
+            return userChat;
         }
 
         public async Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id)
         {
-            var found = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.id == telegram_user_id);
-            if (found == null)
+            var userChat = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.id == telegram_user_id);
+            if (userChat == null)
             {
-                found = await postgreProvider.GetUserChat(account_id, telegram_user_id);
+                userChat = await postgreProvider.GetUserChat(account_id, telegram_user_id);
+                if (userChat != null)
+                    userChats.Add(userChat);
             }
-            return found;
+            return userChat;
         }
     }
 }
