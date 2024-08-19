@@ -673,17 +673,23 @@ namespace tg_engine.userapi
 
                 IL.MessageBase message = new();
 
+                string access_hash = "";
+
                 if (user != null)
                 {
                     peer = user;
+                    access_hash = "TG_" + user.access_hash;
                 }
                 else
                 {
                     if (userChat != null)
                     {
                         peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
+                        access_hash = "DB_" + userChat.user.access_hash;
                     }
                 }
+
+                logger.inf(tag, $"OnNewMessage: {userChat.user}, {access_hash}");
 
                 switch (messageDto.media)
                 {
