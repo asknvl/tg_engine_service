@@ -16,23 +16,20 @@ namespace tg_engine.tg_hub.events
 
         public newChatEvent(UserChat userChat, Guid source_id, string source_name) : base(userChat)
         {
-            data = new data()
+            data = new chatData()
             {
-                chat = new chatData()
-                {
-                    id = userChat.chat.id,
-                    chat_type = userChat.chat.chat_type,
-                    account_id = userChat.chat.account_id,
-                    telegram_user_id = userChat.chat.telegram_user_id,
-                    is_deleted = userChat.chat.is_deleted,
-                    unread_mark = userChat.chat.unread_mark,
-                    top_message = userChat.chat.top_message,
-                    top_message_text = userChat.chat.top_message_text,
-                    top_message_date = userChat.chat.top_message_date,
-                    read_inbox_max_id = userChat.chat.read_inbox_max_id,
-                    read_outbox_max_id = userChat.chat.read_outbox_max_id,
-                    unread_count = userChat.chat.unread_count                    
-                },
+                id = userChat.chat.id,
+                chat_type = userChat.chat.chat_type,
+                account_id = userChat.chat.account_id,
+                telegram_user_id = userChat.chat.telegram_user_id,
+                is_deleted = userChat.chat.is_deleted,
+                unread_mark = userChat.chat.unread_mark,
+                top_message = userChat.chat.top_message,
+                top_message_text = userChat.chat.top_message_text,
+                top_message_date = userChat.chat.top_message_date,
+                read_inbox_max_id = userChat.chat.read_inbox_max_id,
+                read_outbox_max_id = userChat.chat.read_outbox_max_id,
+                unread_count = userChat.chat.unread_count,
 
                 user = new userData()
                 {
@@ -53,13 +50,6 @@ namespace tg_engine.tg_hub.events
         }      
     }
 
-    class data
-    {
-        public chatData chat { get; set; }
-        public userData user { get; set; } 
-        public sourceData source { get; set; }
-    }
-
     class chatData
     {
         public Guid id { get; set; }
@@ -74,6 +64,8 @@ namespace tg_engine.tg_hub.events
         public int? read_inbox_max_id { get; set; }
         public int? read_outbox_max_id { get; set; }
         public int? unread_count { get; set; } = 0;
+        public userData user { get; set; } 
+        public sourceData source { get; set; }
     }
 
     class userData

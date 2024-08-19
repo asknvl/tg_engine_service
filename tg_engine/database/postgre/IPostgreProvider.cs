@@ -15,6 +15,7 @@ namespace tg_engine.database.postgre
         Task<List<channel_account>> GetChannelsAccounts();
         Task<List<DMStartupSettings>> GetStatupData();
         Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user);
+        Task UpdateUser(telegram_user user);
         Task<UserChat?> GetUserChat(Guid account_id, long telegram_id);
         Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id);
         Task<telegram_chat> UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null);

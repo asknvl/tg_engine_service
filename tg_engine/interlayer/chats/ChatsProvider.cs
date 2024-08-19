@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using tg_engine.database.postgre;
 using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
+using TL;
 
 namespace tg_engine.interlayer.chats
 {
@@ -36,26 +37,16 @@ namespace tg_engine.interlayer.chats
             {
                 userChat.is_new = false;
 
-                if (!user.Equals(userChat.user))
+                if (user.access_hash != null)
                 {
-                    logger.warn("ChatsProvider", $"needUpdate {userChat.user} to {user}");
-                    userChats.Remove(userChat);
-                    userChat = await postgreProvider.CreateUserAndChat(account_id, source_id, user);
-                    userChats.Add(userChat);
+                    if (userChat.user.access_hash != user.access_hash)
+                    {
+                        logger.warn("chatsProvider", $"access_hash changed: {userChat.user.access_hash}->{user.access_hash}, {userChat.user}");
+                        userChat.user.access_hash = user.access_hash;
+                        await postgreProvider.UpdateUser(userChat.user);
+                        logger.warn("chatsProvider", $"user updated {userChat.user}");
+                    }
                 }
-
-            }
-            return userChat;
-        }
-
-        public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
-        {
-            var userChat = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.telegram_id == telegram_id);
-            if (userChat == null)
-            {
-                userChat = await postgreProvider.GetUserChat(account_id, telegram_id);
-                if (userChat != null)
-                    userChats.Add(userChat);
             }
             return userChat;
         }

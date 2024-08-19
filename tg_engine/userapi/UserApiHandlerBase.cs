@@ -1,6 +1,7 @@
 ﻿using logger;
 using MediaInfo;
 using MongoDB.Driver;
+using System;
 using System.Diagnostics;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
@@ -154,26 +155,6 @@ namespace tg_engine.userapi
             return userChat;
         }
 
-        async Task<InputPeer?> getInputPeer(long telegram_id)
-        {
-            InputPeer? result = null;
-
-            var userChat = await chatsProvider.GetUserChat(account_id, telegram_id);
-
-            var peer = manager.Users.TryGetValue(telegram_id, out var u);
-            if (u != null)
-                result = u;
-            else
-            {
-                if (userChat != null)
-                {
-                    result = new InputPeerUser(telegram_id, (long)userChat.user.access_hash);
-
-                }
-            }
-            return result;
-        }
-
         string getExtensionFromMimeType(string input)
         {
             var res = input;
@@ -289,7 +270,7 @@ namespace tg_engine.userapi
         {
 
             UserChat userChat = null;
-            long telegram_id = 0;
+            long telegram_id = 0;            
 
             switch (update)
             {
@@ -298,15 +279,14 @@ namespace tg_engine.userapi
 
                 case UpdateReadHistoryInbox uhi:
                     //мы прочли
-
-                    var uc = manager.UserOrChat(uhi.peer);
-
                     telegram_id = uhi.peer.ID;
                     try
                     {
+
                         userChat = await getUserChat(telegram_id);
                         userChat = await handleMessageRead(userChat, "in", uhi.max_id);
-                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                        await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));                                                                                                              
                     }
                     catch (Exception ex)
                     {
@@ -321,7 +301,8 @@ namespace tg_engine.userapi
                     {
                         userChat = await getUserChat(telegram_id);
                         userChat = await handleMessageRead(userChat, "out", uho.max_id);
-                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                        await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
                     }
                     catch (Exception ex)
                     {
@@ -330,7 +311,14 @@ namespace tg_engine.userapi
                     break;
 
                 case UpdateDeleteMessages udm:
-                    await handleMessageDeletion(udm.messages);
+                    try
+                    {
+                        await handleMessageDeletion(udm.messages);
+                        
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"UpdateDeleteMessages: {ex.Message} {ex?.InnerException?.Message}");
+                    }
                     break;
 
                 case UpdateNewMessage unm:
@@ -345,7 +333,10 @@ namespace tg_engine.userapi
 
                         var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
                         if (exists)
+                        {
+                            logger.warn(tag, $"Сообщение с telegram_message_id={unm.message.ID} уже существует (1)");
                             return;
+                        }
 
                         if (message != null)
                         {
@@ -374,55 +365,50 @@ namespace tg_engine.userapi
 
                                     await mongoProvider.SaveMessage(messageBase);
 
-                                    //var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
-                                    //                                       messageBase.telegram_message_id,
-                                    //                                       messageBase.text ?? "Медиа",
-                                    //                                       messageBase.date,
-                                    //                                       add_unread: messageBase.direction.Equals("in"));
-
-                                    var updatedChat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
+                                    userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
                                                                                              messageBase.direction,
                                                                                              messageBase.telegram_message_id,
                                                                                              messageBase.text ?? "Медиа",
                                                                                              messageBase.date);
 
 
-                                    if (/*userChat.is_new*/true) //временно посылаем новый чат, чтобы на фронте все обновилось
-                                    {
+                                    var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
 
-                                        userChat.chat = updatedChat;
+                                    await tgHubProvider.SendEvent(chEvent);
 
-                                        try
-                                        {
-                                            await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+                                    if (userChat.is_new) //тоже временное уловие
+                                        logger.inf(tag, $"userChat:{source_name} {userChat.user}");
 
-                                            if (userChat.is_new) //тоже временное уловие
-                                                logger.inf(tag, $"userChat:{source_name} {userChat.user.telegram_id} {userChat.user.access_hash} {userChat.user.firstname} {userChat.user.lastname}");
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            logger.err(tag, ex.Message);
-                                        }
-                                    }
+                                    //if (/*userChat.is_new*/true) //временно посылаем новый чат, чтобы на фронте все обновилось
+                                    //{
 
+                                    //    userChat.chat = updatedChat;
 
+                                    //    try
+                                    //    {
+                                    //        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+
+                                    //        if (userChat.is_new) //тоже временное уловие
+                                    //            logger.inf(tag, $"userChat:{source_name} {userChat.user}");
+                                    //    }
+                                    //    catch (Exception ex)
+                                    //    {
+                                    //        logger.err(tag, ex.Message);
+                                    //    }
+                                    //}
 
                                     //событие о новом сообщении                
                                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
-                                    //обновить счетчик непрочитанных для входящих и top_message                             
-
-
+                                    
                                     logger.inf(tag, $"{messageBase.direction}:" +
-                                                    $"{userChat.user.telegram_id} " +
-                                                    $"{userChat.user.firstname} " +
-                                                    $"{userChat.user.lastname} " +
+                                                    $"{userChat.user} " +                                                   
                                                     $"({messageBase.media?.type ?? "text"}) " +
                                                     $"by={messageBase.business_bot_username ?? "closer"}");
 
                                 }
                                 catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
                                 {
-                                    logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует");
+                                    logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
                                 }
                             }
                         }
@@ -735,11 +721,7 @@ namespace tg_engine.userapi
 
 
                     await mongoProvider.SaveMessage(message);
-                    stopwatch.Stop();
-
-                    //собыьте о новом сообщении
-
-                    //var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id, message.telegram_message_id, message.text ?? "Медиа", message.date);
+                    
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
                                                                              message.direction,
@@ -748,11 +730,12 @@ namespace tg_engine.userapi
 
                     userChat.chat = updatedChat;
 
-                    await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
-                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));                   
+                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
+                    stopwatch.Stop();
 
-                    logger.inf(tag, $"{message.chat_id} {message.direction}:{userChat.user.telegram_id} {userChat.user.firstname} {userChat.user.lastname} time={stopwatch.ElapsedMilliseconds} ms");
+                    logger.inf(tag, $"{message.direction}:{userChat.user} time={stopwatch.ElapsedMilliseconds} ms");
                 }
 
             }
@@ -791,7 +774,7 @@ namespace tg_engine.userapi
                     {                        
                         await client.ReadHistory(peer, rh.max_id);
                         await handleMessageRead(userChat, "in", rh.max_id);
-                        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
                     }
                     catch (Exception ex)
                     {

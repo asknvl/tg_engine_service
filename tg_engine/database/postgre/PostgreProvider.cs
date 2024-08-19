@@ -3,6 +3,7 @@ using tg_engine.config;
 using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 using tg_engine.dm;
+using TL;
 
 namespace tg_engine.database.postgre
 {
@@ -172,6 +173,31 @@ namespace tg_engine.database.postgre
             }
 
             return res;
+        }
+
+        public async Task UpdateUser(telegram_user user)
+        {   
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == user.id);
+
+                if (foundUser != null)
+                {
+                    bool updated = false;
+
+                    if (user.access_hash != null && user.access_hash != foundUser.access_hash)
+                    {
+                        foundUser.access_hash = user.access_hash;                        
+                        updated = true;
+                    }
+
+                    if (updated)
+                    {
+                        await context.SaveChangesAsync();                        
+                    }
+                }
+
+            }            
         }
 
         public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)

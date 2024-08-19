@@ -13,12 +13,13 @@ namespace tg_engine.tg_hub.events
     {
         [JsonIgnore]
         public override string path => "events/new-message";
-        public newMessageEvent(UserChat userChat, IL.MessageBase message) : base(userChat) { 
+        public newMessageEvent(UserChat userChat, IL.MessageBase message) : base(userChat) {
 
             data = new messageData()
             {
+                id = message.id,
                 chat_id = message.chat_id,
-                direction = message.direction,
+                direction = message.direction,                
                 telegram_id = message.telegram_id,
                 telegram_message_id = message.telegram_message_id,
                 text = message.text,
@@ -35,6 +36,7 @@ namespace tg_engine.tg_hub.events
     {
         public Guid chat_id { get; set; }
         public string direction { get; set; }
+        public string id { get; set; }    
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }
         public string? text { get; set; }
