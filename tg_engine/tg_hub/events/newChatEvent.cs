@@ -30,10 +30,10 @@ namespace tg_engine.tg_hub.events
                 top_message_date = userChat.chat.top_message_date,
                 read_inbox_max_id = userChat.chat.read_inbox_max_id,
                 read_outbox_max_id = userChat.chat.read_outbox_max_id,
-                unread_inbox_count = userChat.chat.unread_count,
-                unread_inbox_mark = userChat.chat.unread_mark,
-                unread_outbox_count = userChat.chat.unread_count,
-                unread_outbox_mark = userChat.chat.unread_mark,                
+                unread_inbox_count = userChat.chat.unread_inbox_count,
+                unread_inbox_mark = userChat.chat.unread_inbox_mark,
+                unread_outbox_count = userChat.chat.unread_outbox_count,
+                unread_outbox_mark = userChat.chat.unread_outbox_mark,                
 
                 user = new userData()
                 {
