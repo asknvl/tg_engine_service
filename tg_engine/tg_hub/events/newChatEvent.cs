@@ -23,13 +23,17 @@ namespace tg_engine.tg_hub.events
                 account_id = userChat.chat.account_id,
                 telegram_user_id = userChat.chat.telegram_user_id,
                 is_deleted = userChat.chat.is_deleted,
+                unread_count = userChat.chat.unread_count,
                 unread_mark = userChat.chat.unread_mark,
                 top_message = userChat.chat.top_message,
                 top_message_text = userChat.chat.top_message_text,
                 top_message_date = userChat.chat.top_message_date,
                 read_inbox_max_id = userChat.chat.read_inbox_max_id,
                 read_outbox_max_id = userChat.chat.read_outbox_max_id,
-                unread_count = userChat.chat.unread_count,
+                unread_inbox_count = userChat.chat.unread_count,
+                unread_inbox_mark = userChat.chat.unread_mark,
+                unread_outbox_count = userChat.chat.unread_count,
+                unread_outbox_mark = userChat.chat.unread_mark,                
 
                 user = new userData()
                 {
@@ -57,13 +61,18 @@ namespace tg_engine.tg_hub.events
         public Guid telegram_user_id { get; set; }
         public bool is_deleted { get; set; }
         public string chat_type { get; set; }
+        public int? unread_count { get; set; } = 0;
         public bool? unread_mark { get; set; }
         public int? top_message { get; set; }
         public string? top_message_text { get; set; }
         public DateTime? top_message_date { get; set; }
         public int? read_inbox_max_id { get; set; }
         public int? read_outbox_max_id { get; set; }
-        public int? unread_count { get; set; } = 0;
+        public int? unread_inbox_count { get; set; }
+        public bool? unread_inbox_mark { get; set; }
+        public int? unread_outbox_count { get; set; }
+        public bool? unread_outbox_mark { get; set; }
+
         public userData user { get; set; } 
         public sourceData source { get; set; }
     }
