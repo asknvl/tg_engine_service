@@ -10,6 +10,7 @@ namespace tg_engine.tg_hub.events
 {
     public abstract class EventBase
     {
+        [JsonIgnore]
         public abstract string path { get; }
         public Guid account_id { get; protected set; }
         public Guid chat_id { get; protected set; }        
