@@ -976,26 +976,41 @@ namespace tg_engine.userapi
                 var dialogs = await client.Messages_GetDialogs(limit: 100); //сделать 500 ?
                 dialogs.CollectUsersChats(manager.Users, manager.Chats);
 
-                var chats = await client.Messages_GetAllChats();
-                InputPeer peer = chats.chats[2248416752];
 
-                for (int offset_id = 0; ;)
+
+                //var chats = await client.Messages_GetAllChats();
+
+                var chats = manager.Chats;
+
+
+                // Фильтрация каналов
+                //var channels = difference.chats.Values.OfType<Channel>()
+                //                    .Where(channel => channel.creator == false && channel.megagroup == false);
+
+
+                InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service"));
+                //InputPeer peer = chats[2248416752];
+
+                if (peer != null)
                 {
-                    var messages = await client.Messages_GetHistory(peer, offset_id);
-                    if (messages.Messages.Length == 0) break;
-                    foreach (var msgBase in messages.Messages)
+                    for (int offset_id = 0; ;)
                     {
-                        var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
-                        if (msgBase is Message msg)
+                        var messages = await client.Messages_GetHistory(peer, offset_id);
+                        if (messages.Messages.Length == 0) break;
+                        foreach (var msgBase in messages.Messages)
                         {
-                            await handleMessage(msgBase);
-                        }
-                            
-                        //else if (msgBase is MessageService ms)
-                        //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
-                    }
-                    offset_id = messages.Messages[^1].ID;
+                            var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
+                            if (msgBase is Message msg)
+                            {
+                                await handleMessage(msgBase);
+                            }
 
+                            //else if (msgBase is MessageService ms)
+                            //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
+                        }
+                        offset_id = messages.Messages[^1].ID;
+
+                    }
                 }
 
                 manager.SaveState(state_path);
