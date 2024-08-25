@@ -142,12 +142,38 @@ namespace tg_engine.userapi
         #region helpers
         async Task<UserChat> getUserChat(long telegram_id)
         {
-            bool isOk = manager.Users.TryGetValue(telegram_id, out var user);
+
+            bool isUser = manager.Users.TryGetValue(telegram_id, out var tuser);
+            bool isChat = manager.Chats.TryGetValue(telegram_id, out var tchat);
+
             telegram_user tlUser = new();
-            if (isOk)
-                tlUser = new telegram_user(user);
-            else 
-                tlUser.telegram_id = telegram_id;                   
+            if (isUser)
+                tlUser = new telegram_user(tuser);
+            else
+                if (isChat)
+            {
+                var channel = tchat as TL.Channel;
+                if (channel != null)
+                {
+                    tlUser.telegram_id = channel.ID;
+                    tlUser.access_hash = channel.access_hash;
+                    tlUser.firstname = channel.Title;
+                }                
+            }
+            else
+            {
+                tlUser.telegram_id = telegram_id;
+            }
+
+            //bool isOk = isUser || isChat;
+
+            //bool isOk = manager.Users.TryGetValue(telegram_id, out var user);
+            
+
+            //if (isOk)
+            //    tlUser = new telegram_user(user);
+            //else 
+            //    tlUser.telegram_id = telegram_id;                   
             
 
             var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser);
@@ -172,6 +198,12 @@ namespace tg_engine.userapi
             return message;
         }
 
+        async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
+        {
+            var message = await messageConstructor.Text(userChat, input, getUserChat);
+            return message;
+        }
+
         async Task<IL.MessageBase> handleImage(UpdateNewMessage unm, MessageMediaPhoto mmp, UserChat userChat)
         {
 
@@ -187,6 +219,26 @@ namespace tg_engine.userapi
                 var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
 
                 message = await messageConstructor.Image(userChat, unm, photo, getUserChat, s3info);
+            }
+
+            return message;
+        }
+
+        async Task<IL.MessageBase> handleImage(TL.MessageBase input, MessageMediaPhoto mmp, UserChat userChat)
+        {
+
+            IL.MessageBase message = null;
+
+            Photo photo = (Photo)mmp.photo;
+
+            if (photo != null)
+            {
+
+                MemoryStream stream = new MemoryStream();
+                var ext = await client.DownloadFileAsync(photo, stream);
+                var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
+
+                message = await messageConstructor.Image(userChat, input, photo, getUserChat, s3info);
             }
 
             return message;
@@ -234,6 +286,132 @@ namespace tg_engine.userapi
 
             return message;
         }
+
+        async Task<IL.MessageBase> handleMediaDocument(TL.MessageBase input, MessageMediaDocument mmd, UserChat userChat)
+        {
+            Document document = mmd.document as Document;
+
+            IL.MessageBase? message = null;
+
+            if (document != null)
+            {
+
+                MemoryStream stream = new MemoryStream();
+                var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
+
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                var s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+                stopwatch.Stop();
+
+                logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");
+
+                //мб нужно кешировать
+
+                switch (document.mime_type)
+                {
+                    case "application/x-tgsticker":
+                        message = await messageConstructor.Sticker(userChat, input, document, getUserChat, s3info);
+                        break;
+
+                    case "image/jpeg":
+                        message = await messageConstructor.Photo(userChat, input, document, getUserChat, s3info);
+                        break;
+
+                    case "video/mp4":
+                        message = await messageConstructor.Video(userChat, input, document, getUserChat, s3info);
+                        break;
+
+                    case "":
+                        break;
+                }
+            }
+
+            return message;
+        }
+
+        async Task handleMessage(TL.MessageBase input)
+        {
+            try
+            {
+                //var userChat = await getUserChat(unm.message.Peer.ID);
+                var userChat = await getUserChat(input.Peer.ID);
+
+                logger.dbg(tag, $"getUserChat: {userChat.user}");
+
+                var message = input as Message;
+
+                var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
+                if (exists)
+                {
+                    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
+                    return;
+                }
+
+                if (message != null)
+                {
+                    IL.MessageBase messageBase = null;
+
+                    switch (message.media)
+                    {
+                        case null:
+                        case MessageMediaWebPage:
+                            messageBase = await handleTextMessage(input, userChat);
+                            break;
+
+                        case MessageMediaDocument mmd:
+                            messageBase = await handleMediaDocument(input, mmd, userChat);
+                            break;
+
+                        case MessageMediaPhoto mmp:
+                            messageBase = await handleImage(input, mmp, userChat);
+                            break;
+                    }
+
+                    if (messageBase != null)
+                    {
+                        try
+                        {
+
+                            await mongoProvider.SaveMessage(messageBase);
+
+                            userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
+                                                                                     messageBase.direction,
+                                                                                     messageBase.telegram_message_id,
+                                                                                     messageBase.text ?? "Медиа",
+                                                                                     messageBase.date);
+
+
+                            var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
+
+                            await tgHubProvider.SendEvent(chEvent);
+
+                            if (userChat.is_new) //тоже временное уловие
+                                logger.inf(tag, $"userChat:{source_name} {userChat.user}");
+
+                            //событие о новом сообщении                
+                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
+
+                            logger.inf(tag, $"{messageBase.direction}:" +
+                                            $"{userChat.user} " +
+                                            $"({messageBase.media?.type ?? "text"}) " +
+                                            $"by={messageBase.business_bot_username ?? "closer"}");
+
+                        }
+                        catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+                        {
+                            logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                logger.err(tag, ex.Message);
+            }
+        }
+
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids)
         {
@@ -273,10 +451,7 @@ namespace tg_engine.userapi
             long telegram_id = 0;            
 
             switch (update)
-            {
-                case UpdateNewChannelMessage:
-                    break;
-
+            {                
                 case UpdateReadHistoryInbox uhi:
                     //мы прочли
                     telegram_id = uhi.peer.ID;
@@ -321,103 +496,90 @@ namespace tg_engine.userapi
                     }
                     break;
 
+                case UpdateNewChannelMessage uncm:
+                    await handleMessage(uncm.message);
+                    break;
+
                 case UpdateNewMessage unm:
+                    await handleMessage(unm.message);
 
-                    try
-                    {
-                        userChat = await getUserChat(unm.message.Peer.ID);
+                    //try
+                    //{
+                    //    userChat = await getUserChat(unm.message.Peer.ID);
 
-                        logger.dbg(tag, $"getUserChat: {userChat.user}");
+                    //    logger.dbg(tag, $"getUserChat: {userChat.user}");
 
-                        var message = unm.message as Message;
+                    //    var message = unm.message as Message;
 
-                        var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
-                        if (exists)
-                        {
-                            logger.warn(tag, $"Сообщение с telegram_message_id={unm.message.ID} уже существует (1)");
-                            return;
-                        }
+                    //    var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
+                    //    if (exists)
+                    //    {
+                    //        logger.warn(tag, $"Сообщение с telegram_message_id={unm.message.ID} уже существует (1)");
+                    //        return;
+                    //    }
 
-                        if (message != null)
-                        {
-                            IL.MessageBase messageBase = null;
+                    //    if (message != null)
+                    //    {
+                    //        IL.MessageBase messageBase = null;
 
-                            switch (message.media)
-                            {
-                                case null:
-                                case MessageMediaWebPage:
-                                    messageBase = await handleTextMessage(unm, userChat);
-                                    break;
+                    //        switch (message.media)
+                    //        {
+                    //            case null:
+                    //            case MessageMediaWebPage:
+                    //                messageBase = await handleTextMessage(unm, userChat);
+                    //                break;
 
-                                case MessageMediaDocument mmd:
-                                    messageBase = await handleMediaDocument(unm, mmd, userChat);
-                                    break;
+                    //            case MessageMediaDocument mmd:
+                    //                messageBase = await handleMediaDocument(unm, mmd, userChat);
+                    //                break;
 
-                                case MessageMediaPhoto mmp:
-                                    messageBase = await handleImage(unm, mmp, userChat);
-                                    break;
-                            }
+                    //            case MessageMediaPhoto mmp:
+                    //                messageBase = await handleImage(unm, mmp, userChat);
+                    //                break;
+                    //        }
 
-                            if (messageBase != null)
-                            {
-                                try
-                                {
+                    //        if (messageBase != null)
+                    //        {
+                    //            try
+                    //            {
 
-                                    await mongoProvider.SaveMessage(messageBase);
+                    //                await mongoProvider.SaveMessage(messageBase);
 
-                                    userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
-                                                                                             messageBase.direction,
-                                                                                             messageBase.telegram_message_id,
-                                                                                             messageBase.text ?? "Медиа",
-                                                                                             messageBase.date);
+                    //                userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
+                    //                                                                         messageBase.direction,
+                    //                                                                         messageBase.telegram_message_id,
+                    //                                                                         messageBase.text ?? "Медиа",
+                    //                                                                         messageBase.date);
 
 
-                                    var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
+                    //                var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
 
-                                    await tgHubProvider.SendEvent(chEvent);
+                    //                await tgHubProvider.SendEvent(chEvent);
 
-                                    if (userChat.is_new) //тоже временное уловие
-                                        logger.inf(tag, $"userChat:{source_name} {userChat.user}");
+                    //                if (userChat.is_new) //тоже временное уловие
+                    //                    logger.inf(tag, $"userChat:{source_name} {userChat.user}");
 
-                                    //if (/*userChat.is_new*/true) //временно посылаем новый чат, чтобы на фронте все обновилось
-                                    //{
+                    //                //событие о новом сообщении                
+                    //                await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
 
-                                    //    userChat.chat = updatedChat;
+                    //                logger.inf(tag, $"{messageBase.direction}:" +
+                    //                                $"{userChat.user} " +
+                    //                                $"({messageBase.media?.type ?? "text"}) " +
+                    //                                $"by={messageBase.business_bot_username ?? "closer"}");
 
-                                    //    try
-                                    //    {
-                                    //        await tgHubProvider.SendEvent(new newChatEvent(userChat, source_id, source_name));
+                    //            }
+                    //            catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+                    //            {
+                    //                logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
+                    //            }
+                    //        }
+                    //    }
 
-                                    //        if (userChat.is_new) //тоже временное уловие
-                                    //            logger.inf(tag, $"userChat:{source_name} {userChat.user}");
-                                    //    }
-                                    //    catch (Exception ex)
-                                    //    {
-                                    //        logger.err(tag, ex.Message);
-                                    //    }
-                                    //}
-
-                                    //событие о новом сообщении                
-                                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
-                                    
-                                    logger.inf(tag, $"{messageBase.direction}:" +
-                                                    $"{userChat.user} " +                                                   
-                                                    $"({messageBase.media?.type ?? "text"}) " +
-                                                    $"by={messageBase.business_bot_username ?? "closer"}");
-
-                                }
-                                catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
-                                {
-                                    logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
-                                }
-                            }
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, ex.Message);
-                    }
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    logger.err(tag, ex.Message);
+                    //}
                     break;
             }
 
@@ -825,11 +987,15 @@ namespace tg_engine.userapi
                     {
                         var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                         if (msgBase is Message msg)
-                            Console.WriteLine($"{from}> {msg.message} {msg.media}");
-                        else if (msgBase is MessageService ms)
-                            Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
+                        {
+                            await handleMessage(msgBase);
+                        }
+                            
+                        //else if (msgBase is MessageService ms)
+                        //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
                     }
                     offset_id = messages.Messages[^1].ID;
+
                 }
 
                 manager.SaveState(state_path);

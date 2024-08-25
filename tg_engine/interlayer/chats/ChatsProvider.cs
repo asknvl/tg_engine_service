@@ -42,10 +42,23 @@ namespace tg_engine.interlayer.chats
                     if (userChat.user.access_hash != user.access_hash)
                     {
                         logger.warn("chatsProvider", $"access_hash changed: {userChat.user.access_hash}->{user.access_hash}, {userChat.user}");
-                        userChat.user.access_hash = user.access_hash;
+                        userChat.user.access_hash = user.access_hash;                        
                         await postgreProvider.UpdateUser(userChat.user);
                         logger.warn("chatsProvider", $"user updated {userChat.user}");
                     }
+
+                    bool needUpdate = false;
+                    if (userChat.user.firstname != user.firstname)
+                    {
+                        userChat.user.firstname = user.firstname;   
+                        userChat.user.lastname = user.lastname;
+                        userChat.user.username = user.username;
+                        needUpdate = true;
+                    }
+                        
+                    if (needUpdate)
+                        await postgreProvider.UpdateUser(userChat.user);
+
                 }
             }
             return userChat;
