@@ -31,7 +31,7 @@ namespace tg_engine.database.mongo
 
         public async Task SaveMessage(MessageBase message)
         {
-            await messages.InsertOneAsync(message);
+            await messages.InsertOneAsync(message);         
         }
 
         public async Task<List<MessageBase>> GetMessages(Guid chat_id)
@@ -61,9 +61,15 @@ namespace tg_engine.database.mongo
 
         }
 
-        public async Task<List<MessageBase>> MarkMessagesDeleted(int[] ids)
+        public async Task<List<MessageBase>> MarkMessagesDeleted(int[] ids, long? telegram_chat_id = null)
         {
-            var filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
+
+            FilterDefinition<MessageBase> filter;
+            if (!telegram_chat_id.HasValue)
+                filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
+            else
+                filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids) &
+                         Builders<MessageBase>.Filter.Eq("telegram_id", telegram_chat_id);
 
             var cursor = await messages.FindAsync(filter);
             var found = await cursor.ToListAsync();

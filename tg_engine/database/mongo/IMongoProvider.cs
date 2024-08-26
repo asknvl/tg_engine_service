@@ -12,7 +12,7 @@ namespace tg_engine.database.mongo
         Task SaveMessage(MessageBase message);
         Task<bool> CheckMessageExists(int message_id);
         Task<List<MessageBase>> GetMessages(Guid chat_id);
-        Task<List<MessageBase>> MarkMessagesDeleted(int[] ids);
+        Task<List<MessageBase>> MarkMessagesDeleted(int[] ids, long? telegram_chat_id = null);
         Task<(int,int)> MarkMessagesRead(Guid chat_id, string direction, int max_message_id);
         Task<bool> CheckMessageExists(Guid chat_id, int message_id);
     }

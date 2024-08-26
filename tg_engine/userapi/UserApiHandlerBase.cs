@@ -165,17 +165,6 @@ namespace tg_engine.userapi
                 tlUser.telegram_id = telegram_id;
             }
 
-            //bool isOk = isUser || isChat;
-
-            //bool isOk = manager.Users.TryGetValue(telegram_id, out var user);
-            
-
-            //if (isOk)
-            //    tlUser = new telegram_user(user);
-            //else 
-            //    tlUser.telegram_id = telegram_id;                   
-            
-
             var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser);
 
             return userChat;
@@ -192,35 +181,9 @@ namespace tg_engine.userapi
         #endregion
 
         #region updates
-        async Task<IL.MessageBase> handleTextMessage(UpdateNewMessage unm, UserChat userChat)
-        {
-            var message = await messageConstructor.Text(userChat, unm, getUserChat);
-            return message;
-        }
-
         async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
         {
             var message = await messageConstructor.Text(userChat, input, getUserChat);
-            return message;
-        }
-
-        async Task<IL.MessageBase> handleImage(UpdateNewMessage unm, MessageMediaPhoto mmp, UserChat userChat)
-        {
-
-            IL.MessageBase message = null;
-
-            Photo photo = (Photo)mmp.photo;
-
-            if (photo != null)
-            {
-
-                MemoryStream stream = new MemoryStream();
-                var ext = await client.DownloadFileAsync(photo, stream);
-                var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
-
-                message = await messageConstructor.Image(userChat, unm, photo, getUserChat, s3info);
-            }
-
             return message;
         }
 
@@ -239,49 +202,6 @@ namespace tg_engine.userapi
                 var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
 
                 message = await messageConstructor.Image(userChat, input, photo, getUserChat, s3info);
-            }
-
-            return message;
-        }
-
-        async Task<IL.MessageBase> handleMediaDocument(UpdateNewMessage unm, MessageMediaDocument mmd, UserChat userChat)
-        {
-            Document document = mmd.document as Document;
-
-            IL.MessageBase? message = null;
-
-            if (document != null)
-            {
-
-                MemoryStream stream = new MemoryStream();
-                var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
-
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();                                
-                var s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
-                stopwatch.Stop();
-
-                logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");
-
-                //мб нужно кешировать
-
-                switch (document.mime_type)
-                {
-                    case "application/x-tgsticker":
-                        message = await messageConstructor.Sticker(userChat, unm, document, getUserChat, s3info);
-                        break;
-
-                    case "image/jpeg":
-                        message = await messageConstructor.Photo(userChat, unm, document, getUserChat, s3info);
-                        break;
-
-                    case "video/mp4":
-                        message = await messageConstructor.Video(userChat, unm, document, getUserChat, s3info);
-                        break;
-
-                    case "":
-                        break;
-                }
             }
 
             return message;
@@ -413,7 +333,7 @@ namespace tg_engine.userapi
         }
 
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
-        async Task handleMessageDeletion(int[] message_ids)
+        async Task handleMessageDeletion(int[] message_ids, long? telegram_chat_id = null)
         {
             await mongoProvider.MarkMessagesDeleted(message_ids);
         }
@@ -427,13 +347,11 @@ namespace tg_engine.userapi
 
             switch (direction)
             {
-                case "in":
-                    //updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_inbox_max_id: max_read_id);
+                case "in":                    
                     updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_inbox_count: unread_count, read_inbox_max_id: max_read_id);
                     break;
 
-                case "out":
-                    //updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_count: unread_count, read_outbox_max_id: max_read_id);
+                case "out":                    
                     updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_outbox_count: unread_count, read_outbox_max_id: max_read_id);
                     break;
             }
@@ -483,7 +401,7 @@ namespace tg_engine.userapi
                     {
                         logger.err(tag, $"UpdateReadHisotryOutbox: {telegram_id} {ex.Message} {ex?.InnerException?.Message}");
                     }
-                    break;
+                    break;                
 
                 case UpdateDeleteMessages udm:
                     try
@@ -494,92 +412,14 @@ namespace tg_engine.userapi
                     {
                         logger.err(tag, $"UpdateDeleteMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
-                    break;
+                    break;               
 
                 case UpdateNewChannelMessage uncm:
                     await handleMessage(uncm.message);
                     break;
 
                 case UpdateNewMessage unm:
-                    await handleMessage(unm.message);
-
-                    //try
-                    //{
-                    //    userChat = await getUserChat(unm.message.Peer.ID);
-
-                    //    logger.dbg(tag, $"getUserChat: {userChat.user}");
-
-                    //    var message = unm.message as Message;
-
-                    //    var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, unm.message.ID);
-                    //    if (exists)
-                    //    {
-                    //        logger.warn(tag, $"Сообщение с telegram_message_id={unm.message.ID} уже существует (1)");
-                    //        return;
-                    //    }
-
-                    //    if (message != null)
-                    //    {
-                    //        IL.MessageBase messageBase = null;
-
-                    //        switch (message.media)
-                    //        {
-                    //            case null:
-                    //            case MessageMediaWebPage:
-                    //                messageBase = await handleTextMessage(unm, userChat);
-                    //                break;
-
-                    //            case MessageMediaDocument mmd:
-                    //                messageBase = await handleMediaDocument(unm, mmd, userChat);
-                    //                break;
-
-                    //            case MessageMediaPhoto mmp:
-                    //                messageBase = await handleImage(unm, mmp, userChat);
-                    //                break;
-                    //        }
-
-                    //        if (messageBase != null)
-                    //        {
-                    //            try
-                    //            {
-
-                    //                await mongoProvider.SaveMessage(messageBase);
-
-                    //                userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
-                    //                                                                         messageBase.direction,
-                    //                                                                         messageBase.telegram_message_id,
-                    //                                                                         messageBase.text ?? "Медиа",
-                    //                                                                         messageBase.date);
-
-
-                    //                var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
-
-                    //                await tgHubProvider.SendEvent(chEvent);
-
-                    //                if (userChat.is_new) //тоже временное уловие
-                    //                    logger.inf(tag, $"userChat:{source_name} {userChat.user}");
-
-                    //                //событие о новом сообщении                
-                    //                await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
-
-                    //                logger.inf(tag, $"{messageBase.direction}:" +
-                    //                                $"{userChat.user} " +
-                    //                                $"({messageBase.media?.type ?? "text"}) " +
-                    //                                $"by={messageBase.business_bot_username ?? "closer"}");
-
-                    //            }
-                    //            catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
-                    //            {
-                    //                logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
-                    //            }
-                    //        }
-                    //    }
-
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    logger.err(tag, ex.Message);
-                    //}
+                    await handleMessage(unm.message);                  
                     break;
             }
 
