@@ -26,6 +26,6 @@ namespace tg_engine.database.postgre.models
         public int? unread_inbox_count { get; set; } = 0;
         public bool? unread_inbox_mark { get; set; } = false;
         public int? unread_outbox_count { get; set; } = 0;
-        public bool? unread_outbox_mark { get; set; } = false;
+        public bool? unread_outbox_mark { get; set; } = false;        
     }
 }

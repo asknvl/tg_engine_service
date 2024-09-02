@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace tg_engine.database.postgre.models
 {
-    public class telegram_user
+    //Может быть и канал и юзер
+    public class telegram_user 
     {
         [Key]
         public Guid id { get; set; }

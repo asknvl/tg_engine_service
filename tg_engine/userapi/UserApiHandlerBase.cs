@@ -143,29 +143,56 @@ namespace tg_engine.userapi
         async Task<UserChat> getUserChat(long telegram_id)
         {
 
+            string type = ChatTypes.user;
+
             bool isUser = manager.Users.TryGetValue(telegram_id, out var tuser);
             bool isChat = manager.Chats.TryGetValue(telegram_id, out var tchat);
 
             telegram_user tlUser = new();
-            if (isUser)
+            if (isUser) 
                 tlUser = new telegram_user(tuser);
             else
                 if (isChat)
             {
-                var channel = tchat as TL.Channel;
-                if (channel != null)
+
+                switch (tchat)
                 {
-                    tlUser.telegram_id = channel.ID;
-                    tlUser.access_hash = channel.access_hash;
-                    tlUser.firstname = channel.Title;
-                }                
+                    case TL.Channel channel: //канал
+                        tlUser.telegram_id = channel.ID;
+                        tlUser.access_hash = channel.access_hash;
+                        tlUser.firstname = channel.Title;
+                        type = tlUser.firstname.ToLower().Contains("service_channel") ? ChatTypes.service_channel : ChatTypes.channel;
+                        break;
+
+                    case TL.Chat chat: //группа
+                        //tlUser.telegram_id = chat.ID;
+                        //tlUser.access_hash = chat.access_hash;
+                        //tlUser.firstname = chat.Title;
+                        //type = ChatTypes.channel;
+
+                        throw new ArgumentException("Groups not supported");
+
+                        
+                }
+
+                //var channel = tchat as TL.Channel;
+                //if (channel != null)
+                //{
+                //    tlUser.telegram_id = channel.ID;
+                //    tlUser.access_hash = channel.access_hash;
+                //    tlUser.firstname = channel.Title;
+                //    type = ChatTypes.channel;
+                //}
+
+
+
             }
             else
             {
                 tlUser.telegram_id = telegram_id;
             }
 
-            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser);
+            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser, type);
 
             return userChat;
         }
@@ -250,7 +277,7 @@ namespace tg_engine.userapi
             return message;
         }
 
-        async Task handleMessage(TL.MessageBase input)
+        async Task handleNewMessage(TL.MessageBase input)
         {
             try
             {
@@ -321,6 +348,70 @@ namespace tg_engine.userapi
                         catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
                         {
                             logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (2)");
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                logger.err(tag, ex.Message);
+            }
+        }
+
+        async Task handleUpdateMessage(TL.MessageBase input)
+        {
+            try
+            {
+                //var userChat = await getUserChat(unm.message.Peer.ID);
+                var userChat = await getUserChat(input.Peer.ID);
+
+                logger.dbg(tag, $"getUserChat: {userChat.user}");
+
+                var message = input as Message;
+
+                //var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
+                //if (exists)
+                //{
+                //    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
+                //    return;
+                //}
+
+                if (message != null)
+                {
+                    IL.MessageBase messageBase = null;
+
+                    switch (message.media)
+                    {
+                        case null:
+                        case MessageMediaWebPage:
+                            messageBase = await handleTextMessage(input, userChat);
+                            break;
+
+                        case MessageMediaDocument mmd:
+                            messageBase = await handleMediaDocument(input, mmd, userChat);
+                            break;
+
+                        case MessageMediaPhoto mmp:
+                            messageBase = await handleImage(input, mmp, userChat);
+                            break;
+                    }
+
+                    if (messageBase != null)
+                    {
+                        try
+                        {
+                            await mongoProvider.UpdateMessage(messageBase);
+                            //событие об обновлении сообщения
+                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
+
+                            logger.inf(tag, $"{messageBase.direction}:" +
+                                            $"{userChat.user} " +
+                                            $"(updated message_id={messageBase.telegram_message_id})");
+                        }
+                        catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
+                        {
+                            logger.warn(tag, $"Сообщение с telegram_message_id={messageBase.telegram_message_id} уже существует (3)");
                         }
                     }
                 }
@@ -415,12 +506,20 @@ namespace tg_engine.userapi
                     break;               
 
                 case UpdateNewChannelMessage uncm:
-                    await handleMessage(uncm.message);
+                    await handleNewMessage(uncm.message);
                     break;
 
                 case UpdateNewMessage unm:
-                    await handleMessage(unm.message);                  
+                    await handleNewMessage(unm.message);                  
                     break;
+
+                case UpdateEditChannelMessage uecm:
+                    await handleUpdateMessage(uecm.message);
+                    break;
+
+                case UpdateEditMessage uem:
+                    await handleUpdateMessage(uem.message);
+                    break;                    
             }
 
             logger.inf(tag, update.ToString());
@@ -793,6 +892,7 @@ namespace tg_engine.userapi
 
             await Task.CompletedTask;
         }
+
         public virtual async Task Start()
         {
 
@@ -842,7 +942,7 @@ namespace tg_engine.userapi
                             var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                             if (msgBase is Message msg)
                             {
-                                await handleMessage(msgBase);
+                                await handleNewMessage(msgBase);
                             }
 
                             //else if (msgBase is MessageService ms)

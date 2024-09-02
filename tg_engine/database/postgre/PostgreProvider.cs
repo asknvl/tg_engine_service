@@ -68,7 +68,7 @@ namespace tg_engine.database.postgre
             }
         }
 
-        public async Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user)
+        public async Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user, string type)
         {
             UserChat res = new UserChat();
 
@@ -104,7 +104,7 @@ namespace tg_engine.database.postgre
                             account_id = account_id,
                             source_id = source_id,
                             telegram_user_id = telegram_user_id,
-                            chat_type = "private",
+                            chat_type =  type,
                             unread_count = 0,
                             unread_mark = false
                         };
@@ -125,6 +125,12 @@ namespace tg_engine.database.postgre
                             await context.SaveChangesAsync();
                         }
 
+                        if (!foundChat.chat_type.Equals(type))
+                        {
+                            foundChat.chat_type = type;
+                            await context.SaveChangesAsync();
+                        }
+
                         res.chat = foundChat;
 
                         var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
@@ -140,7 +146,7 @@ namespace tg_engine.database.postgre
 
                             var nfn = new_user.firstname;
                             var nln = new_user.lastname;
-                            var nun = new_user.username;
+                            var nun = new_user.username;                            
 
                             var fn = foundUser.firstname;
                             var ln = foundUser.lastname;    

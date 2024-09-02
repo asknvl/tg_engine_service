@@ -25,13 +25,27 @@ namespace tg_engine.database.mongo
             client = new MongoClient(connectionString);
             var database = client.GetDatabase(settings.db_name);
 
-            //messages = database.GetCollection<MessageBase>("messages_test");
-            messages = database.GetCollection<MessageBase>("messages");
+            messages = database.GetCollection<MessageBase>("messages_test");
+            //messages = database.GetCollection<MessageBase>("messages");
         }
 
         public async Task SaveMessage(MessageBase message)
         {
             await messages.InsertOneAsync(message);         
+        }
+
+        public async Task UpdateMessage(MessageBase message)
+        {
+            var filter = Builders<MessageBase>.Filter.Eq("chat_id", message.chat_id) &
+                         Builders<MessageBase>.Filter.Eq("telegram_message_id", message.telegram_message_id);
+
+            var update = Builders<MessageBase>.Update
+                .Set(m => m.text, message.text)
+                .Set(m => m.media, message.media)
+                .Set(m => m.edited_date, DateTime.UtcNow)
+                .Set(m => m.updated_at, DateTime.UtcNow);
+
+            await messages.UpdateOneAsync(filter, update);
         }
 
         public async Task<List<MessageBase>> GetMessages(Guid chat_id)
