@@ -401,9 +401,10 @@ namespace tg_engine.userapi
                     {
                         try
                         {
-                            await mongoProvider.UpdateMessage(messageBase);
+                            var updated = await mongoProvider.UpdateMessage(messageBase);
                             //событие об обновлении сообщения
-                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
+                            //await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
+                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +

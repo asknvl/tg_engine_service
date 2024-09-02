@@ -34,7 +34,7 @@ namespace tg_engine.database.mongo
             await messages.InsertOneAsync(message);         
         }
 
-        public async Task UpdateMessage(MessageBase message)
+        public async Task<MessageBase> UpdateMessage(MessageBase message)
         {
             var filter = Builders<MessageBase>.Filter.Eq("chat_id", message.chat_id) &
                          Builders<MessageBase>.Filter.Eq("telegram_message_id", message.telegram_message_id);
@@ -45,7 +45,16 @@ namespace tg_engine.database.mongo
                 .Set(m => m.edited_date, DateTime.UtcNow)
                 .Set(m => m.updated_at, DateTime.UtcNow);
 
-            await messages.UpdateOneAsync(filter, update);
+            var options = new FindOneAndUpdateOptions<MessageBase>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            var res = await messages.FindOneAndUpdateAsync(filter, update, options);
+
+            return res;
+
+            //var res = await messages.UpdateOneAsync(filter, update);
         }
 
         public async Task<List<MessageBase>> GetMessages(Guid chat_id)
