@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\sources\\tg_engine_service\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\sources\\tg_engine_service\\tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\mongoprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\database\\mongo\\mongoprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\sources\\tg_engine_service\\tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\imongoprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -212,8 +212,8 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 217,
-          "SelectedChildIndex": 5,
+          "DockedWidth": 287,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -229,18 +229,6 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "IPostgreProvider.cs",
-              "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\IPostgreProvider.cs",
-              "RelativeDocumentMoniker": "tg_engine\\database\\postgre\\IPostgreProvider.cs",
-              "ToolTip": "C:\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\IPostgreProvider.cs",
-              "RelativeToolTip": "tg_engine\\database\\postgre\\IPostgreProvider.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAqwBAAAAAoAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-26T22:06:31.876Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 4,
               "Title": "tg_engine_launcher.csproj",
               "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine_launcher\\tg_engine_launcher.csproj",
@@ -253,16 +241,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "MongoProvider.cs",
               "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\MongoProvider.cs",
               "RelativeDocumentMoniker": "tg_engine\\database\\mongo\\MongoProvider.cs",
               "ToolTip": "C:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\MongoProvider.cs",
               "RelativeToolTip": "tg_engine\\database\\mongo\\MongoProvider.cs",
-              "ViewState": "AQIAABsAAAAAAAAAAAAvwDYAAAAXAAAA",
+              "ViewState": "AQIAACIAAAAAAAAAAAAcwDkAAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-25T21:32:34.863Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "IPostgreProvider.cs",
+              "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\IPostgreProvider.cs",
+              "RelativeDocumentMoniker": "tg_engine\\database\\postgre\\IPostgreProvider.cs",
+              "ToolTip": "C:\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\IPostgreProvider.cs",
+              "RelativeToolTip": "tg_engine\\database\\postgre\\IPostgreProvider.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAqwBAAAAAoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-26T22:06:31.876Z"
             },
             {
               "$type": "Document",
@@ -718,7 +718,7 @@
           ]
         },
         {
-          "DockedWidth": 331,
+          "DockedWidth": 261,
           "SelectedChildIndex": 7,
           "Children": [
             {
@@ -751,8 +751,8 @@
               "Title": "IMongoProvider.cs",
               "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\IMongoProvider.cs",
               "RelativeDocumentMoniker": "tg_engine\\database\\mongo\\IMongoProvider.cs",
-              "ToolTip": "C:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\IMongoProvider.cs*",
-              "RelativeToolTip": "tg_engine\\database\\mongo\\IMongoProvider.cs*",
+              "ToolTip": "C:\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\IMongoProvider.cs",
+              "RelativeToolTip": "tg_engine\\database\\mongo\\IMongoProvider.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAYAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-02T08:24:53.236Z",
@@ -760,7 +760,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "UserApiHandlerBase.cs",
               "DocumentMoniker": "C:\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
