@@ -69,6 +69,11 @@ namespace tg_engine.userapi
 
         protected ChatsProvider chatsProvider;
         MessageConstructor messageConstructor = new MessageConstructor();
+
+        protected uint updateCounter;
+        protected uint updateCounterPrev = 1;
+
+        protected System.Timers.Timer updateWatchdogTimer;
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -93,6 +98,11 @@ namespace tg_engine.userapi
             this.logger = logger;
 
             chatsProvider = new ChatsProvider(postgreProvider, logger);
+
+            updateWatchdogTimer = new System.Timers.Timer();
+            updateWatchdogTimer.AutoReset = true;
+            updateWatchdogTimer.Interval = 10 * 1000;
+            updateWatchdogTimer.Elapsed += UpdateWatchdogTimer_Elapsed;         
 
             status = UserApiStatus.inactive;
         }
@@ -268,6 +278,11 @@ namespace tg_engine.userapi
                     case "video/mp4":
                         message = await messageConstructor.Video(userChat, input, document, getUserChat, s3info);
                         break;
+
+                    case "audio/ogg":
+                        break;
+
+
 
                     case "":
                         break;
@@ -456,6 +471,10 @@ namespace tg_engine.userapi
 
         private async Task User_OnUpdate(Update update)
         {
+
+            logger.inf(tag, $"{update}");
+
+            updateCounter++;
 
             UserChat userChat = null;
             long telegram_id = 0;            
@@ -757,6 +776,35 @@ namespace tg_engine.userapi
 
             return res;
         }
+        private async void UpdateWatchdogTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+
+            if (status == UserApiStatus.verification)
+                return;
+
+            logger.inf(tag, $"updateWatchDog: updateCounter={updateCounter} updateCounterPrev={updateCounterPrev}");
+
+            if (updateCounter == updateCounterPrev)
+            {
+
+                logger.warn(tag, $"updateWatchDog: updateCounter={updateCounter} updateCounterPrev={updateCounterPrev}");
+
+                try
+                {
+
+                    manager.SaveState(state_path);
+                    client.Dispose();
+                    client = new Client(config);
+                    manager = client.WithUpdateManager(User_OnUpdate, state_path);
+                    await client.LoginUserIfNeeded();
+                } catch (Exception ex)
+                {
+                    logger.err(tag, $"updateWatchDog: {ex.Message}");
+                }
+            }
+
+            updateCounterPrev = updateCounter;
+        }
         #endregion
 
         #region public       
@@ -826,10 +874,9 @@ namespace tg_engine.userapi
                     message.text = messageDto.text;
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
+                    message.operator_id = messageDto.operator_id;
 
-
-                    await mongoProvider.SaveMessage(message);
-                    
+                    await mongoProvider.SaveMessage(message);                    
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
                                                                              message.direction,
@@ -929,7 +976,7 @@ namespace tg_engine.userapi
                 //                    .Where(channel => channel.creator == false && channel.megagroup == false);
 
 
-                InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service"));
+                InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service") && c.IsActive);
                 //InputPeer peer = chats[2248416752];
 
                 if (peer != null)
@@ -955,6 +1002,9 @@ namespace tg_engine.userapi
                 }
 
                 manager.SaveState(state_path);
+
+
+                updateWatchdogTimer?.Start();
                 status = UserApiStatus.active;
 
             }
@@ -981,6 +1031,7 @@ namespace tg_engine.userapi
         }
         public virtual void Stop()
         {
+            updateWatchdogTimer?.Stop();
             manager.SaveState(state_path);
             client?.Dispose();
             verifyCodeReady.Set();

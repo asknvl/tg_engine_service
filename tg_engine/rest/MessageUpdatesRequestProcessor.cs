@@ -26,6 +26,7 @@ namespace tg_engine.rest
             public Guid account_id { get; set; }
             public Guid chat_id { get; set; }
             public Guid telegram_user_id { get; set; }
+            public string? operator_id { get; set; }
             public mediaDto? media { get; set; } 
             public string text { get; set; }
         }

@@ -1,6 +1,10 @@
 {
   "version": 2,
+<<<<<<< Updated upstream
   "dgSpecHash": "EqciNkqFeTbgi54oXnxwFxBfdftnBjhFmYzFoBp8x2eEqod0D0+MyVp3g5vgqoISeZTz2Hg+WuYkvq1Ws7g7IA==",
+=======
+  "dgSpecHash": "Jl3UKKKBW/hZFck1+uyVziMY1CF7RFaP4RK7yZrFVePWgBFqrWjCwAF7oMFTr8S4C1l9fxdShr/RTdq/EOQI2g==",
+>>>>>>> Stashed changes
   "success": true,
   "projectFilePath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
   "expectedPackageFiles": [
@@ -70,7 +74,11 @@
     "C:\\Users\\asknvl\\.nuget\\packages\\system.text.encodings.web\\8.0.0\\system.text.encodings.web.8.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
+<<<<<<< Updated upstream
     "C:\\Users\\asknvl\\.nuget\\packages\\wtelegramclient\\4.1.9\\wtelegramclient.4.1.9.nupkg.sha512",
+=======
+    "C:\\Users\\asknvl\\.nuget\\packages\\wtelegramclient\\4.1.2-dev.7\\wtelegramclient.4.1.2-dev.7.nupkg.sha512",
+>>>>>>> Stashed changes
     "C:\\Users\\asknvl\\.nuget\\packages\\wtelegramclient.extensions.updates\\1.2.2\\wtelegramclient.extensions.updates.1.2.2.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\zstdsharp.port\\0.7.3\\zstdsharp.port.0.7.3.nupkg.sha512"
   ],

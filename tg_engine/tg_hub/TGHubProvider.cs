@@ -53,6 +53,12 @@ namespace tg_engine.tg_hub
             try
             {
                 var response = await httpClient.PostAsync(addr, data);
+
+                if (!response.IsSuccessStatusCode)
+                {
+
+                }
+
                 res = await response.Content.ReadAsStringAsync();
                 response.EnsureSuccessStatusCode();
             } catch (Exception ex)

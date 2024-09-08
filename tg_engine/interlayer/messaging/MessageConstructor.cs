@@ -173,6 +173,12 @@ namespace tg_engine.interlayer.messaging
 
             return message;
         }
+
+        //public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        //{
+        //    var message = await getBase(userChat, input, getUserChat);
+        //    string mediaType = MediaTypes.voice;
+        //}
         #endregion
     }
 }

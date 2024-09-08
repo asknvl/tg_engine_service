@@ -227,7 +227,11 @@
               "RelativeDocumentMoniker": "tg_engine\\database\\mongo\\MongoProvider.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\MongoProvider.cs",
               "RelativeToolTip": "tg_engine\\database\\mongo\\MongoProvider.cs",
+<<<<<<< Updated upstream
               "ViewState": "AQIAAAYAAAAAAAAAAAAawBwAAAAUAAAA",
+=======
+              "ViewState": "AQIAAAYAAAAAAAAAAAAawBwAAAAOAAAA",
+>>>>>>> Stashed changes
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-25T21:32:34.863Z",
               "EditorCaption": ""
@@ -811,7 +815,11 @@
               "RelativeDocumentMoniker": "tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "RelativeToolTip": "tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
+<<<<<<< Updated upstream
               "ViewState": "AQIAAJcAAAAAAAAAAAAkwK8AAAAAAAAA",
+=======
+              "ViewState": "AQIAAJcAAAAAAAAAAAAkwLAAAABAAAAA",
+>>>>>>> Stashed changes
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-08-02T21:46:25.175Z",
               "EditorCaption": ""
@@ -910,7 +918,11 @@
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
+<<<<<<< Updated upstream
               "ViewState": "AQIAAPACAAAAAAAAAAAwwPcCAAAAAAAA",
+=======
+              "ViewState": "AQIAAAMDAAAAAAAAAAAwwB0DAABQAAAA",
+>>>>>>> Stashed changes
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-02T08:23:05.708Z",
               "EditorCaption": ""
