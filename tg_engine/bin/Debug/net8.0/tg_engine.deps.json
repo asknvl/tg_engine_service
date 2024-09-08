@@ -17,7 +17,7 @@
           "MongoDB.Driver": "2.27.0",
           "Newtonsoft.Json": "13.0.3",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.4",
-          "WTelegramClient": "4.1.2-dev.7",
+          "WTelegramClient": "4.1.9",
           "WTelegramClient.Extensions.Updates": "1.2.2",
           "logger": "1.0.0"
         },
@@ -817,17 +817,17 @@
         }
       },
       "System.Threading.Channels/6.0.0": {},
-      "WTelegramClient/4.1.2-dev.7": {
+      "WTelegramClient/4.1.9": {
         "runtime": {
           "lib/net8.0/WTelegramClient.dll": {
-            "assemblyVersion": "4.1.2.0",
-            "fileVersion": "4.1.2.0"
+            "assemblyVersion": "4.1.9.0",
+            "fileVersion": "4.1.9.0"
           }
         }
       },
       "WTelegramClient.Extensions.Updates/1.2.2": {
         "dependencies": {
-          "WTelegramClient": "4.1.2-dev.7"
+          "WTelegramClient": "4.1.9"
         },
         "runtime": {
           "lib/net8.0/WTelegramClient.Extensions.Updates.dll": {
@@ -1319,12 +1319,12 @@
       "path": "system.threading.channels/6.0.0",
       "hashPath": "system.threading.channels.6.0.0.nupkg.sha512"
     },
-    "WTelegramClient/4.1.2-dev.7": {
+    "WTelegramClient/4.1.9": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-7TLBBtySgBK54FIV7cgS8K9E99j1DPxDJSo48q7s6jKV6Eji8RRaQHQ/HHWrjaws65+qNwMsmZ2bE74HT6nWKw==",
-      "path": "wtelegramclient/4.1.2-dev.7",
-      "hashPath": "wtelegramclient.4.1.2-dev.7.nupkg.sha512"
+      "sha512": "sha512-Lmyi4VorJCpQruZjgjYFoN/ucJ+i4oTYWuykmpLsvTP1I53pw+HLiXowpHPlVMeeRquhz4UR7l9fRapWjnj3yw==",
+      "path": "wtelegramclient/4.1.9",
+      "hashPath": "wtelegramclient.4.1.9.nupkg.sha512"
     },
     "WTelegramClient.Extensions.Updates/1.2.2": {
       "type": "package",

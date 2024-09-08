@@ -1319,7 +1319,7 @@
           "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
-      "WTelegramClient/4.1.2-dev.7": {
+      "WTelegramClient/4.1.9": {
         "type": "package",
         "compile": {
           "lib/net8.0/WTelegramClient.dll": {
@@ -3481,10 +3481,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "WTelegramClient/4.1.2-dev.7": {
-      "sha512": "7TLBBtySgBK54FIV7cgS8K9E99j1DPxDJSo48q7s6jKV6Eji8RRaQHQ/HHWrjaws65+qNwMsmZ2bE74HT6nWKw==",
+    "WTelegramClient/4.1.9": {
+      "sha512": "Lmyi4VorJCpQruZjgjYFoN/ucJ+i4oTYWuykmpLsvTP1I53pw+HLiXowpHPlVMeeRquhz4UR7l9fRapWjnj3yw==",
       "type": "package",
-      "path": "wtelegramclient/4.1.2-dev.7",
+      "path": "wtelegramclient/4.1.9",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3496,7 +3496,7 @@
         "lib/netstandard2.0/WTelegramClient.dll",
         "lib/netstandard2.0/WTelegramClient.xml",
         "logo.png",
-        "wtelegramclient.4.1.2-dev.7.nupkg.sha512",
+        "wtelegramclient.4.1.9.nupkg.sha512",
         "wtelegramclient.nuspec"
       ]
     },
@@ -3554,41 +3554,40 @@
       "MongoDB.Driver >= 2.27.0",
       "Newtonsoft.Json >= 13.0.3",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 8.0.4",
-      "WTelegramClient >= 4.1.2-dev.7",
+      "WTelegramClient >= 4.1.9",
       "WTelegramClient.Extensions.Updates >= 1.2.2",
       "logger >= 1.0.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\user3876\\.nuget\\packages\\": {}
+    "C:\\Users\\asknvl\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
+      "projectUniqueName": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
       "projectName": "tg_engine",
-      "projectPath": "C:\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
-      "packagesPath": "C:\\Users\\user3876\\.nuget\\packages\\",
-      "outputPath": "C:\\sources\\tg_engine_service\\tg_engine\\obj\\",
+      "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
+      "packagesPath": "C:\\Users\\asknvl\\.nuget\\packages\\",
+      "outputPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\user3876\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\asknvl\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.voids.site/v3/index.json": {}
+        "https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/release/nuget/v3/index.json": {}
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\sources\\tg_engine_service\\logger\\logger.csproj": {
-              "projectPath": "C:\\sources\\tg_engine_service\\logger\\logger.csproj"
+            "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {
+              "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj"
             }
           }
         }
@@ -3648,7 +3647,7 @@
           },
           "WTelegramClient": {
             "target": "Package",
-            "version": "[4.1.2-dev.7, )"
+            "version": "[4.1.9, )"
           },
           "WTelegramClient.Extensions.Updates": {
             "target": "Package",
