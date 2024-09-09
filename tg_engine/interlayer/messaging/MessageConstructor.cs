@@ -163,6 +163,39 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
+        public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        {
+            var message = await getBase(userChat, input, getUserChat);
+            string mediaType = MediaTypes.voice;
+
+            //var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
+            //if (video != null)
+            //{
+            //    mediaType = video.flags.HasFlag(DocumentAttributeVideo.Flags.round_message) ? MediaTypes.circle : MediaTypes.video;
+            //}
+
+            var m = input as TL.Message;
+            if (m != null)
+            {
+                message.text = m.message;
+            }
+
+            message.media = new MediaInfo()
+            {
+                type = mediaType,
+                file_name = document.Filename,
+                extension = s3info.extension,
+                length = document.size,
+                //duration = video?.duration,
+                //width = video?.w,
+                //height = video?.h,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
+            };
+
+            return message;
+        }
+
         public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
         {
             var message = await getBase(userChat, input, getUserChat);

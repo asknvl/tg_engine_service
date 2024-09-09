@@ -206,6 +206,19 @@ namespace tg_engine.database.postgre
             }            
         }
 
+        public async Task UpdateChatType(Guid chat_id, string chat_type)
+        {
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                var foundChat = await context.telegram_chats.SingleOrDefaultAsync(c => c.id == chat_id);
+                if (foundChat != null)
+                {
+                    foundChat.chat_type = chat_type;
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+
         public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
         {
 
@@ -409,6 +422,8 @@ namespace tg_engine.database.postgre
                 }
             }
         }
+
+        
 
     }        
 }

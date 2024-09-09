@@ -55,11 +55,18 @@ namespace tg_engine.interlayer.chats
                         userChat.user.username = user.username;
                         needUpdate = true;
                     }
-                        
+                 
+                    if (userChat.chat.chat_type != type)
+                    {
+                        userChat.chat.chat_type = type;
+                        await postgreProvider.UpdateChatType(userChat.chat.id, type);
+                        logger.inf("CHTPRVDR", $"{userChat.chat.telegram_user_id} type={type}"); //отписка от сервисного чата - меняем тип на просто чат и наоборот
+                    }
+
                     if (needUpdate)
                         await postgreProvider.UpdateUser(userChat.user);
-
                 }
+                
             }
             return userChat;
         }

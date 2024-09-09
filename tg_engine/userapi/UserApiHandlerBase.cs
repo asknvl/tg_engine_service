@@ -101,7 +101,7 @@ namespace tg_engine.userapi
 
             updateWatchdogTimer = new System.Timers.Timer();
             updateWatchdogTimer.AutoReset = true;
-            updateWatchdogTimer.Interval = 10 * 1000;
+            updateWatchdogTimer.Interval = 5 * 60 * 1000;
             updateWatchdogTimer.Elapsed += UpdateWatchdogTimer_Elapsed;         
 
             status = UserApiStatus.inactive;
@@ -171,7 +171,7 @@ namespace tg_engine.userapi
                         tlUser.telegram_id = channel.ID;
                         tlUser.access_hash = channel.access_hash;
                         tlUser.firstname = channel.Title;
-                        type = tlUser.firstname.ToLower().Contains("service_channel") ? ChatTypes.service_channel : ChatTypes.channel;
+                        type = (tlUser.firstname.ToLower().Contains("service_channel") && channel.IsActive) ? ChatTypes.service_channel : ChatTypes.channel;
                         break;
 
                     case TL.Chat chat: //группа
@@ -280,9 +280,8 @@ namespace tg_engine.userapi
                         break;
 
                     case "audio/ogg":
+                        message = await messageConstructor.Voice(userChat, input, document, getUserChat, s3info);
                         break;
-
-
 
                     case "":
                         break;
@@ -469,6 +468,23 @@ namespace tg_engine.userapi
            return userChat;
         }
 
+        async Task handleUpdateChannel(UpdateChannel udc)
+        {
+            var channels = manager.Chats;
+            if (channels.ContainsKey(udc.channel_id))
+            {
+                //var channel = channels[udc.channel_id];
+                //bool isActive = channel.IsActive;
+
+                //logger.inf(tag, $"handleUpdateChannel: {channel.Title} {isActive}");
+
+                await getUserChat(udc.channel_id);
+
+
+            }
+            await Task.CompletedTask;
+        }
+
         private async Task User_OnUpdate(Update update)
         {
 
@@ -480,7 +496,20 @@ namespace tg_engine.userapi
             long telegram_id = 0;            
 
             switch (update)
-            {                
+            {
+
+                case UpdateChannel udc:
+
+                    try
+                    {
+                        await handleUpdateChannel(udc);
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"UpdateChannel: {udc.channel_id} {ex.Message}");
+                    }
+
+                    break;
+
                 case UpdateReadHistoryInbox uhi:
                     //мы прочли
                     telegram_id = uhi.peer.ID;
@@ -735,6 +764,15 @@ namespace tg_engine.userapi
                                 new DocumentAttributeFilename {
                                    file_name = file_name
                                 }
+                            };                        
+                            break;
+                        case MediaTypes.voice:
+                            mime_type = "audio/ogg";
+                            attributes = new DocumentAttribute[] {
+                                new DocumentAttributeAudio()
+                                {
+                                    flags = DocumentAttributeAudio.Flags.voice
+                                }
                             };
                             break;
                     }
@@ -791,7 +829,6 @@ namespace tg_engine.userapi
 
                 try
                 {
-
                     manager.SaveState(state_path);
                     client.Dispose();
                     client = new Client(config);
@@ -855,6 +892,7 @@ namespace tg_engine.userapi
                             case MediaTypes.video:
                             case MediaTypes.circle:
                             case MediaTypes.photo:
+                            case MediaTypes.voice:
                                 result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.file_name, mediaInfo.storage_id, message);
                                 break;
 
