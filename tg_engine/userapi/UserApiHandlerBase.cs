@@ -979,6 +979,42 @@ namespace tg_engine.userapi
             await Task.CompletedTask;
         }
 
+
+        public async Task<Messages_Dialogs> GetAllDialogs(int? folder_id = null)
+        {
+            var dialogs = await client.Messages_GetDialogs(folder_id: folder_id);
+            switch (dialogs)
+            {
+                case Messages_DialogsSlice mds:
+                    var dialogList = new List<DialogBase>();
+                    var messageList = new List<TL.MessageBase>();
+                    while (dialogs.Dialogs.Length != 0)
+                    {
+                        dialogList.AddRange(dialogs.Dialogs);
+                        messageList.AddRange(dialogs.Messages);
+                        int last = dialogs.Dialogs.Length - 1;
+                        var lastDialog = dialogs.Dialogs[last];
+                        var lastPeer = dialogs.UserOrChat(lastDialog).ToInputPeer();
+                        var lastMsgId = lastDialog.TopMessage;
+                    retryDate:
+                        var lastDate = dialogs.Messages.LastOrDefault(m => m.Peer.ID == lastDialog.Peer.ID && m.ID == lastDialog.TopMessage)?.Date ?? default;
+                        if (lastDate == default)
+                            if (--last < 0) break; else { lastDialog = dialogs.Dialogs[last]; goto retryDate; }
+                        dialogs = await client.Messages_GetDialogs(lastDate, lastMsgId, lastPeer, folder_id: folder_id);
+                        if (dialogs is not Messages_Dialogs md) break;
+                        foreach (var (key, value) in md.chats) mds.chats[key] = value;
+                        foreach (var (key, value) in md.users) mds.users[key] = value;
+                    }
+                    mds.dialogs = [.. dialogList];
+                    mds.messages = [.. messageList];
+                    return mds;
+                case Messages_Dialogs md: return md;
+                default: throw new WTException("Messages_GetDialogs returned unexpected " + dialogs?.GetType().Name);
+            }
+        }
+
+
+
         public virtual async Task Start()
         {
 
@@ -999,15 +1035,12 @@ namespace tg_engine.userapi
 
                 await client.LoginUserIfNeeded();
 
-                var dialogs = await client.Messages_GetDialogs(limit: 100); //сделать 500 ?
+
+                var dialogs = await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                
                 dialogs.CollectUsersChats(manager.Users, manager.Chats);
-
-
-
-                //var chats = await client.Messages_GetAllChats();
-
                 var chats = manager.Chats;
 
+                //var ch = await GetAllDialogs();
 
                 // Фильтрация каналов
                 //var channels = difference.chats.Values.OfType<Channel>()
