@@ -291,7 +291,7 @@ namespace tg_engine.userapi
             return message;
         }
 
-        async Task handleNewMessage(TL.MessageBase input)
+        async Task handleNewMessage(TL.MessageBase input, bool? update = false)
         {
             try
             {
@@ -302,11 +302,15 @@ namespace tg_engine.userapi
 
                 var message = input as Message;
 
-                var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
-                if (exists)
+
+                if (update != true)
                 {
-                    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
-                    return;
+                    var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
+                    if (exists)
+                    {
+                        logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
+                        return;
+                    }
                 }
 
                 if (message != null)
@@ -333,8 +337,10 @@ namespace tg_engine.userapi
                     {
                         try
                         {
-
-                            await mongoProvider.SaveMessage(messageBase);
+                            if (update != true)
+                                await mongoProvider.SaveMessage(messageBase);
+                            else
+                                messageBase = await mongoProvider.UpdateMessage(messageBase);
 
                             userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
                                                                                      messageBase.direction,
@@ -1002,8 +1008,18 @@ namespace tg_engine.userapi
                             if (--last < 0) break; else { lastDialog = dialogs.Dialogs[last]; goto retryDate; }
                         dialogs = await client.Messages_GetDialogs(lastDate, lastMsgId, lastPeer, folder_id: folder_id);
                         if (dialogs is not Messages_Dialogs md) break;
-                        foreach (var (key, value) in md.chats) mds.chats[key] = value;
-                        foreach (var (key, value) in md.users) mds.users[key] = value;
+
+                        bool foundService = false;
+                        foreach (var (key, value) in md.chats)
+                        {
+                            mds.chats[key] = value;
+                            foundService = value.Title.ToLower().Contains("service");                            
+                        }
+
+                        if (foundService)
+                            break;
+
+                        //foreach (var (key, value) in md.users) mds.users[key] = value;
                     }
                     mds.dialogs = [.. dialogList];
                     mds.messages = [.. messageList];
@@ -1036,16 +1052,9 @@ namespace tg_engine.userapi
                 await client.LoginUserIfNeeded();
 
 
-                var dialogs = await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                
+                var dialogs = await GetAllDialogs();//await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                
                 dialogs.CollectUsersChats(manager.Users, manager.Chats);
                 var chats = manager.Chats;
-
-                //var ch = await GetAllDialogs();
-
-                // Фильтрация каналов
-                //var channels = difference.chats.Values.OfType<Channel>()
-                //                    .Where(channel => channel.creator == false && channel.megagroup == false);
-
 
                 InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service") && c.IsActive);
                 //InputPeer peer = chats[2248416752];
@@ -1061,7 +1070,7 @@ namespace tg_engine.userapi
                             var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                             if (msgBase is Message msg)
                             {
-                                await handleNewMessage(msgBase);
+                                await handleNewMessage(msgBase, update: true);
                             }
 
                             //else if (msgBase is MessageService ms)

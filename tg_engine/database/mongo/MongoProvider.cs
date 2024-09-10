@@ -43,7 +43,8 @@ namespace tg_engine.database.mongo
                 .Set(m => m.text, message.text)
                 .Set(m => m.media, message.media)
                 .Set(m => m.edited_date, DateTime.UtcNow)
-                .Set(m => m.updated_at, DateTime.UtcNow);
+                .Set(m => m.updated_at, DateTime.UtcNow)
+                .Set(m => m.is_deleted, message.is_deleted);
 
             var options = new FindOneAndUpdateOptions<MessageBase>
             {
