@@ -496,6 +496,9 @@ namespace tg_engine.userapi
 
             logger.inf(tag, $"{update}");
 
+            if (update is UpdateMessagePoll)
+                return;
+
             updateCounter++;
 
             UserChat userChat = null;
