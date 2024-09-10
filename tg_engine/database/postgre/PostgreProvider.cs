@@ -353,33 +353,33 @@ namespace tg_engine.database.postgre
             }
         }
 
-        public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null)
-        {
-            using (var context = new PostgreDbContext(dbContextOptions))
-            {
-                try
-                {
-                    var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
-                    if (foundChat == null)
-                        throw new KeyNotFoundException($"Chat {chat_id} not found");
+        //public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null)
+        //{
+        //    using (var context = new PostgreDbContext(dbContextOptions))
+        //    {
+        //        try
+        //        {
+        //            var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
+        //            if (foundChat == null)
+        //                throw new KeyNotFoundException($"Chat {chat_id} not found");
 
-                    foundChat.top_message = top_message;
-                    foundChat.top_message_text = top_message_text;
-                    foundChat.top_message_date = top_message_date;  
+        //            foundChat.top_message = top_message;
+        //            foundChat.top_message_text = top_message_text;
+        //            foundChat.top_message_date = top_message_date;  
 
-                    foundChat.unread_count = (add_unread == true) ? foundChat.unread_count + 1 : foundChat.unread_count;
-                    foundChat.unread_mark = foundChat.unread_count > 0;
+        //            foundChat.unread_count = (add_unread == true) ? foundChat.unread_count + 1 : foundChat.unread_count;
+        //            foundChat.unread_mark = foundChat.unread_count > 0;
 
-                    await context.SaveChangesAsync();
+        //            await context.SaveChangesAsync();
 
-                    return foundChat;
+        //            return foundChat;
 
-                } catch (Exception ex)
-                {
-                    throw new Exception("UpdateTopMessage error", ex);
-                }
-            }
-        }
+        //        } catch (Exception ex)
+        //        {
+        //            throw new Exception("UpdateTopMessage error", ex);
+        //        }
+        //    }
+        //}
 
         public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date)
         {
@@ -395,13 +395,18 @@ namespace tg_engine.database.postgre
                     foundChat.top_message_text = top_message_text;
                     foundChat.top_message_date = top_message_date;
 
+                    foundChat.unread_inbox_count = foundChat.unread_inbox_count ?? 0;
+                    foundChat.unread_outbox_count = foundChat.unread_inbox_count ?? 0;
+                    foundChat.unread_inbox_mark = foundChat.unread_inbox_count > 0;
+                    foundChat.unread_outbox_mark = foundChat.unread_outbox_count > 0;
+
                     switch (direction)
                     {
                         case "in":
                             foundChat.unread_count = foundChat.unread_count + 1;
                             foundChat.unread_mark = foundChat.unread_count > 0;
                             foundChat.unread_inbox_count = foundChat.unread_inbox_count + 1;
-                            foundChat.unread_inbox_mark = foundChat.unread_inbox_count > 0;
+                            foundChat.unread_inbox_mark = foundChat.unread_inbox_count  > 0;
                             break;
                         case "out":
                             foundChat.unread_outbox_count = foundChat.unread_outbox_count + 1;

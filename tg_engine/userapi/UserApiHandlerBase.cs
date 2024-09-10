@@ -988,12 +988,20 @@ namespace tg_engine.userapi
 
         public async Task<Messages_Dialogs> GetAllDialogs(int? folder_id = null)
         {
-            var dialogs = await client.Messages_GetDialogs(folder_id: folder_id);
+
+            int itteratonCntr = 5;
+
+            var dialogs = await client.Messages_GetDialogs(folder_id: folder_id, limit:100);
             switch (dialogs)
             {
                 case Messages_DialogsSlice mds:
                     var dialogList = new List<DialogBase>();
                     var messageList = new List<TL.MessageBase>();
+
+                    var found = mds.chats.Any(c => c.Value.Title.ToLower().Contains("service_chat"));
+                    if (found)
+                        return mds;
+
                     while (dialogs.Dialogs.Length != 0)
                     {
                         dialogList.AddRange(dialogs.Dialogs);
@@ -1006,20 +1014,20 @@ namespace tg_engine.userapi
                         var lastDate = dialogs.Messages.LastOrDefault(m => m.Peer.ID == lastDialog.Peer.ID && m.ID == lastDialog.TopMessage)?.Date ?? default;
                         if (lastDate == default)
                             if (--last < 0) break; else { lastDialog = dialogs.Dialogs[last]; goto retryDate; }
+
                         dialogs = await client.Messages_GetDialogs(lastDate, lastMsgId, lastPeer, folder_id: folder_id);
                         if (dialogs is not Messages_Dialogs md) break;
+                        
+                        foreach (var (key, value) in md.chats) mds.chats[key] = value;
+                        foreach (var (key, value) in md.users) mds.users[key] = value;
 
-                        bool foundService = false;
-                        foreach (var (key, value) in md.chats)
-                        {
-                            mds.chats[key] = value;
-                            foundService = value.Title.ToLower().Contains("service");                            
-                        }
+                        found = mds.chats.Any(c => c.Value.Title.ToLower().Contains("service_channel"));
+                        if (found) break;
 
-                        if (foundService)
+                        itteratonCntr--;
+                        if (itteratonCntr == 0)
                             break;
 
-                        //foreach (var (key, value) in md.users) mds.users[key] = value;
                     }
                     mds.dialogs = [.. dialogList];
                     mds.messages = [.. messageList];
@@ -1070,7 +1078,7 @@ namespace tg_engine.userapi
                             var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                             if (msgBase is Message msg)
                             {
-                                await handleNewMessage(msgBase, update: true);
+                                await handleNewMessage(msgBase/*, update: true*/);
                             }
 
                             //else if (msgBase is MessageService ms)
