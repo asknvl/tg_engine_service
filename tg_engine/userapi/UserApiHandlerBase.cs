@@ -291,6 +291,30 @@ namespace tg_engine.userapi
             return message;
         }
 
+        async Task<IL.MessageBase> handleMessageType(TL.MessageBase input, UserChat userChat)
+        {
+            IL.MessageBase messageBase = null;
+            var message = input as Message;
+
+            switch (message.media)
+            {
+                case null:
+                case MessageMediaWebPage:
+                    messageBase = await handleTextMessage(input, userChat);
+                    break;
+
+                case MessageMediaDocument mmd:
+                    messageBase = await handleMediaDocument(input, mmd, userChat);
+                    break;
+
+                case MessageMediaPhoto mmp:
+                    messageBase = await handleImage(input, mmp, userChat);
+                    break;
+            }
+
+            return messageBase;
+        }
+
         async Task handleNewMessage(TL.MessageBase input, bool? update = false)
         {
             try
@@ -313,25 +337,65 @@ namespace tg_engine.userapi
                     }
                 }
 
+                if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
+                {
+                    var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
+                    var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
+                    var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
+
+                    var history = await client.Messages_GetHistory(peer, limit: 50);
+                    List<IL.MessageBase> messagesToProcess = new();
+
+
+                    foreach (var m in history.Messages)
+                    {
+                        var mb = m as TL.MessageBase;                        
+
+                        var messageBase = await handleMessageType(m, userChat);
+                        messagesToProcess.Add(messageBase);
+
+                        await mongoProvider.SaveMessage(messageBase);
+                    }
+
+                    userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
+                    userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
+
+                    var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
+
+                    userChat.chat = await postgreProvider.UpdateTopMessage(userChat.chat.id,
+                                                                            messagesToProcess[0].direction,
+                                                                            messagesToProcess[0].telegram_message_id,
+                                                                            messagesToProcess[0].text ?? "Медиа",
+                                                                            messagesToProcess[0].date);
+
+                    var chEvent = new newChatEvent(userChat, source_id, source_name);
+                    await tgHubProvider.SendEvent(chEvent);
+
+                    return;
+                }
+
                 if (message != null)
                 {
-                    IL.MessageBase messageBase = null;
+                    //IL.MessageBase messageBase = null;
 
-                    switch (message.media)
-                    {
-                        case null:
-                        case MessageMediaWebPage:
-                            messageBase = await handleTextMessage(input, userChat);
-                            break;
+                    //switch (message.media)
+                    //{
+                    //    case null:
+                    //    case MessageMediaWebPage:
+                    //        messageBase = await handleTextMessage(input, userChat);
+                    //        break;
 
-                        case MessageMediaDocument mmd:
-                            messageBase = await handleMediaDocument(input, mmd, userChat);
-                            break;
+                    //    case MessageMediaDocument mmd:
+                    //        messageBase = await handleMediaDocument(input, mmd, userChat);
+                    //        break;
 
-                        case MessageMediaPhoto mmp:
-                            messageBase = await handleImage(input, mmp, userChat);
-                            break;
-                    }
+                    //    case MessageMediaPhoto mmp:
+                    //        messageBase = await handleImage(input, mmp, userChat);
+                    //        break;
+                    //}
+
+                    var messageBase = await handleMessageType(input, userChat);
+
 
                     if (messageBase != null)
                     {
