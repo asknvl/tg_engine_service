@@ -381,7 +381,11 @@ namespace tg_engine.database.postgre
         //    }
         //}
 
-        public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date)
+        public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction,
+                                                          int top_message,
+                                                          string? top_message_text,
+                                                          DateTime top_message_date,
+                                                          bool igonreUnread = false)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
             {
@@ -395,25 +399,29 @@ namespace tg_engine.database.postgre
                     foundChat.top_message_text = top_message_text;
                     foundChat.top_message_date = top_message_date;
 
-                    foundChat.unread_inbox_count = foundChat.unread_inbox_count ?? 0;
-                    foundChat.unread_outbox_count = foundChat.unread_inbox_count ?? 0;
-                    foundChat.unread_inbox_mark = foundChat.unread_inbox_count > 0;
-                    foundChat.unread_outbox_mark = foundChat.unread_outbox_count > 0;
-
-                    switch (direction)
+                    if (!igonreUnread)
                     {
-                        case "in":
-                            foundChat.unread_count = foundChat.unread_count + 1;
-                            foundChat.unread_mark = foundChat.unread_count > 0;
-                            foundChat.unread_inbox_count = foundChat.unread_inbox_count + 1;
-                            foundChat.unread_inbox_mark = foundChat.unread_inbox_count  > 0;
-                            break;
-                        case "out":
-                            foundChat.unread_outbox_count = foundChat.unread_outbox_count + 1;
-                            foundChat.unread_outbox_mark = foundChat.unread_outbox_count > 0;
-                            break;
-                        default:
-                            break;
+
+                        foundChat.unread_inbox_count = foundChat.unread_inbox_count ?? 0;
+                        foundChat.unread_outbox_count = foundChat.unread_inbox_count ?? 0;
+                        foundChat.unread_inbox_mark = foundChat.unread_inbox_count > 0;
+                        foundChat.unread_outbox_mark = foundChat.unread_outbox_count > 0;
+
+                        switch (direction)
+                        {
+                            case "in":
+                                foundChat.unread_count = foundChat.unread_count + 1;
+                                foundChat.unread_mark = foundChat.unread_count > 0;
+                                foundChat.unread_inbox_count = foundChat.unread_inbox_count + 1;
+                                foundChat.unread_inbox_mark = foundChat.unread_inbox_count > 0;
+                                break;
+                            case "out":
+                                foundChat.unread_outbox_count = foundChat.unread_outbox_count + 1;
+                                foundChat.unread_outbox_mark = foundChat.unread_outbox_count > 0;
+                                break;
+                            default:
+                                break;
+                        }
                     }
 
                     await context.SaveChangesAsync();

@@ -152,7 +152,6 @@ namespace tg_engine.userapi
         #region helpers
         async Task<UserChat> getUserChat(long telegram_id)
         {
-
             string type = ChatTypes.user;
 
             bool isUser = manager.Users.TryGetValue(telegram_id, out var tuser);
@@ -174,28 +173,11 @@ namespace tg_engine.userapi
                         type = (tlUser.firstname.ToLower().Contains("service_channel") && channel.IsActive) ? ChatTypes.service_channel : ChatTypes.channel;
                         break;
 
-                    case TL.Chat chat: //группа
-                        //tlUser.telegram_id = chat.ID;
-                        //tlUser.access_hash = chat.access_hash;
-                        //tlUser.firstname = chat.Title;
-                        //type = ChatTypes.channel;
-
+                    case TL.Chat chat: 
                         throw new ArgumentException("Groups not supported");
 
                         
                 }
-
-                //var channel = tchat as TL.Channel;
-                //if (channel != null)
-                //{
-                //    tlUser.telegram_id = channel.ID;
-                //    tlUser.access_hash = channel.access_hash;
-                //    tlUser.firstname = channel.Title;
-                //    type = ChatTypes.channel;
-                //}
-
-
-
             }
             else
             {
@@ -332,7 +314,7 @@ namespace tg_engine.userapi
                     var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
                     if (exists)
                     {
-                        logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
+                        logger.warn(tag, $"Сообщение с telegra123m_message_id={input.ID} уже существует (1)");
                         return;
                     }
                 }
@@ -363,10 +345,11 @@ namespace tg_engine.userapi
                     var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
 
                     userChat.chat = await postgreProvider.UpdateTopMessage(userChat.chat.id,
-                                                                            messagesToProcess[0].direction,
-                                                                            messagesToProcess[0].telegram_message_id,
-                                                                            messagesToProcess[0].text ?? "Медиа",
-                                                                            messagesToProcess[0].date);
+                                                                           messagesToProcess[0].direction,
+                                                                           messagesToProcess[0].telegram_message_id,
+                                                                           messagesToProcess[0].text ?? "Медиа",
+                                                                           messagesToProcess[0].date,
+                                                                           igonreUnread: true);
 
                     var chEvent = new newChatEvent(userChat, source_id, source_name);
                     await tgHubProvider.SendEvent(chEvent);
@@ -376,26 +359,7 @@ namespace tg_engine.userapi
 
                 if (message != null)
                 {
-                    //IL.MessageBase messageBase = null;
-
-                    //switch (message.media)
-                    //{
-                    //    case null:
-                    //    case MessageMediaWebPage:
-                    //        messageBase = await handleTextMessage(input, userChat);
-                    //        break;
-
-                    //    case MessageMediaDocument mmd:
-                    //        messageBase = await handleMediaDocument(input, mmd, userChat);
-                    //        break;
-
-                    //    case MessageMediaPhoto mmp:
-                    //        messageBase = await handleImage(input, mmp, userChat);
-                    //        break;
-                    //}
-
                     var messageBase = await handleMessageType(input, userChat);
-
 
                     if (messageBase != null)
                     {
@@ -588,7 +552,6 @@ namespace tg_engine.userapi
                     telegram_id = uhi.peer.ID;
                     try
                     {
-
                         userChat = await getUserChat(telegram_id);
                         userChat = await handleMessageRead(userChat, "in", uhi.max_id);
                         await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте

@@ -22,6 +22,6 @@ namespace tg_engine.database.postgre
         Task<telegram_chat> UpdateUnreadCount(Guid chat_id, int? unread_count = null, int? read_inbox_max_id = null, int? read_outbox_max_id = null);
         Task<telegram_chat> UpdateUnreadCount(Guid chat_id, int? unread_inbox_count = null, int? read_inbox_max_id = null, int? unread_outbox_count = null, int? read_outbox_max_id = null);
         //Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null);
-        Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date);
+        Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date, bool igonreUnread = false);
     }
 }

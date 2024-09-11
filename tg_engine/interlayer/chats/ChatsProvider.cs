@@ -27,6 +27,10 @@ namespace tg_engine.interlayer.chats
 
         public async Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, string type)
         {
+
+            if (user.access_hash == null)
+                throw new Exception($"User {user.telegram_id} not found");
+
             var userChat = userChats.FirstOrDefault(uc => uc.chat.account_id == account_id && uc.user.telegram_id == user.telegram_id);
             if (userChat == null)
             {
