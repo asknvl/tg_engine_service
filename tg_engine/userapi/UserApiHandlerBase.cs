@@ -919,7 +919,8 @@ namespace tg_engine.userapi
                 {
                     await client.ReadHistory(peer, (int)userChat.chat.top_message);
                     await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
 
                 }

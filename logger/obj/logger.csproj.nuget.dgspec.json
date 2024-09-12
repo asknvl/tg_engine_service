@@ -1,28 +1,29 @@
 {
   "format": 1,
   "restore": {
-    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {}
+    "C:\\sources\\tg_engine_service\\logger\\logger.csproj": {}
   },
   "projects": {
-    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {
+    "C:\\sources\\tg_engine_service\\logger\\logger.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
+        "projectUniqueName": "C:\\sources\\tg_engine_service\\logger\\logger.csproj",
         "projectName": "logger",
-        "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
-        "packagesPath": "C:\\Users\\asknvl\\.nuget\\packages\\",
-        "outputPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\obj\\",
+        "projectPath": "C:\\sources\\tg_engine_service\\logger\\logger.csproj",
+        "packagesPath": "C:\\Users\\user3876\\.nuget\\packages\\",
+        "outputPath": "C:\\sources\\tg_engine_service\\logger\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\asknvl\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\user3876\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {},
-          "https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/release/nuget/v3/index.json": {}
+          "https://nuget.voids.site/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
