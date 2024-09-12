@@ -914,6 +914,16 @@ namespace tg_engine.userapi
 
                 logger.inf(tag, $"OnNewMessage: {userChat.user}, {access_hash}");
 
+                //Временное сообщение о прочтении чата
+                try
+                {
+                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                } catch (Exception ex)
+                {
+
+                }
+
                 switch (messageDto.media)
                 {
 
@@ -958,7 +968,6 @@ namespace tg_engine.userapi
                                                                              message.text ?? "Медиа", message.date);
 
                     userChat.chat = updatedChat;
-
                     await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
