@@ -609,6 +609,18 @@ namespace tg_engine.userapi
 
             logger.inf(tag, update.ToString());
         }
+
+        private async Task Client_OnOther(IObject arg)
+        {
+            try
+            {
+                if (arg is ReactorError err) {
+                    logger.err(tag, $"OnOther: {err.Exception.Message}");
+                }
+            } catch (Exception ex)
+            {
+            }
+        }
         #endregion
 
         #region rx message
@@ -1097,6 +1109,8 @@ namespace tg_engine.userapi
                 client = new Client(config);
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
 
+                client.OnOther += Client_OnOther;
+
                 await client.LoginUserIfNeeded();
 
 
@@ -1149,7 +1163,7 @@ namespace tg_engine.userapi
                 client.Dispose();
                 throw;
             }
-        }        
+        }
 
         public void SetVerificationCode(string code)
         {
