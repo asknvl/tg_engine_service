@@ -15,8 +15,8 @@ namespace tg_engine.database.postgre
         public DbSet<source> sources { get; set; }
         public DbSet<channel_account> channels_accounts { get; set; }   
         public DbSet<telegram_chat> telegram_chats { get; set; }
-        public DbSet<telegram_user> telegram_users { get; set; }    
-
+        public DbSet<telegram_user> telegram_users { get; set; }
+        public DbSet<telegram_access_hash> access_hashes { get; set; }
         public PostgreDbContext(DbContextOptions<PostgreDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +30,7 @@ namespace tg_engine.database.postgre
             modelBuilder.Entity<channel_account>().ToTable("channel_account", schema: "app_data");
             modelBuilder.Entity<telegram_chat>().ToTable("telegram_chats", schema: "app_data");
             modelBuilder.Entity<telegram_user>().ToTable("telegram_users", schema: "app_data");
+            modelBuilder.Entity<telegram_access_hash>().ToTable("telegram_access_hashes", schema: "app_data");
         }
     }
 }

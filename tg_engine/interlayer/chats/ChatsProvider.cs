@@ -20,57 +20,52 @@ namespace tg_engine.interlayer.chats
         List<UserChat> userChats = new();
         #endregion
 
-        public ChatsProvider(IPostgreProvider postgreProvider, ILogger logger) { 
+        public ChatsProvider(IPostgreProvider postgreProvider, ILogger logger)
+        {
             this.logger = logger;
             this.postgreProvider = postgreProvider;
         }
 
-        public async Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, string type)
+        public async Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, long access_hash, string type)
         {
 
-            if (user.access_hash == null)
+            if (access_hash == 0)
                 throw new Exception($"User {user.telegram_id} not found");
 
             var userChat = userChats.FirstOrDefault(uc => uc.chat.account_id == account_id && uc.user.telegram_id == user.telegram_id);
             if (userChat == null)
             {
-                userChat = await postgreProvider.CreateUserAndChat(account_id, source_id, user, type);
+                userChat = await postgreProvider.CreateUserAndChat(account_id, source_id, user, access_hash, type);
                 userChats.Add(userChat);
             }
             else
             {
                 userChat.is_new = false;
 
-                if (user.access_hash != null)
+                if (userChat.access_hash != access_hash)
                 {
-                    if (userChat.user.access_hash != user.access_hash)
-                    {
-                        logger.warn("chatsProvider", $"access_hash changed: {userChat.user.access_hash}->{user.access_hash}, {userChat.user}");
-                        userChat.user.access_hash = user.access_hash;                        
-                        await postgreProvider.UpdateUser(userChat.user);
-                        logger.warn("chatsProvider", $"user updated {userChat.user}");
-                    }
 
-                    bool needUpdate = false;
-                    if (userChat.user.firstname != user.firstname)
-                    {
-                        userChat.user.firstname = user.firstname;   
-                        userChat.user.lastname = user.lastname;
-                        userChat.user.username = user.username;
-                        needUpdate = true;
-                    }
-                 
-                    if (userChat.chat.chat_type != type)
-                    {
-                        userChat.chat.chat_type = type;
-                        await postgreProvider.UpdateChatType(userChat.chat.id, type);
-                        logger.inf("CHTPRVDR", $"{userChat.chat.telegram_user_id} type={type}"); //отписка от сервисного чата - меняем тип на просто чат и наоборот
-                    }
+                    await postgreProvider.CreateOrUpdateAccessHash(account_id, user.telegram_id, access_hash);
 
-                    if (needUpdate)
-                        await postgreProvider.UpdateUser(userChat.user);
+                    logger.warn("chatsProvider", $"access_hash changed: {userChat.access_hash}->{access_hash}, {userChat.user}");
+                    userChat.access_hash = access_hash;                    
                 }
-                
+
+                //bool needUpdate = false;
+                //if (userChat.user.firstname != user.firstname)
+                //{
+                //    userChat.user.firstname = user.firstname;
+                //    userChat.user.lastname = user.lastname;
+                //    userChat.user.username = user.username;
+                //    needUpdate = true;
+                //}
+
+                if (userChat.chat.chat_type != type)
+                {
+                    userChat.chat.chat_type = type;
+                    await postgreProvider.UpdateChatType(userChat.chat.id, type);
+                    logger.inf("CHTPRVDR", $"{userChat.chat.telegram_user_id} type={type}"); //отписка от сервисного чата - меняем тип на просто чат и наоборот
+                }
             }
             return userChat;
         }

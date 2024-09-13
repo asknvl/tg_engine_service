@@ -157,9 +157,14 @@ namespace tg_engine.userapi
             bool isUser = manager.Users.TryGetValue(telegram_id, out var tuser);
             bool isChat = manager.Chats.TryGetValue(telegram_id, out var tchat);
 
+            long access_hash = 0;
+
             telegram_user tlUser = new();
-            if (isUser) 
+            if (isUser)
+            {
                 tlUser = new telegram_user(tuser);
+                access_hash = tuser.access_hash;
+            }
             else
                 if (isChat)
             {
@@ -168,15 +173,14 @@ namespace tg_engine.userapi
                 {
                     case TL.Channel channel: //канал
                         tlUser.telegram_id = channel.ID;
-                        tlUser.access_hash = channel.access_hash;
+                        //tlUser.access_hash = channel.access_hash;
+                        access_hash = channel.access_hash;
                         tlUser.firstname = channel.Title;
                         type = (tlUser.firstname.ToLower().Contains("service_channel") && channel.IsActive) ? ChatTypes.service_channel : ChatTypes.channel;
                         break;
 
-                    case TL.Chat chat: 
+                    case TL.Chat chat:
                         throw new ArgumentException("Groups not supported");
-
-                        
                 }
             }
             else
@@ -184,7 +188,7 @@ namespace tg_engine.userapi
                 tlUser.telegram_id = telegram_id;
             }
 
-            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser, type);
+            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser, access_hash, type);
 
             return userChat;
         }

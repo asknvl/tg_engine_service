@@ -68,12 +68,15 @@ namespace tg_engine.database.postgre
             }
         }
 
-        public async Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user, string type)
+        public async Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user, long access_hash, string type)
         {
             UserChat res = new UserChat();
 
             try
             {
+
+                var foundHash = await CreateOrUpdateAccessHash(account_id, new_user.telegram_id, access_hash);
+                res.access_hash = foundHash.access_hash;
 
                 using (var context = new PostgreDbContext(dbContextOptions))
                 {
@@ -86,7 +89,6 @@ namespace tg_engine.database.postgre
 
                     if (foundChat == null)
                     {
-
                         Guid telegram_user_id;
 
                         var foundUser = context.telegram_users.SingleOrDefault(u => u.telegram_id == new_user.telegram_id);
@@ -115,7 +117,6 @@ namespace tg_engine.database.postgre
                         res.is_new = true;
                         res.chat = new_chat;
                         res.user = new_user;
-
                     }
                     else
                     {
@@ -133,16 +134,9 @@ namespace tg_engine.database.postgre
 
                         res.chat = foundChat;
 
-                        var foundUser = context.telegram_users.SingleOrDefault(u => u.id == foundChat.telegram_user_id);
-
+                        var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
                         if (foundUser != null)
-                        {
-
-                            if ((foundUser.access_hash == null && new_user.access_hash != null) || (new_user.access_hash != null && foundUser.access_hash != new_user.access_hash))
-                            {
-                                foundUser.access_hash = new_user.access_hash;
-                                await context.SaveChangesAsync();
-                            }
+                        {                           
 
                             var nfn = new_user.firstname;
                             var nln = new_user.lastname;
@@ -155,8 +149,6 @@ namespace tg_engine.database.postgre
                             var needUpdate = (!string.IsNullOrEmpty(nfn) && !nfn.Equals(fn)) ||
                                              (!string.IsNullOrEmpty(nln) && !nln.Equals(ln)) ||
                                              (!string.IsNullOrEmpty(nun) && !nun.Equals(un));
-
-
 
                             if (needUpdate)
                             {
@@ -181,29 +173,72 @@ namespace tg_engine.database.postgre
             return res;
         }
 
-        public async Task UpdateUser(telegram_user user)
-        {   
+        public async Task<telegram_access_hash> CreateOrUpdateAccessHash(Guid account_id, long telegram_id, long access_hash) {
+
+            telegram_access_hash foundHash;
+
             using (var context = new PostgreDbContext(dbContextOptions))
             {
-                var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == user.id);
-
-                if (foundUser != null)
+                foundHash = await context.access_hashes.SingleOrDefaultAsync(h => h.account_id == account_id && h.telegram_id == telegram_id);
+                if (foundHash == null)
                 {
-                    bool updated = false;
-
-                    if (user.access_hash != null && user.access_hash != foundUser.access_hash)
+                    foundHash = new telegram_access_hash()
                     {
-                        foundUser.access_hash = user.access_hash;                        
-                        updated = true;
-                    }
+                        account_id = account_id,
+                        telegram_id = telegram_id,
+                        access_hash = access_hash
+                    };
 
-                    if (updated)
+                    context.access_hashes.Add(foundHash);
+
+                    await context.SaveChangesAsync();
+                } else
+                {                    
+                    if (foundHash.access_hash != access_hash)
                     {
-                        await context.SaveChangesAsync();                        
+                        foundHash.access_hash = access_hash;
+                        await context.SaveChangesAsync();
                     }
                 }
+            }
 
-            }            
+            return foundHash;
+        }
+
+        public async Task<telegram_access_hash?> GetAccessHash(Guid account_id, long telegram_id)
+        {
+            telegram_access_hash? res = null;
+
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                res = await context.access_hashes.SingleOrDefaultAsync(h => h.account_id == account_id && h.telegram_id == telegram_id);                
+            }
+            return res;
+        }
+
+        public async Task UpdateUser(telegram_user user)
+        {   
+            //using (var context = new PostgreDbContext(dbContextOptions))
+            //{
+            //    var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == user.id);
+
+            //    if (foundUser != null)
+            //    {
+            //        bool updated = false;
+
+            //        if (user.access_hash != null && user.access_hash != foundUser.access_hash)
+            //        {
+            //            foundUser.access_hash = user.access_hash;                        
+            //            updated = true;
+            //        }
+
+            //        if (updated)
+            //        {
+            //            await context.SaveChangesAsync();                        
+            //        }
+            //    }
+
+            //}            
         }
 
         public async Task UpdateChatType(Guid chat_id, string chat_type)
@@ -223,6 +258,8 @@ namespace tg_engine.database.postgre
         {
 
             UserChat? res = null;
+
+            var foundHash = await GetAccessHash(account_id, telegram_id);
 
             using (var context = new PostgreDbContext(dbContextOptions))
             {
@@ -244,7 +281,7 @@ namespace tg_engine.database.postgre
                     res = new UserChat();
                     res.chat = foundChat;
                     res.user = foundUser;
-
+                    res.access_hash = foundHash.access_hash;
                 }
                 catch (Exception ex)
                 {

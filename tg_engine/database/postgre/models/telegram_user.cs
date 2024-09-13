@@ -13,7 +13,7 @@ namespace tg_engine.database.postgre.models
         [Key]
         public Guid id { get; set; }
         public long telegram_id { get; set; }
-        public long? access_hash { get; set; }
+        //public long? access_hash { get; set; }
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? username { get; set; }
@@ -25,7 +25,7 @@ namespace tg_engine.database.postgre.models
         public telegram_user(TL.User user)
         {
             telegram_id = user.ID;
-            access_hash = user.access_hash;
+            //access_hash = user.access_hash;
             firstname = user.first_name;
             lastname = user.last_name;
             username = user.username;
@@ -33,7 +33,7 @@ namespace tg_engine.database.postgre.models
 
         public override string ToString()
         {
-            return $"tg_id={telegram_id} hash={access_hash} {firstname} {lastname} {username}";
+            return $"tg_id={telegram_id} {firstname} {lastname} {username}";
         }
     }
 }
