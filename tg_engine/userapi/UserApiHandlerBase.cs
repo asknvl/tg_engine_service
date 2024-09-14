@@ -321,40 +321,55 @@ namespace tg_engine.userapi
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
                 {
-                    var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
-                    var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
-                    var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
-                    var history = await client.Messages_GetHistory(peer, limit: 50);
-                    List<IL.MessageBase> messagesToProcess = new();
+                    logger.inf(tag, $"message={(input as Message)?.message} {userChat.user.telegram_id} {userChat.user.access_hash}");
 
-
-                    foreach (var m in history.Messages)
+                    try
                     {
-                        var mb = m as TL.MessageBase;                        
+                        var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
 
-                        var messageBase = await handleMessageType(m, userChat);
-                        messagesToProcess.Add(messageBase);
+                        logger.inf(tag, $"inputpeer() {userChat.user.telegram_id} {userChat.user.access_hash}");
+                        var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
+                        logger.inf(tag, $"getpeerdialogs() {userChat.user.telegram_id} {userChat.user.access_hash}");
+                        var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
+                        var history = await client.Messages_GetHistory(peer, limit: 50);
+                        logger.inf(tag, $"gethistory() {userChat.user.telegram_id} {userChat.user.access_hash}");
+                        List<IL.MessageBase> messagesToProcess = new();
 
-                        await mongoProvider.SaveMessage(messageBase);
+
+                        foreach (var m in history.Messages)
+                        {
+                            var mb = m as TL.MessageBase;
+
+                            var messageBase = await handleMessageType(m, userChat);
+                            messagesToProcess.Add(messageBase);
+
+                            await mongoProvider.SaveMessage(messageBase);
+                        }
+
+                        userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
+                        userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
+
+                        var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
+
+                        userChat.chat = await postgreProvider.UpdateTopMessage(userChat.chat.id,
+                                                                               messagesToProcess[0].direction,
+                                                                               messagesToProcess[0].telegram_message_id,
+                                                                               messagesToProcess[0].text ?? "Медиа",
+                                                                               messagesToProcess[0].date,
+                                                                               igonreUnread: true);
+
+                        var chEvent = new newChatEvent(userChat, source_id, source_name);
+                        await tgHubProvider.SendEvent(chEvent);
+
+
+                        logger.inf_urgent(tag, $"userChat hisorty:{source_name} {userChat.user}");
+                        return;
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"userChat history:{source_name} {userChat.user} {ex.Message}");
                     }
-
-                    userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
-                    userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
-
-                    var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
-
-                    userChat.chat = await postgreProvider.UpdateTopMessage(userChat.chat.id,
-                                                                           messagesToProcess[0].direction,
-                                                                           messagesToProcess[0].telegram_message_id,
-                                                                           messagesToProcess[0].text ?? "Медиа",
-                                                                           messagesToProcess[0].date,
-                                                                           igonreUnread: true);
-
-                    var chEvent = new newChatEvent(userChat, source_id, source_name);
-                    await tgHubProvider.SendEvent(chEvent);
-
-                    return;
                 }
 
                 if (message != null)
@@ -873,7 +888,7 @@ namespace tg_engine.userapi
             if (updateCounter == updateCounterPrev)
             {
 
-                logger.warn(tag, $"updateWatchDog: updateCounter={updateCounter} updateCounterPrev={updateCounterPrev}");
+                logger.warn(tag, $"updateWatchDog: updateCounter={updateCounter} updateCounterPrev={updateCounterPrev}, restart...");
 
                 try
                 {
