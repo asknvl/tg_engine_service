@@ -14,6 +14,7 @@ using tg_engine.s3;
 using tg_engine.tg_hub;
 using tg_engine.tg_hub.events;
 using TL;
+using TL.Methods;
 using WTelegram;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
 
@@ -312,7 +313,6 @@ namespace tg_engine.userapi
 
                 var message = input as Message;
 
-
                 if (update != true)
                 {
                     var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
@@ -325,7 +325,8 @@ namespace tg_engine.userapi
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
                 {
-                    var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
+                    var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
+
                     var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
                     var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
@@ -911,8 +912,8 @@ namespace tg_engine.userapi
                 {
                     if (userChat != null)
                     {
-                        peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
-                        access_hash = "DB_" + userChat.user.access_hash;
+                        peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
+                        access_hash = "DB_" + userChat.access_hash;
                     }
                 }
 
@@ -960,7 +961,7 @@ namespace tg_engine.userapi
                 {
                     message.chat_id = userChat.chat.id;
                     message.direction = "out";
-                    message.text = messageDto.text;
+                    message.text = messageDto.text;                    
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
                     message.operator_id = messageDto.operator_id;
@@ -1003,7 +1004,7 @@ namespace tg_engine.userapi
             {
                 if (userChat != null)
                 {
-                    peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.user.access_hash);
+                    peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
                 }
             }
 
