@@ -336,12 +336,17 @@ namespace tg_engine.userapi
 
                         foreach (var m in history.Messages)
                         {
-                            var mb = m as TL.MessageBase;
+                            try
+                            {
+                                var mb = m as TL.MessageBase;
+                                var messageBase = await handleMessageType(m, userChat);                                
+                                await mongoProvider.SaveMessage(messageBase);
+                                messagesToProcess.Add(messageBase);
 
-                            var messageBase = await handleMessageType(m, userChat);
-                            messagesToProcess.Add(messageBase);
-
-                            await mongoProvider.SaveMessage(messageBase);
+                            } catch (Exception ex)
+                            {
+                                logger.err(tag, $"getHistory: messages {m} {m.ID} {m.From}");
+                            }
                         }
 
                         userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
