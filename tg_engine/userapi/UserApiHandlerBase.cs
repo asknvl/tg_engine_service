@@ -3,6 +3,7 @@ using MediaInfo;
 using MongoDB.Driver;
 using System;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.Arm;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
 using tg_engine.database.postgre.dtos;
@@ -339,9 +340,13 @@ namespace tg_engine.userapi
                             try
                             {
                                 var mb = m as TL.MessageBase;
-                                var messageBase = await handleMessageType(m, userChat);                                
-                                await mongoProvider.SaveMessage(messageBase);
-                                messagesToProcess.Add(messageBase);
+                                var messageBase = await handleMessageType(m, userChat);
+                                if (messageBase != null)
+                                {
+                                    await mongoProvider.SaveMessage(messageBase);
+                                    messagesToProcess.Add(messageBase);
+                                }
+                            
 
                             } catch (Exception ex)
                             {
@@ -490,7 +495,11 @@ namespace tg_engine.userapi
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids, long? telegram_chat_id = null)
         {
-            await mongoProvider.MarkMessagesDeleted(message_ids);
+            var messages = await mongoProvider.MarkMessagesDeleted(message_ids);
+            if (messages.Count > 0)
+            {
+                await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));
+            }
         }
         async Task<UserChat> handleMessageRead(UserChat userChat, string direction, int max_id)
         {
@@ -589,9 +598,9 @@ namespace tg_engine.userapi
 
                 case UpdateDeleteMessages udm:
                     try
-                    {
+                    {                        
                         await handleMessageDeletion(udm.messages);
-                        await tgHubProvider.SendEvent(new deleteMessagesEvent(userChat, udm.messages));
+                        
                         
                     } catch (Exception ex)
                     {
@@ -1033,8 +1042,7 @@ namespace tg_engine.userapi
                     {
                         var ids = dm.ids.ToArray();
                         await client.DeleteMessages(peer, ids);
-                        await handleMessageDeletion(ids);
-                        await tgHubProvider.SendEvent(new deleteMessagesEvent(userChat, ids));
+                        await handleMessageDeletion(ids);                        
 
                     } catch (Exception ex)
                     {

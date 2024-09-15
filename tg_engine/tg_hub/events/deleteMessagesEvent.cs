@@ -12,7 +12,7 @@ namespace tg_engine.tg_hub.events
     {
         [JsonIgnore]
         public override string path => "events/delete-messages";
-        public deleteMessagesEvent(UserChat userChat, int[] ids) : base(userChat)
+        public deleteMessagesEvent(Guid account_id, Guid chat_id, int[] ids) : base(account_id, chat_id)
         {
             data = ids;
         }

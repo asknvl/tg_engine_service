@@ -24,5 +24,9 @@ namespace tg_engine.tg_hub.events
             chat_id = userChat.chat.id;
             telegram_user_id = userChat.chat.telegram_user_id;
         }
+        public EventBase(Guid account_id, Guid chat_id) {
+            this.account_id = account_id;
+            this.chat_id = chat_id;                        
+        }
     }   
 }
