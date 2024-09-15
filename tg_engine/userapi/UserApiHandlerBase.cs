@@ -345,7 +345,7 @@ namespace tg_engine.userapi
 
                             } catch (Exception ex)
                             {
-                                logger.err(tag, $"getHistory: messages {m} {m.ID} {m.From}");
+                                logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
                             }
                         }
 
@@ -405,7 +405,7 @@ namespace tg_engine.userapi
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +
                                             $"({messageBase.media?.type ?? "text"}) " +
-                                            $"by={messageBase.business_bot_username ?? "closer"}");
+                                            $"{messageBase.telegram_message_id}");
 
                         }
                         catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
@@ -591,6 +591,7 @@ namespace tg_engine.userapi
                     try
                     {
                         await handleMessageDeletion(udm.messages);
+                        await tgHubProvider.SendEvent(new deleteMessagesEvent(userChat, udm.messages));
                         
                     } catch (Exception ex)
                     {
@@ -1026,6 +1027,21 @@ namespace tg_engine.userapi
                         logger.err(tag, $"OnNewUpdate readHistory tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
                     }
                     break;
+
+                case deleteMessage dm:
+                    try
+                    {
+                        var ids = dm.ids.ToArray();
+                        await client.DeleteMessages(peer, ids);
+                        await handleMessageDeletion(ids);
+                        await tgHubProvider.SendEvent(new deleteMessagesEvent(userChat, ids));
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate deleteMessage tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                    }
+                    break;
+                    
             }
 
             await Task.CompletedTask;

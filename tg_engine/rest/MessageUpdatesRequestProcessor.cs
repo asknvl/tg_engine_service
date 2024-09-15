@@ -113,34 +113,23 @@ namespace tg_engine.rest
                         }
                         break;
 
-                    //case "sendUpdate":
-                    //    try
-                    //    {
-                    //        var updateBase = JsonConvert.DeserializeObject<UpdateBase>(data);
-
-                    //        observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == updateBase.account_id);
-
-                    //        if (observer != null)
-                    //        {
-                    //            switch (updateBase.type)
-                    //            {
-                    //                case UpdateType.readHistory:
-                    //                    var rh = JsonConvert.DeserializeObject<readHistory>(data);
-                    //                    observer?.OnNewUpdate(rh);
-                    //                    break;
-
-                    //                default:
-                    //                    code = HttpStatusCode.BadRequest;
-                    //                    responseText = $"{code}";
-                    //                    break;
-                    //            }
-                    //        }
-                    //    } catch (Exception ex)
-                    //    {
-                    //        code = HttpStatusCode.BadRequest;
-                    //        responseText = $"{code}:{ex.Message}";
-                    //    }
-                    //    break;
+                    case "delete-message":
+                        try
+                        {
+                            var update = JsonConvert.DeserializeObject<deleteMessage>(data);
+                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
+                            if (observer != null)
+                            {
+                                await observer.OnNewUpdate(update);
+                                code = HttpStatusCode.OK;
+                                responseText = code.ToString();
+                            }
+                        } catch (Exception ex)
+                        {
+                            code = HttpStatusCode.BadRequest;
+                            responseText = $"{updReq}: {ex.Message}";
+                        }
+                        break;
 
                     default:
                         break;
