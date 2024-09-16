@@ -14,7 +14,16 @@ namespace tg_engine.tg_hub.events
         public override string path => "events/delete-messages";
         public deleteMessagesEvent(Guid account_id, Guid chat_id, int[] ids) : base(account_id, chat_id)
         {
-            data = ids;
+            data = new idData(ids);
         }
     }    
+
+    class idData
+    {
+        public int[] ids { get; set; }
+        public idData(int[] ids)
+        {
+            this.ids = ids;
+        }
+    }
 }
