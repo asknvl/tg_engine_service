@@ -594,8 +594,17 @@ namespace tg_engine.userapi
                     {
                         logger.err(tag, $"UpdateReadHisotryOutbox: {telegram_id} {ex.Message} {ex?.InnerException?.Message}");
                     }
-                    break;                
+                    break;
 
+                case UpdateDeleteChannelMessages udcm:
+                    try
+                    {
+
+                    } catch (Exception ex)
+                    {
+
+                    }
+                    break;
                 case UpdateDeleteMessages udm:
                     try
                     {                          
@@ -912,7 +921,7 @@ namespace tg_engine.userapi
                 IL.MessageBase message = new()
                 {
                     account_id = account_id,
-                    chat_id = userChat.chat.id                    
+                    chat_id = userChat.chat.id
                 };
 
                 string access_hash = "";
@@ -1043,7 +1052,7 @@ namespace tg_engine.userapi
                     try
                     {
                         var ids = dm.ids.ToArray();
-                        await client.DeleteMessages(peer, ids);
+                        var res = await client.DeleteMessages(peer, ids);
                         await handleMessageDeletion(ids);                        
 
                     } catch (Exception ex)

@@ -38,6 +38,7 @@ namespace tg_engine.interlayer.messaging
         {
             var chat_id = userChat.chat.id;
             var account_id = userChat.chat.account_id;
+            var chat_type = userChat.chat.chat_type;
 
             bool incomnig = isIncoming(input);
             var direction = (incomnig) ? "in" : "out";
@@ -65,7 +66,7 @@ namespace tg_engine.interlayer.messaging
             var message = new MessageBase()
             {
                 account_id = account_id,
-                chat_id = chat_id,
+                chat_id = chat_id,                
                 direction = direction,
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,

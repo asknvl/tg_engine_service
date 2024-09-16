@@ -20,7 +20,7 @@ namespace mongo_modifier
 
             using (var context = new PostgreDbContext(postgre.DbContextOptions))
             {
-                var c = context.telegram_chats.Select(c => new { c.id, c.account_id }).ToList();
+                var c = context.telegram_chats.Select(c => new { c.id, c.account_id, c.chat_type }).ToList();
 
                 foreach (var item in c)
                 {

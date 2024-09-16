@@ -14,7 +14,7 @@ namespace tg_engine.interlayer.messaging
         [BsonRepresentation(BsonType.ObjectId)]
         public string id { get; set; }
         public required Guid account_id { get; set; }
-        required public Guid chat_id { get; set; }
+        public required Guid chat_id { get; set; }        
         public string direction { get; set; }
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }        
