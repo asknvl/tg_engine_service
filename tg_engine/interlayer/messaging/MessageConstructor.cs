@@ -66,7 +66,8 @@ namespace tg_engine.interlayer.messaging
             var message = new MessageBase()
             {
                 account_id = account_id,
-                chat_id = chat_id,                
+                chat_id = chat_id,      
+                chat_type = chat_type,
                 direction = direction,
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,

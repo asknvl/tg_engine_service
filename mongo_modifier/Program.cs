@@ -20,12 +20,12 @@ namespace mongo_modifier
 
             using (var context = new PostgreDbContext(postgre.DbContextOptions))
             {
-                var c = context.telegram_chats.Select(c => new { c.id, c.account_id, c.chat_type }).ToList();
+                var c = context.telegram_chats.Select(c => new { c.id, c.chat_type }).ToList();
 
                 foreach (var item in c)
                 {
-                    mongo.SetAccountToChatMessages(item.id, item.account_id);
-                    Console.WriteLine($"{1} of {c.Count} done ({item.id}) ({item.account_id})");
+                    mongo.SetChatTypeToChatMessages(item.id, item.chat_type);
+                    Console.WriteLine($"{1} of {c.Count} done ({item.id}) ({item.chat_type})");
                 }
             }
 

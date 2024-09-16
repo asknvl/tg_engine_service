@@ -921,7 +921,8 @@ namespace tg_engine.userapi
                 IL.MessageBase message = new()
                 {
                     account_id = account_id,
-                    chat_id = userChat.chat.id
+                    chat_id = userChat.chat.id,
+                    chat_type = userChat.chat.chat_type
                 };
 
                 string access_hash = "";

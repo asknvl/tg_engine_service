@@ -161,6 +161,15 @@ namespace tg_engine.database.mongo
 
             messages.UpdateMany(filter, update);
         }
+
+        public void SetChatTypeToChatMessages(Guid chat_id, string chat_type)
+        {
+            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id);
+            var update = Builders<MessageBase>.Update
+                    .Set(m => m.chat_type, chat_type);
+
+            messages.UpdateMany(filter, update);
+        }
         #endregion
         #endregion
     }

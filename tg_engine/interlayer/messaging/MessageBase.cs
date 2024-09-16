@@ -15,6 +15,7 @@ namespace tg_engine.interlayer.messaging
         public string id { get; set; }
         public required Guid account_id { get; set; }
         public required Guid chat_id { get; set; }        
+        public required string chat_type { get; set; }
         public string direction { get; set; }
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }        

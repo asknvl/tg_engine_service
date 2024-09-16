@@ -19,6 +19,7 @@ namespace tg_engine.database.mongo
 
         #region сервисные 
         void SetAccountToChatMessages(Guid chat_id, Guid account_id);
+        void SetChatTypeToChatMessages(Guid chat_id, string chat_type);
         #endregion
     }
 }
