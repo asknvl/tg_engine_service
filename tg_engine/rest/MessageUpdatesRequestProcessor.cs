@@ -113,7 +113,7 @@ namespace tg_engine.rest
                         }
                         break;
 
-                    case "delete-message":
+                    case "delete-messages":
                         try
                         {
                             var update = JsonConvert.DeserializeObject<deleteMessage>(data);
