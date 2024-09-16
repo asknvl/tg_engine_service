@@ -37,6 +37,7 @@ namespace tg_engine.interlayer.messaging
         async Task<MessageBase> getBase(UserChat userChat, TL.MessageBase input, Func<long, Task<UserChat>> getUserChat)
         {
             var chat_id = userChat.chat.id;
+            var account_id = userChat.chat.account_id;
 
             bool incomnig = isIncoming(input);
             var direction = (incomnig) ? "in" : "out";
@@ -63,6 +64,7 @@ namespace tg_engine.interlayer.messaging
 
             var message = new MessageBase()
             {
+                account_id = account_id,
                 chat_id = chat_id,
                 direction = direction,
                 telegram_id = userChat.user.telegram_id,

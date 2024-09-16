@@ -85,15 +85,12 @@ namespace tg_engine.database.mongo
 
         }
 
-        public async Task<List<MessageBase>> MarkMessagesDeleted(int[] ids, long? telegram_chat_id = null)
+        public async Task<List<MessageBase>> MarkMessagesDeleted(Guid account_id, int[] ids)
         {
-
-            FilterDefinition<MessageBase> filter;
-            if (!telegram_chat_id.HasValue)
-                filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
-            else
-                filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids) &
-                         Builders<MessageBase>.Filter.Eq("telegram_id", telegram_chat_id);
+            FilterDefinition<MessageBase> filter;            
+            
+            filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids) &
+                     Builders<MessageBase>.Filter.Eq("account_id", account_id);
 
             var cursor = await messages.FindAsync(filter);
             var found = await cursor.ToListAsync();
@@ -154,6 +151,17 @@ namespace tg_engine.database.mongo
 
             return (unreadCount, max_message_id);
         }
+
+        #region сервисное
+        public void SetAccountToChatMessages(Guid chat_id, Guid account_id)
+        {
+            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id);
+            var update = Builders<MessageBase>.Update
+                    .Set(m => m.account_id, account_id);                   
+
+            messages.UpdateMany(filter, update);
+        }
+        #endregion
         #endregion
     }
 }

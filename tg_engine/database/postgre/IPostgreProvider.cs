@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace tg_engine.database.postgre
     {
         Task<List<account>> GetAccountsAsync();
         Task<List<channel_account>> GetChannelsAccounts();
-        Task<List<DMStartupSettings>> GetStatupData();
+        Task<List<DMStartupSettings>> GetStatupData();        
         Task<telegram_access_hash> CreateOrUpdateAccessHash(Guid account_id, long telegram_id, long access_hash);
         Task<telegram_access_hash?> GetAccessHash(Guid account_id, long telegram_id);
         Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user, long access_hash, string type);
@@ -26,5 +27,6 @@ namespace tg_engine.database.postgre
         //Task<telegram_chat> UpdateTopMessage(Guid chat_id, int top_message, string? top_message_text, DateTime top_message_date, bool? add_unread = null);
         Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date, bool igonreUnread = false);
 
+        DbContextOptions<PostgreDbContext> DbContextOptions { get; }
     }
 }

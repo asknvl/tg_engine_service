@@ -1,0 +1,29 @@
+{
+  "accounts_settings_db": {
+    "host": "192.168.119.52",
+    "db_name": "quasar",
+    "user": "raceup",
+    "password": "pvCUZ4A3#rNUJpytW6TWZL2ku"
+  },
+  "messaging_settings_db": {
+    "host": "192.168.119.52:27017",
+    "db_name": "pulsar",
+    "user": "raceup",
+    "password": "CF6RLDpYkF71Bk9NHybNdeSG"
+  },
+  "settings_rest" : {
+    "host" : "localhost",
+    "port" : 5050
+  },
+  "settings_hub" : {
+    "host" : "https://api-gate.raceup.io",
+    "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjODgyZjE1Mi1hZjdkLTQ2OWEtOTAxNy1iY2ZjZDQ5ZDQyYTYiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3MjUyNDA1MDF9.jeKnZT2kPnNzMouHMtN3Bq_af9f2Khv-U0-T3yWJdtA"		
+  },
+  "settings_s3" : {
+    "host" : "https://s3t.raceup.io",
+    "port" : 29000,
+    "bucket" : "quasar-dev",
+    "user" : "quasar-dev",
+    "password" : "BwrbbyZHf1dKp1faB1Cd9U17X"
+  }
+}

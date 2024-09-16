@@ -493,9 +493,9 @@ namespace tg_engine.userapi
         }
 
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
-        async Task handleMessageDeletion(int[] message_ids, long? telegram_chat_id = null)
+        async Task handleMessageDeletion(int[] message_ids)
         {
-            var messages = await mongoProvider.MarkMessagesDeleted(message_ids);
+            var messages = await mongoProvider.MarkMessagesDeleted(account_id, message_ids);
             if (messages.Count > 0)
             {
                 await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));
@@ -598,9 +598,8 @@ namespace tg_engine.userapi
 
                 case UpdateDeleteMessages udm:
                     try
-                    {                        
-                        await handleMessageDeletion(udm.messages);
-                        
+                    {                          
+                        await handleMessageDeletion(udm.messages);                        
                         
                     } catch (Exception ex)
                     {
@@ -910,7 +909,11 @@ namespace tg_engine.userapi
                 InputPeer peer = null;
                 manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
-                IL.MessageBase message = new();
+                IL.MessageBase message = new()
+                {
+                    account_id = account_id,
+                    chat_id = userChat.chat.id                    
+                };
 
                 string access_hash = "";
 
@@ -969,8 +972,7 @@ namespace tg_engine.userapi
                 }
 
                 if (result != null && userChat != null)
-                {
-                    message.chat_id = userChat.chat.id;
+                {                                    
                     message.direction = "out";
                     message.text = messageDto.text;                    
                     message.telegram_message_id = result.ID;

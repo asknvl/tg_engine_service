@@ -10,8 +10,11 @@ namespace tg_engine.database.postgre
     public class PostgreProvider : IPostgreProvider
     {
         #region vars
-        private readonly DbContextOptions<PostgreDbContext> dbContextOptions;
-        object lockObj = new object();
+        public readonly DbContextOptions<PostgreDbContext> dbContextOptions;
+        #endregion
+
+        #region properties
+        public DbContextOptions<PostgreDbContext> DbContextOptions => dbContextOptions;
         #endregion
 
         public PostgreProvider(settings_db settings)
@@ -68,6 +71,7 @@ namespace tg_engine.database.postgre
             }
         }
 
+      
         public async Task<UserChat> CreateUserAndChat(Guid account_id, Guid source_id, telegram_user new_user, long access_hash, string type)
         {
             UserChat res = new UserChat();
