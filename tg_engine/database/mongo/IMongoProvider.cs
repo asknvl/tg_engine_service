@@ -13,7 +13,8 @@ namespace tg_engine.database.mongo
         Task<MessageBase> UpdateMessage(MessageBase message);
         Task<bool> CheckMessageExists(int message_id);
         Task<List<MessageBase>> GetMessages(Guid chat_id);
-        Task<List<MessageBase>> MarkMessagesDeleted(Guid account_id, int[] ids);
+        Task<List<MessageBase>> MarkMessagesDeletedUser(Guid account_id, int[] ids);
+        Task<List<MessageBase>> MarkMessagesDeletedChannel (Guid account_id, int[] ids, long channel_id);
         Task<(int,int)> MarkMessagesRead(Guid chat_id, string direction, int max_message_id);
         Task<bool> CheckMessageExists(Guid chat_id, int message_id);
 

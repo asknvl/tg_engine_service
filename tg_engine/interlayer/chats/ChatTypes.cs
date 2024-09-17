@@ -8,8 +8,8 @@ namespace tg_engine.interlayer.chats
 {
     public class ChatTypes
     {
-        public static readonly string user = "private";
-        public static readonly string channel = "channel";
-        public static readonly string service_channel = "service_channel";
+        public const string user = "private";
+        public const string channel = "channel";
+        public const string service_channel = "service_channel";
     }
 }

@@ -493,9 +493,30 @@ namespace tg_engine.userapi
         }
 
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
-        async Task handleMessageDeletion(int[] message_ids)
+        async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
-            var messages = await mongoProvider.MarkMessagesDeleted(account_id, message_ids);
+            //switch (chat_type)
+            //{
+            //    case ChatTypes.channel:
+            //    case ChatTypes.service_channel:
+            //        break;
+
+            //    case ChatTypes.user:
+            //        break;
+            //}
+            //var messages = await mongoProvider.MarkMessagesDeleted(account_id, message_ids, chat_type);
+
+            List<IL.MessageBase> messages = new List<IL.MessageBase>();
+
+            if (chat_telegram_id.HasValue)
+            {
+                messages = await mongoProvider.MarkMessagesDeletedChannel(account_id, message_ids, chat_telegram_id.Value);
+            } else
+            {
+                messages = await mongoProvider.MarkMessagesDeletedUser(account_id, message_ids);
+            }
+
+
             if (messages.Count > 0)
             {
                 await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));
@@ -599,16 +620,17 @@ namespace tg_engine.userapi
                 case UpdateDeleteChannelMessages udcm:
                     try
                     {
+                        await handleMessageDeletion(udcm.messages, udcm.channel_id);
 
                     } catch (Exception ex)
                     {
-
+                        logger.err(tag, $"UpdateDeleteChannelMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
                     break;
                 case UpdateDeleteMessages udm:
                     try
                     {                          
-                        await handleMessageDeletion(udm.messages);                        
+                        await handleMessageDeletion(udm.messages, chat_telegram_id: null);                        
                         
                     } catch (Exception ex)
                     {
@@ -1054,7 +1076,7 @@ namespace tg_engine.userapi
                     {
                         var ids = dm.ids.ToArray();
                         var res = await client.DeleteMessages(peer, ids);
-                        await handleMessageDeletion(ids);                        
+                        await handleMessageDeletion(ids, chat_telegram_id: null);                        
 
                     } catch (Exception ex)
                     {

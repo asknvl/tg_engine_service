@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using tg_engine.config;
+using tg_engine.interlayer.chats;
 using tg_engine.interlayer.messaging;
 
 
@@ -85,16 +86,42 @@ namespace tg_engine.database.mongo
 
         }
 
-        public async Task<List<MessageBase>> MarkMessagesDeleted(Guid account_id, int[] ids)
+        public async Task<List<MessageBase>> MarkMessagesDeletedUser(Guid account_id, int[] ids)
         {
-            FilterDefinition<MessageBase> filter;            
-            
-            filter = Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids) &
-                     Builders<MessageBase>.Filter.Eq("account_id", account_id);
+            FilterDefinition<MessageBase> filter;
+
+            filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
+                     Builders<MessageBase>.Filter.Eq("chat_type", ChatTypes.user) &                     
+                     Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
+                     
 
             var cursor = await messages.FindAsync(filter);
             var found = await cursor.ToListAsync();
             
+            if (found.Count > 0)
+            {
+                var update = Builders<MessageBase>.Update
+                    .Set(m => m.is_deleted, true)
+                    .Set(m => m.deleted_date, DateTime.UtcNow)
+                    .Set(m => m.updated_at, DateTime.UtcNow);
+
+                await messages.UpdateManyAsync(filter, update);
+            }
+            return found;
+        }
+
+        public async Task<List<MessageBase>> MarkMessagesDeletedChannel(Guid account_id, int[] ids, long channel_id)
+        {
+            FilterDefinition<MessageBase> filter;
+
+            filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
+                     Builders<MessageBase>.Filter.Eq("telegram_id", channel_id) &
+                     Builders<MessageBase>.Filter.In(m => m.telegram_message_id, ids);
+
+
+            var cursor = await messages.FindAsync(filter);
+            var found = await cursor.ToListAsync();
+
             if (found.Count > 0)
             {
                 var update = Builders<MessageBase>.Update
