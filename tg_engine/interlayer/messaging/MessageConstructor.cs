@@ -7,12 +7,21 @@ using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 using tg_engine.interlayer.chats;
 using tg_engine.s3;
+using tg_engine.translator;
 using TL;
 
 namespace tg_engine.interlayer.messaging
 {
     public class MessageConstructor
     {
+        #region vars
+        ITranslator translator;
+        #endregion
+
+        public MessageConstructor(ITranslator translator) {
+            this.translator = translator;
+        }
+
         #region helpers
         bool isIncoming(TL.MessageBase input)
         {
@@ -44,7 +53,9 @@ namespace tg_engine.interlayer.messaging
             var direction = (incomnig) ? "in" : "out";
 
             int telegram_message_id = input.ID;
-            var text = getText(input);
+            
+            var text = await translator.translate_incoming(getText(input));
+            
             var date = input.Date;
 
             bool is_business_bot_reply = false;
@@ -85,7 +96,7 @@ namespace tg_engine.interlayer.messaging
         public async Task<MessageBase> Text(UserChat userChat, TL.MessageBase input, Func<long, Task<UserChat>> getUserChat)
         {
             var message = await getBase(userChat, input, getUserChat);
-            message.text = getText(input);
+            //message.text = getText(input);
             return message;
         }
 

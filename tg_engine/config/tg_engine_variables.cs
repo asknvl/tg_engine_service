@@ -84,6 +84,14 @@ namespace tg_engine.config
         public string password { get; set; } = "password";
     }
 
+    public class settings_translator
+    {
+        public string provider { get; set; } = "deepl";
+        public string api_key { get; set; } = "api_key";        
+        public bool translate_incoming { get; set; } = true;
+        public bool translate_outcoming { get; set; } = true;
+    }
+
     public class tg_engine_variables
     {
         public settings_db accounts_settings_db { get; set; } = new();
@@ -91,6 +99,7 @@ namespace tg_engine.config
         public settings_rest settings_rest { get; set; } = new();
         public settings_hub settings_hub { get; set; } = new();
         public settings_s3 settings_s3 { get; set; } = new();   
+        public settings_translator settings_translator { get; set; } = new();   
 
     }
     

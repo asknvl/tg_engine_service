@@ -14,6 +14,7 @@ using tg_engine.rest.updates;
 using tg_engine.s3;
 using tg_engine.tg_hub;
 using tg_engine.tg_hub.events;
+using tg_engine.translator;
 using TL;
 using TL.Methods;
 using WTelegram;
@@ -68,9 +69,10 @@ namespace tg_engine.userapi
         ITGHubProvider tgHubProvider;
 
         IS3Provider s3Provider;
+        ITranslator translator;
 
         protected ChatsProvider chatsProvider;
-        MessageConstructor messageConstructor = new MessageConstructor();
+        MessageConstructor messageConstructor;
 
         protected uint updateCounter;
         protected uint updateCounterPrev = 1;
@@ -79,11 +81,14 @@ namespace tg_engine.userapi
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
-                                  IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
+                                  IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, ILogger logger)
         {
             this.account_id = account_id;
             this.source_id = source_id;
             this.source_name = source_name;
+            this.translator = translator;
+
+            messageConstructor = new MessageConstructor(translator);
 
             tag = $"usrapi ..{phone_number.Substring(phone_number.Length - 5, 4)}";
 
@@ -495,32 +500,15 @@ namespace tg_engine.userapi
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
-            //switch (chat_type)
-            //{
-            //    case ChatTypes.channel:
-            //    case ChatTypes.service_channel:
-            //        break;
-
-            //    case ChatTypes.user:
-            //        break;
-            //}
-            //var messages = await mongoProvider.MarkMessagesDeleted(account_id, message_ids, chat_type);
-
             List<IL.MessageBase> messages = new List<IL.MessageBase>();
 
             if (chat_telegram_id.HasValue)
-            {
                 messages = await mongoProvider.MarkMessagesDeletedChannel(account_id, message_ids, chat_telegram_id.Value);
-            } else
-            {
+            else
                 messages = await mongoProvider.MarkMessagesDeletedUser(account_id, message_ids);
-            }
 
-
-            if (messages.Count > 0)
-            {
-                await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));
-            }
+            if (messages.Count > 0)            
+                await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));            
         }
         async Task<UserChat> handleMessageRead(UserChat userChat, string direction, int max_id)
         {
@@ -546,7 +534,6 @@ namespace tg_engine.userapi
 
            return userChat;
         }
-
         async Task handleUpdateChannel(UpdateChannel udc)
         {
             var channels = manager.Chats;
@@ -662,8 +649,6 @@ namespace tg_engine.userapi
         {
             return await client.SendMessageAsync(peer, text);
         }
-
-
         class mediaCahceItem
         {
             public long file_id { get; set; }
@@ -673,7 +658,6 @@ namespace tg_engine.userapi
         }
 
         Dictionary<string, mediaCahceItem> cachedMedia = new();
-
         async Task<TL.Message> SendImage(InputPeer peer, string? text, string storage_id, IL.MessageBase message)
         {
 
@@ -752,7 +736,6 @@ namespace tg_engine.userapi
 
             return res;
         }
-
         async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string? file_name, string storage_id, IL.MessageBase message)
         {
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
@@ -1088,8 +1071,6 @@ namespace tg_engine.userapi
 
             await Task.CompletedTask;
         }
-
-
         public async Task<Messages_Dialogs> GetAllDialogs(int? folder_id = null)
         {
 
@@ -1140,9 +1121,6 @@ namespace tg_engine.userapi
                 default: throw new WTException("Messages_GetDialogs returned unexpected " + dialogs?.GetType().Name);
             }
         }
-
-
-
         public virtual async Task Start()
         {
 
@@ -1214,7 +1192,6 @@ namespace tg_engine.userapi
                 throw;
             }
         }        
-
         public void SetVerificationCode(string code)
         {
             logger.user_input(tag, $"Ввод кода верификации {code}");

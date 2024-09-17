@@ -10,6 +10,7 @@ using tg_engine.database.postgre.models;
 using tg_engine.interlayer.messaging;
 using tg_engine.s3;
 using tg_engine.tg_hub;
+using tg_engine.translator;
 using tg_engine.userapi;
 
 namespace tg_engine.dm
@@ -31,7 +32,7 @@ namespace tg_engine.dm
         public DMHandlerStatus status { get; private set; }
         #endregion
 
-        public DMHandlerBase(DMStartupSettings settings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
+        public DMHandlerBase(DMStartupSettings settings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, ILogger logger)
         {
             tag = $"dm {settings.source_name}";
 
@@ -42,7 +43,7 @@ namespace tg_engine.dm
             this.settings = settings;
             this.logger = logger;
 
-            userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
+            userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
 
             user = userApiFactory.Get(settings.account.id, settings.source_id, settings.source_name, settings.account.phone_number, settings.account.two_fa);
             user.StatusChangedEvent += User_StatusChangedEvent;

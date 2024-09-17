@@ -9,6 +9,7 @@ using tg_engine.database.postgre;
 using tg_engine.interlayer.messaging;
 using tg_engine.s3;
 using tg_engine.tg_hub;
+using tg_engine.translator;
 
 namespace tg_engine.userapi
 {
@@ -22,8 +23,9 @@ namespace tg_engine.userapi
         IMongoProvider mongoProvider;
         ITGHubProvider tgHubProvider;
         IS3Provider s3Provider;
+        ITranslator translator;
         #endregion
-        public UserApiFactory(string api_id, string api_hash, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ILogger logger)
+        public UserApiFactory(string api_id, string api_hash, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, ILogger logger)
         {
             this.logger = logger;
             this.api_id = api_id;
@@ -33,10 +35,11 @@ namespace tg_engine.userapi
             this.mongoProvider = mongoProvider;
             this.tgHubProvider = tgHubProvider;
             this.s3Provider = s3Provider;
+            this.translator = translator;
         }
         public UserApiHandlerBase Get(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password)
         {
-            return new userapi_handler_v0(account_id, source_id, source_name, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
+            return new userapi_handler_v0(account_id, source_id, source_name, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
         }
     }
 }

@@ -9,6 +9,7 @@ using tg_engine.database.postgre;
 using tg_engine.interlayer.messaging;
 using tg_engine.s3;
 using tg_engine.tg_hub;
+using tg_engine.translator;
 
 namespace tg_engine.userapi
 {
@@ -25,6 +26,7 @@ namespace tg_engine.userapi
                                   IMongoProvider mongoProvider,
                                   ITGHubProvider tgHubProvider,
                                   IS3Provider s3Provider,
+                                  ITranslator translator,
                                   ILogger logger) : 
                                                          base(account_id,
                                                          source_id,
@@ -37,6 +39,7 @@ namespace tg_engine.userapi
                                                          mongoProvider,
                                                          tgHubProvider,
                                                          s3Provider,
+                                                         translator,
                                                          logger)
         {
         }
