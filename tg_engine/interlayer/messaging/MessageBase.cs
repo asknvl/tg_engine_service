@@ -20,6 +20,7 @@ namespace tg_engine.interlayer.messaging
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }        
         public string? text { get; set; }
+        public string? screen_text { get; set; }
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;
         public bool is_read { get; set; }

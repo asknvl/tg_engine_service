@@ -53,8 +53,9 @@ namespace tg_engine.interlayer.messaging
             var direction = (incomnig) ? "in" : "out";
 
             int telegram_message_id = input.ID;
-            
-            var text = await translator.translate_incoming(getText(input));
+
+            var text = getText(input);
+            var screen_text = await translator.translate_incoming(text);            
             
             var date = input.Date;
 
@@ -83,6 +84,7 @@ namespace tg_engine.interlayer.messaging
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,
                 text = text,
+                screen_text = screen_text,
                 date = date,
                 is_business_bot_reply = is_business_bot_reply,
                 business_bot_username = business_bot_username

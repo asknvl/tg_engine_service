@@ -29,6 +29,9 @@ namespace tg_engine.translator
         {
             string res = "";
 
+            if (string.IsNullOrEmpty(text))
+                return text;
+
             try
             {
                 string[] arr = { text };
