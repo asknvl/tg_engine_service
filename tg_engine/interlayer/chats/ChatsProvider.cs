@@ -79,6 +79,9 @@ namespace tg_engine.interlayer.chats
                 if (userChat != null)
                     userChats.Add(userChat);
             }
+            else
+                userChat.is_new = false;
+            
             return userChat;
         }
 

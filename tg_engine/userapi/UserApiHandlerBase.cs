@@ -369,10 +369,8 @@ namespace tg_engine.userapi
                                                                                igonreUnread: true);
 
                         var chEvent = new newChatEvent(userChat, source_id, source_name);
-
                         logger.inf(tag, $"getHistory sendNewChat: {userChat.user} is_new={userChat.is_new}");
                         await tgHubProvider.SendEvent(chEvent);
-
                         return;
 
                     } catch (Exception ex)
@@ -551,12 +549,41 @@ namespace tg_engine.userapi
            return userChat;
         }
 
+        async Task loadServiceChat(InputPeer peer)
+        {
+            if (peer != null)
+            {
+                for (int offset_id = 0; ;)
+                {
+                    var messages = await client.Messages_GetHistory(peer, offset_id);
+                    if (messages.Messages.Length == 0) break;
+                    foreach (var msgBase in messages.Messages)
+                    {
+                        var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
+                        if (msgBase is Message msg)
+                        {
+                            await handleUpdateMessage(msgBase/*, update: true*/);
+                        }
+
+                        //else if (msgBase is MessageService ms)
+                        //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
+                    }
+                    offset_id = messages.Messages[^1].ID;
+
+                }
+            }
+        }
+
         async Task handleUpdateChannel(UpdateChannel udc)
         {
             var channels = manager.Chats;
             if (channels.ContainsKey(udc.channel_id))
             {                
-                await collectUserChat(udc.channel_id);
+                var userChat = await collectUserChat(udc.channel_id);
+                if (userChat.chat.chat_type == ChatTypes.service_channel)
+                {                    
+                    loadServiceChat(new InputPeerUser(userChat.user.telegram_id, userChat.access_hash));
+                }
             }
             await Task.CompletedTask;
         }
@@ -594,11 +621,15 @@ namespace tg_engine.userapi
                     telegram_id = uhi.peer.ID;
                     try
                     {
-                        userChat = await collectUserChat(telegram_id);                        
-                        logger.inf(tag, $"UpdateReadHisotryInbox: {telegram_id} is_new={userChat.is_new}");
-                        userChat = await handleMessageRead(userChat, "in", uhi.max_id);
-                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-                        await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));                                                                                                              
+                        logger.inf(tag, $"UpdateReadHisotryInbox?: {telegram_id}");
+                        userChat = await chatsProvider.GetUserChat(account_id, telegram_id);//collectUserChat(telegram_id);                                                                        
+                        if (userChat != null)
+                        {
+                            userChat = await handleMessageRead(userChat, "in", uhi.max_id);
+                            logger.inf(tag, $"UpdateReadHisotryInbox: {telegram_id} is_new={userChat.is_new}");
+                            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -619,9 +650,6 @@ namespace tg_engine.userapi
                             logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} is_new={userChat.is_new}");
                             await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                             await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
-                        } else
-                        {
-                            logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} userChat=null");
                         }
                     }
                     catch (Exception ex)
@@ -1155,8 +1183,6 @@ namespace tg_engine.userapi
             }
         }
 
-
-
         public virtual async Task Start()
         {
 
@@ -1183,32 +1209,9 @@ namespace tg_engine.userapi
                 var chats = manager.Chats;
 
                 InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service") && c.IsActive);
-                //InputPeer peer = chats[2248416752];
-
-                if (peer != null)
-                {
-                    for (int offset_id = 0; ;)
-                    {
-                        var messages = await client.Messages_GetHistory(peer, offset_id);
-                        if (messages.Messages.Length == 0) break;
-                        foreach (var msgBase in messages.Messages)
-                        {
-                            var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
-                            if (msgBase is Message msg)
-                            {
-                                await handleUpdateMessage(msgBase/*, update: true*/);
-                            }
-
-                            //else if (msgBase is MessageService ms)
-                            //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
-                        }
-                        offset_id = messages.Messages[^1].ID;
-
-                    }
-                }
+                await loadServiceChat(peer);
 
                 manager.SaveState(state_path);
-
 
                 updateWatchdogTimer?.Start();
                 status = UserApiStatus.active;
