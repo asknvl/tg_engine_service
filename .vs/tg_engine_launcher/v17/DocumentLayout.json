@@ -61,7 +61,7 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 583,
+          "DockedWidth": 419,
           "SelectedChildIndex": 2,
           "Children": [
             {
@@ -80,7 +80,7 @@
               "RelativeDocumentMoniker": "tg_engine\\tg_engine_base.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine_base.cs",
               "RelativeToolTip": "tg_engine\\tg_engine_base.cs",
-              "ViewState": "AQIAAC8AAAAAAAAAAAAwwFQAAABIAAAA",
+              "ViewState": "AQIAADwAAAAAAAAAAADwv1QAAABIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-18T21:32:47.926Z",
               "EditorCaption": ""
@@ -192,7 +192,7 @@
           ]
         },
         {
-          "DockedWidth": 135,
+          "DockedWidth": 299,
           "SelectedChildIndex": -1,
           "Children": [
             {

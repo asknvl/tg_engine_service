@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tg_engine", "tg_engine\tg_e
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "logger", "logger\logger.csproj", "{BE1FAE7E-DF3D-4A0D-AF1E-929832E81A5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mongo_modifier", "mongo_modifier\mongo_modifier.csproj", "{AC42BFA2-6215-45C7-BC28-7CC48A1BC1AE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{BE1FAE7E-DF3D-4A0D-AF1E-929832E81A5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1FAE7E-DF3D-4A0D-AF1E-929832E81A5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE1FAE7E-DF3D-4A0D-AF1E-929832E81A5F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC42BFA2-6215-45C7-BC28-7CC48A1BC1AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC42BFA2-6215-45C7-BC28-7CC48A1BC1AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC42BFA2-6215-45C7-BC28-7CC48A1BC1AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC42BFA2-6215-45C7-BC28-7CC48A1BC1AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
