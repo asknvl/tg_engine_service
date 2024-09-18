@@ -46,6 +46,31 @@ namespace tg_engine.interlayer.messaging
         public int? height { get; set;}   
         public string storage_id { get; set; }
         public string storage_url { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is MediaInfo other)
+            {
+                return type == other.type &&
+                       file_name == other.file_name &&
+                       extension == other.extension &&
+                       length == other.length &&
+                       duration == other.duration &&
+                       width == other.width &&
+                       height == other.height;
+                       
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(type,
+                                    file_name,
+                                    extension,
+                                    length,
+                                    duration);
+        }
     }
 
     public static class MediaTypes

@@ -89,6 +89,25 @@ namespace tg_engine.s3
             }
         }
 
+        public async Task Delete(string storage_id)
+        {
+            try
+            {
+                var deleteObjectRequest = new DeleteObjectRequest
+                {
+                    BucketName = settings.bucket,
+                    Key = storage_id
+                };
+
+                var response = await client.DeleteObjectAsync(deleteObjectRequest);                                
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"S3 delete error: {ex.Message}");
+            }
+        }
+
+
         public async Task<(byte[], S3ItemInfo)> Download(string storage_id)
         {
             byte[] bytes = new byte[0];

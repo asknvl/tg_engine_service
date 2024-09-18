@@ -303,7 +303,7 @@ namespace tg_engine.userapi
             return messageBase;
         }
 
-        async Task handleNewMessage(TL.MessageBase input, bool? update = false)
+        async Task handleNewMessage(TL.MessageBase input)
         {
             try
             {
@@ -313,14 +313,11 @@ namespace tg_engine.userapi
 
                 var message = input as Message;
 
-                if (update != true)
+                var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
+                if (exists)
                 {
-                    var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
-                    if (exists)
-                    {
-                        logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
-                        return;
-                    }
+                    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
+                    return;
                 }
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
@@ -392,10 +389,9 @@ namespace tg_engine.userapi
                     {
                         try
                         {
-                            if (update != true)
-                                await mongoProvider.SaveMessage(messageBase);
-                            else
-                                messageBase = await mongoProvider.UpdateMessage(messageBase);
+                            
+                            await mongoProvider.SaveMessage(messageBase);
+                            
 
                             userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
                                                                                      messageBase.direction,
@@ -438,19 +434,12 @@ namespace tg_engine.userapi
         {
             try
             {
-                //var userChat = await getUserChat(unm.message.Peer.ID);
+                
                 var userChat = await collectUserChat(input.Peer.ID);
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
 
                 var message = input as Message;
-
-                //var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
-                //if (exists)
-                //{
-                //    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
-                //    return;
-                //}
 
                 if (message != null)
                 {
@@ -476,10 +465,18 @@ namespace tg_engine.userapi
                     {
                         try
                         {
+
                             var updated = await mongoProvider.UpdateMessage(messageBase);
                             //событие об обновлении сообщения
                             //await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
-                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated));
+
+                            if (updated.storage_id != null)
+                            {
+                                await s3Provider.Delete(updated.storage_id);
+                                logger.inf(tag, $"s3: {updated.storage_id} deleted");
+                            }
+
+                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +

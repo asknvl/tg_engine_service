@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Amazon.S3.Model;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -35,17 +36,23 @@ namespace tg_engine.database.mongo
             await messages.InsertOneAsync(message);         
         }
 
-        public async Task<MessageBase> UpdateMessage(MessageBase message)
+        public async Task<(MessageBase, string?)> UpdateMessage(MessageBase message)
         {
             var filter = Builders<MessageBase>.Filter.Eq("chat_id", message.chat_id) &
                          Builders<MessageBase>.Filter.Eq("telegram_message_id", message.telegram_message_id);
 
+
+            string? storage_id = null;
+            var currentMessage = await messages.Find(filter).FirstOrDefaultAsync();
+            if (currentMessage.media != null)
+                storage_id = currentMessage.media.storage_id;   
+                
             var update = Builders<MessageBase>.Update
-                .Set(m => m.text, message.text)
-                .Set(m => m.media, message.media)
-                .Set(m => m.edited_date, DateTime.UtcNow)
-                .Set(m => m.updated_at, DateTime.UtcNow)
-                .Set(m => m.is_deleted, message.is_deleted);
+                       .Set(m => m.text, message.text)
+                       .Set(m => m.media, message.media)
+                       .Set(m => m.edited_date, DateTime.UtcNow)
+                       .Set(m => m.updated_at, DateTime.UtcNow)
+                       .Set(m => m.is_deleted, message.is_deleted);
 
             var options = new FindOneAndUpdateOptions<MessageBase>
             {
@@ -53,16 +60,14 @@ namespace tg_engine.database.mongo
             };
 
             var res = await messages.FindOneAndUpdateAsync(filter, update, options);
-
+            
             if (res == null)
             {
                 await SaveMessage(message);
                 res = message;
             }
 
-            return res;
-
-            //var res = await messages.UpdateOneAsync(filter, update);
+            return (res, storage_id);            
         }
 
         public async Task<List<MessageBase>> GetMessages(Guid chat_id)
