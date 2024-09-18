@@ -67,8 +67,8 @@ namespace tg_engine
 
         #region private
         async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, IMessageUpdatesObservable messageUpdatesObservable)
-        {
-            foreach (var settings in dmStartupSettings)
+        {            
+            foreach (var settings in dmStartupSettings.Where(s => s.account.status_id == 1))
             {
                 Debug.WriteLine($"{settings.source_name} {settings.account.phone_number}");
 
@@ -81,6 +81,8 @@ namespace tg_engine
 
                 }
             }
+
+            logger.inf_urgent(tag, $"Всего: {DMHandlers.Count} аккаунтов");
         }
 
         //class progress : IProgress<ProgressInfo>
