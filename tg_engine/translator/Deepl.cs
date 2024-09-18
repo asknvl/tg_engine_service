@@ -25,12 +25,12 @@ namespace tg_engine.translator
             translator = new Translator(settings.api_key);
         }
 
-        public async Task<string> translate_incoming(string text)
+        public async Task<string?> translate(string text)
         {
-            string res = "";
-
+            string? res = null;
+            
             if (string.IsNullOrEmpty(text))
-                return text;
+                return res;
 
             try
             {

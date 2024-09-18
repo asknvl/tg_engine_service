@@ -8,6 +8,6 @@ namespace tg_engine.translator
 {
     public interface ITranslator
     {
-        Task<string> translate_incoming(string text);
+        Task<string> translate(string text);
     }
 }

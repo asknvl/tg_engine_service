@@ -216,7 +216,6 @@ namespace tg_engine.userapi
             var message = await messageConstructor.Text(userChat, input, getUserChat);
             return message;
         }
-
         async Task<IL.MessageBase> handleImage(TL.MessageBase input, MessageMediaPhoto mmp, UserChat userChat)
         {
 
@@ -236,7 +235,6 @@ namespace tg_engine.userapi
 
             return message;
         }
-
         async Task<IL.MessageBase> handleMediaDocument(TL.MessageBase input, MessageMediaDocument mmd, UserChat userChat)
         {
             Document document = mmd.document as Document;
@@ -283,7 +281,6 @@ namespace tg_engine.userapi
 
             return message;
         }
-
         async Task<IL.MessageBase> handleMessageType(TL.MessageBase input, UserChat userChat)
         {
             IL.MessageBase messageBase = null;
@@ -307,13 +304,14 @@ namespace tg_engine.userapi
 
             return messageBase;
         }
-
         async Task handleNewMessage(TL.MessageBase input, bool? update = false)
         {
             try
-            {
-                //var userChat = await getUserChat(unm.message.Peer.ID);
+            {             
                 var userChat = await getUserChat(input.Peer.ID);
+
+                if (userChat.chat.chat_type == ChatTypes.channel)
+                    return;
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
 
@@ -431,24 +429,18 @@ namespace tg_engine.userapi
                 logger.err(tag, ex.Message);
             }
         }
-
         async Task handleUpdateMessage(TL.MessageBase input)
         {
             try
-            {
-                //var userChat = await getUserChat(unm.message.Peer.ID);
+            {                
                 var userChat = await getUserChat(input.Peer.ID);
+
+                if (userChat.chat.chat_type == ChatTypes.channel)
+                    return;
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
 
                 var message = input as Message;
-
-                //var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
-                //if (exists)
-                //{
-                //    logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
-                //    return;
-                //}
 
                 if (message != null)
                 {
@@ -495,9 +487,7 @@ namespace tg_engine.userapi
             {
                 logger.err(tag, ex.Message);
             }
-        }
-
-        //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
+        }        
         async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
             List<IL.MessageBase> messages = new List<IL.MessageBase>();
@@ -543,7 +533,6 @@ namespace tg_engine.userapi
             }
             await Task.CompletedTask;
         }
-
         private async Task User_OnUpdate(Update update)
         {
 
@@ -614,6 +603,7 @@ namespace tg_engine.userapi
                         logger.err(tag, $"UpdateDeleteChannelMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
                     break;
+
                 case UpdateDeleteMessages udm:
                     try
                     {                          
