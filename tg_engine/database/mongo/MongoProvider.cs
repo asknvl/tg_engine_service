@@ -54,6 +54,12 @@ namespace tg_engine.database.mongo
 
             var res = await messages.FindOneAndUpdateAsync(filter, update, options);
 
+            if (res == null)
+            {
+                await SaveMessage(message);
+                res = message;
+            }
+
             return res;
 
             //var res = await messages.UpdateOneAsync(filter, update);
