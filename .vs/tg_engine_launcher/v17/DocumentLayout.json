@@ -48,14 +48,10 @@
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAAFcCAAAAAAAAAAAAAHICAABUAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAJsAAAAJAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-18T05:28:26.082Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
             },
             {
               "$type": "Document",
@@ -67,8 +63,7 @@
               "RelativeToolTip": "tg_engine\\database\\postgre\\PostgreProvider.cs",
               "ViewState": "AQIAAAEBAAAAAAAAAAAAAEQBAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T05:16:31.668Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-18T05:16:31.668Z"
             },
             {
               "$type": "Document",
@@ -80,8 +75,7 @@
               "RelativeToolTip": "tg_engine\\database\\mongo\\MongoProvider.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T05:16:27.115Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-18T05:16:27.115Z"
             }
           ]
         },
@@ -112,10 +106,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{4a18f9d0-b838-11d0-93eb-00a0c90f2734}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{a80febb4-e7e0-4147-b476-21aaf2453969}"
             }
           ]
         }
@@ -144,9 +134,9 @@
               "Title": "ChatsProvider.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\chats\\ChatsProvider.cs",
               "RelativeDocumentMoniker": "tg_engine\\interlayer\\chats\\ChatsProvider.cs",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\chats\\ChatsProvider.cs*",
-              "RelativeToolTip": "tg_engine\\interlayer\\chats\\ChatsProvider.cs*",
-              "ViewState": "AQIAADMAAAAAAAAAAAAewE0AAAAxAAAA",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\interlayer\\chats\\ChatsProvider.cs",
+              "RelativeToolTip": "tg_engine\\interlayer\\chats\\ChatsProvider.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAADYAAAA6AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-18T04:49:30.433Z",
               "EditorCaption": ""
@@ -161,8 +151,7 @@
               "RelativeToolTip": "tg_engine\\interlayer\\messaging\\MessageConstructor.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABUAAAAQAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-08-02T21:46:25.175Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-08-02T21:46:25.175Z"
             }
           ]
         },
