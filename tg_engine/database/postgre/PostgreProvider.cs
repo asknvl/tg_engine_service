@@ -323,6 +323,9 @@ namespace tg_engine.database.postgre
                     res.chat = foundChat;
                     res.user = foundUser;
 
+                    var access_hash = await GetAccessHash(account_id, foundUser.telegram_id);
+                    res.access_hash = access_hash.access_hash;
+
                 }
                 catch (Exception ex)
                 {

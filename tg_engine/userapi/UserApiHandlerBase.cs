@@ -152,7 +152,7 @@ namespace tg_engine.userapi
         #endregion
 
         #region helpers
-        async Task<UserChat> getUserChat(long telegram_id)
+        async Task<UserChat> collectUserChat(long telegram_id)
         {
             string type = ChatTypes.user;
 
@@ -208,7 +208,7 @@ namespace tg_engine.userapi
         #region updates
         async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
         {
-            var message = await messageConstructor.Text(userChat, input, getUserChat);
+            var message = await messageConstructor.Text(userChat, input, collectUserChat);
             return message;
         }
 
@@ -226,7 +226,7 @@ namespace tg_engine.userapi
                 var ext = await client.DownloadFileAsync(photo, stream);
                 var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
 
-                message = await messageConstructor.Image(userChat, input, photo, getUserChat, s3info);
+                message = await messageConstructor.Image(userChat, input, photo, collectUserChat, s3info);
             }
 
             return message;
@@ -256,19 +256,19 @@ namespace tg_engine.userapi
                 switch (document.mime_type)
                 {
                     case "application/x-tgsticker":
-                        message = await messageConstructor.Sticker(userChat, input, document, getUserChat, s3info);
+                        message = await messageConstructor.Sticker(userChat, input, document, collectUserChat, s3info);
                         break;
 
                     case "image/jpeg":
-                        message = await messageConstructor.Photo(userChat, input, document, getUserChat, s3info);
+                        message = await messageConstructor.Photo(userChat, input, document, collectUserChat, s3info);
                         break;
 
                     case "video/mp4":
-                        message = await messageConstructor.Video(userChat, input, document, getUserChat, s3info);
+                        message = await messageConstructor.Video(userChat, input, document, collectUserChat, s3info);
                         break;
 
                     case "audio/ogg":
-                        message = await messageConstructor.Voice(userChat, input, document, getUserChat, s3info);
+                        message = await messageConstructor.Voice(userChat, input, document, collectUserChat, s3info);
                         break;
 
                     case "":
@@ -308,7 +308,7 @@ namespace tg_engine.userapi
             try
             {
                 //var userChat = await getUserChat(unm.message.Peer.ID);
-                var userChat = await getUserChat(input.Peer.ID);
+                var userChat = await collectUserChat(input.Peer.ID);
                 logger.inf(tag, $"getUserChat: {userChat.user} is_new={userChat.is_new}");
 
                 var message = input as Message;
@@ -439,7 +439,7 @@ namespace tg_engine.userapi
             try
             {
                 //var userChat = await getUserChat(unm.message.Peer.ID);
-                var userChat = await getUserChat(input.Peer.ID);
+                var userChat = await collectUserChat(input.Peer.ID);
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
 
@@ -559,7 +559,7 @@ namespace tg_engine.userapi
             var channels = manager.Chats;
             if (channels.ContainsKey(udc.channel_id))
             {                
-                await getUserChat(udc.channel_id);
+                await collectUserChat(udc.channel_id);
             }
             await Task.CompletedTask;
         }
@@ -597,7 +597,7 @@ namespace tg_engine.userapi
                     telegram_id = uhi.peer.ID;
                     try
                     {
-                        userChat = await getUserChat(telegram_id);
+                        userChat = await collectUserChat(telegram_id);                        
                         logger.inf(tag, $"UpdateReadHisotryInbox: {telegram_id} is_new={userChat.is_new}");
                         userChat = await handleMessageRead(userChat, "in", uhi.max_id);
                         await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
@@ -614,11 +614,18 @@ namespace tg_engine.userapi
                     telegram_id = uho.peer.ID;
                     try
                     {
-                        userChat = await getUserChat(telegram_id);
-                        userChat = await handleMessageRead(userChat, "out", uho.max_id);
-                        logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} is_new={userChat.is_new}");
-                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-                        await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
+                        logger.inf(tag, $"UpdateReadHisotryOutbox?: {telegram_id}");
+                        userChat = await chatsProvider.GetUserChat(account_id, telegram_id);//collectUserChat(telegram_id);
+                        if (userChat != null)
+                        {
+                            userChat = await handleMessageRead(userChat, "out", uho.max_id);
+                            logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} is_new={userChat.is_new}");
+                            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
+                        } else
+                        {
+                            logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} userChat=null");
+                        }
                     }
                     catch (Exception ex)
                     {
