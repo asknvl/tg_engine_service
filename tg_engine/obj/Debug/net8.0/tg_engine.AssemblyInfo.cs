@@ -14,11 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-<<<<<<< HEAD
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d5182606fec6e13c092acdd7be97f56b0f00730c")]
-=======
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f9048d06648cd5da31482793e02c877746427f4")]
->>>>>>> origin/v.1.0.6_chat_type_mongo
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2d18b2cf16ecde192a664fb9c92211d836e6b6f")]
 [assembly: System.Reflection.AssemblyProductAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
