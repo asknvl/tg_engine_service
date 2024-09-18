@@ -10,7 +10,7 @@ namespace tg_engine.database.mongo
     public interface IMongoProvider
     {
         Task SaveMessage(MessageBase message);
-        Task<MessageBase> UpdateMessage(MessageBase message);
+        Task<(MessageBase updated, string? storage_id)> UpdateMessage(MessageBase message);
         Task<bool> CheckMessageExists(int message_id);
         Task<List<MessageBase>> GetMessages(Guid chat_id);
         Task<List<MessageBase>> MarkMessagesDeletedUser(Guid account_id, int[] ids);
