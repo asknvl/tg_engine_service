@@ -81,5 +81,18 @@ namespace tg_engine.interlayer.chats
             }
             return userChat;
         }
+
+        public async Task<UserChat?> GetUserChat(Guid account_id, long telegram_id)
+        {
+            var userChat = userChats.FirstOrDefault(us => us.chat.account_id == account_id && us.user.telegram_id == telegram_id);
+            if (userChat == null)
+            {
+                userChat = await postgreProvider.GetUserChat(account_id, telegram_id);
+                if (userChat != null)
+                    userChats.Add(userChat);
+            }
+            return userChat;
+        }
+
     }
 }
