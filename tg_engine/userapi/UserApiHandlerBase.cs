@@ -309,8 +309,7 @@ namespace tg_engine.userapi
             {
                 //var userChat = await getUserChat(unm.message.Peer.ID);
                 var userChat = await getUserChat(input.Peer.ID);
-
-                logger.dbg(tag, $"getUserChat: {userChat.user}");
+                logger.inf(tag, $"getUserChat: {userChat.user} is_new={userChat.is_new}");
 
                 var message = input as Message;
 
@@ -319,13 +318,16 @@ namespace tg_engine.userapi
                     var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
                     if (exists)
                     {
-                        logger.warn(tag, $"Сообщение с telegra123m_message_id={input.ID} уже существует (1)");
+                        logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
                         return;
                     }
                 }
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
                 {
+
+                    logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
+
                     try
                     {
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
@@ -337,6 +339,9 @@ namespace tg_engine.userapi
 
                         foreach (var m in history.Messages)
                         {
+
+                            logger.inf(tag, $"getHisory message: {m}");
+
                             try
                             {
                                 var mb = m as TL.MessageBase;
@@ -367,6 +372,8 @@ namespace tg_engine.userapi
                                                                                igonreUnread: true);
 
                         var chEvent = new newChatEvent(userChat, source_id, source_name);
+
+                        logger.inf(tag, $"getHistory sendNewChat: {userChat.user} is_new={userChat.is_new}");
                         await tgHubProvider.SendEvent(chEvent);
 
                         return;
@@ -591,6 +598,7 @@ namespace tg_engine.userapi
                     try
                     {
                         userChat = await getUserChat(telegram_id);
+                        logger.inf(tag, $"UpdateReadHisotryInbox: {telegram_id} is_new={userChat.is_new}");
                         userChat = await handleMessageRead(userChat, "in", uhi.max_id);
                         await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                         await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));                                                                                                              
@@ -608,6 +616,7 @@ namespace tg_engine.userapi
                     {
                         userChat = await getUserChat(telegram_id);
                         userChat = await handleMessageRead(userChat, "out", uho.max_id);
+                        logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} is_new={userChat.is_new}");
                         await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
                         await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
                     }
@@ -627,6 +636,7 @@ namespace tg_engine.userapi
                         logger.err(tag, $"UpdateDeleteChannelMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
                     break;
+
                 case UpdateDeleteMessages udm:
                     try
                     {                          
