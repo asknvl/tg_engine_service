@@ -1199,7 +1199,7 @@ namespace tg_engine.userapi
                             var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                             if (msgBase is Message msg)
                             {
-                                await handleNewMessage(msgBase/*, update: true*/);
+                                await handleUpdateMessage(msgBase/*, update: true*/);
                             }
 
                             //else if (msgBase is MessageService ms)
