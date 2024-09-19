@@ -561,8 +561,11 @@ namespace tg_engine.userapi
                     break;
             }
 
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_id));
+
             if (updatedChat != null)
-                userChat.chat = updatedChat;
+                userChat.chat = updatedChat;           
 
            return userChat;
         }
@@ -645,8 +648,8 @@ namespace tg_engine.userapi
                         {
                             userChat = await handleMessageRead(userChat, "in", uhi.max_id);
                             logger.inf(tag, $"UpdateReadHisotryInbox: {telegram_id} is_new={userChat.is_new}");
-                            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-                            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));
+                            //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                            //await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "in", uhi.max_id));
                         }
                     }
                     catch (Exception ex)
@@ -666,8 +669,8 @@ namespace tg_engine.userapi
                         {
                             userChat = await handleMessageRead(userChat, "out", uho.max_id);
                             logger.inf(tag, $"UpdateReadHisotryOutbox: {telegram_id} is_new={userChat.is_new}");
-                            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-                            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
+                            //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+                            //await tgHubProvider.SendEvent(new readHistoryEvent(userChat, "out", uho.max_id));
                         }
                     }
                     catch (Exception ex)
@@ -1043,7 +1046,7 @@ namespace tg_engine.userapi
                 try
                 {
                     await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);                    
                 }
                 catch (Exception ex)
                 {
@@ -1137,7 +1140,7 @@ namespace tg_engine.userapi
                     {                        
                         await client.ReadHistory(peer, rh.max_id);
                         await handleMessageRead(userChat, "in", rh.max_id);
-                        await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                        //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
                     }
                     catch (Exception ex)
                     {
