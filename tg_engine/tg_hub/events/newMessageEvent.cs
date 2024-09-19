@@ -23,6 +23,7 @@ namespace tg_engine.tg_hub.events
                 telegram_id = message.telegram_id,
                 telegram_message_id = message.telegram_message_id,
                 text = message.text,
+                screen_text = message.screen_text,
                 date = message.date,
                 reply_to_message_id = message.reply_to_message_id,
                 media = message.media,
@@ -40,6 +41,7 @@ namespace tg_engine.tg_hub.events
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }
         public string? text { get; set; }
+        public string? screen_text { get; set; }
         public DateTime date { get; set; }
         public int? reply_to_message_id { get; set; }
         public IL.MediaInfo? media { get; set; }
