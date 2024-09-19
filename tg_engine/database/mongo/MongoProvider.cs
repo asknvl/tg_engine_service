@@ -42,11 +42,9 @@ namespace tg_engine.database.mongo
                          Builders<MessageBase>.Filter.Eq("telegram_message_id", message.telegram_message_id);
 
 
-            string? storage_id = null;
             var currentMessage = await messages.Find(filter).FirstOrDefaultAsync();
-            if (currentMessage.media != null)
-                storage_id = currentMessage.media.storage_id;   
-                
+            string? storage_id = currentMessage?.media?.storage_id;
+
             var update = Builders<MessageBase>.Update
                        .Set(m => m.text, message.text)
                        .Set(m => m.media, message.media)
