@@ -45,7 +45,7 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 487,
+          "DockedWidth": 589,
           "SelectedChildIndex": 3,
           "Children": [
             {
@@ -75,9 +75,9 @@
               "Title": "tg_engine_base.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine_base.cs",
               "RelativeDocumentMoniker": "tg_engine\\tg_engine_base.cs",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine_base.cs",
-              "RelativeToolTip": "tg_engine\\tg_engine_base.cs",
-              "ViewState": "AQIAADIAAAAAAAAAAAAQwFcAAAAJAAAA",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine_base.cs*",
+              "RelativeToolTip": "tg_engine\\tg_engine_base.cs*",
+              "ViewState": "AQIAAD4AAAAAAAAAAAAmwE8AAAB/AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-18T21:32:47.926Z",
               "EditorCaption": ""
@@ -163,7 +163,7 @@
           ]
         },
         {
-          "DockedWidth": 231,
+          "DockedWidth": 129,
           "SelectedChildIndex": 7,
           "Children": [
             {
@@ -202,7 +202,7 @@
               "RelativeDocumentMoniker": "tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
               "RelativeToolTip": "tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABQAAAAAAAAA",
+              "ViewState": "AQIAAAUAAAAAAAAAAAAAABQAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T14:21:23.342Z",
               "EditorCaption": ""

@@ -68,7 +68,7 @@ namespace tg_engine
         }
 
         #region private
-        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, IMessageUpdatesObservable messageUpdatesObservable)
+        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, IMessageUpdatesObservable messageUpdatesObservable)
         {
             foreach (var settings in dmStartupSettings.Where(s => s.account.status_id == 1))
             {
@@ -77,7 +77,7 @@ namespace tg_engine
                 var found = DMHandlers.FirstOrDefault(d => d.settings.account.id == settings.account.id);
                 if (found == null)
                 {
-                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
+                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
                     messageUpdatesObservable.Add(/*dm.tgProvider*/dm.user);
                     DMHandlers.Add(dm);
 
