@@ -28,7 +28,8 @@ namespace tg_engine.rest
             public Guid telegram_user_id { get; set; }
             public string? operator_id { get; set; }
             public mediaDto? media { get; set; } 
-            public string text { get; set; }
+            public string? text { get; set; }
+            public string? screen_text { get; set; }
         }
 
         public class mediaDto()
@@ -82,7 +83,8 @@ namespace tg_engine.rest
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == message.account_id);
                             if (observer != null)
                             {
-                                await observer.OnNewMessage(message);
+                                observer.OnNewMessage(message);
+
                                 code = HttpStatusCode.OK;
                                 responseText = code.ToString();
                             }

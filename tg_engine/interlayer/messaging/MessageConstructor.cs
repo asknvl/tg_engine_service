@@ -85,6 +85,7 @@ namespace tg_engine.interlayer.messaging
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,
                 text = text,
+                screen_text = screen_text,
                 date = date,
                 is_business_bot_reply = is_business_bot_reply,
                 business_bot_username = business_bot_username

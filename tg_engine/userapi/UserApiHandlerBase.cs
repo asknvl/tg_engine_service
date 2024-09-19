@@ -78,6 +78,7 @@ namespace tg_engine.userapi
         protected uint updateCounterPrev = 1;
 
         protected System.Timers.Timer updateWatchdogTimer;
+        protected System.Timers.Timer activityTimer;
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -111,8 +112,16 @@ namespace tg_engine.userapi
             updateWatchdogTimer.Interval = 5 * 60 * 1000;
             updateWatchdogTimer.Elapsed += UpdateWatchdogTimer_Elapsed;         
 
+            activityTimer = new System.Timers.Timer();
+            activityTimer.AutoReset = true;
+            activityTimer.Interval = 5 * 1000;
+            activityTimer.Elapsed += ActivityTimer_Elapsed;
+
+
             status = UserApiStatus.inactive;
         }
+
+        
 
         #region private
         void processRpcException(RpcException ex)
@@ -971,6 +980,24 @@ namespace tg_engine.userapi
 
             updateCounterPrev = updateCounter;
         }
+
+        private async void ActivityTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+
+                //var userChat = chatsProvider.GetUserChat()
+                //await client.Messages_SetTyping()
+
+
+                await client.Account_UpdateStatus(offline: true);                               
+
+            } catch (Exception ex)
+            {
+                logger.err(tag, $"ActivityTimer_Elapsed: {ex.Message}");
+            }
+
+        }
         #endregion
 
         #region public       
@@ -1053,11 +1080,11 @@ namespace tg_engine.userapi
                 if (result != null && userChat != null)
                 {                                    
                     message.direction = "out";
-                    message.text = messageDto.text;                    
+                    message.text = messageDto.text;              
+                    message.screen_text = messageDto.screen_text;   
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
                     message.operator_id = messageDto.operator_id;
-
                     await mongoProvider.SaveMessage(message);                    
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
@@ -1202,6 +1229,7 @@ namespace tg_engine.userapi
                 }
 
                 client = new Client(config);
+                
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
 
                 await client.LoginUserIfNeeded();
@@ -1217,6 +1245,8 @@ namespace tg_engine.userapi
                 manager.SaveState(state_path);
 
                 updateWatchdogTimer?.Start();
+                activityTimer?.Start();
+
                 status = UserApiStatus.active;
 
             }
@@ -1243,6 +1273,7 @@ namespace tg_engine.userapi
         public virtual void Stop()
         {
             updateWatchdogTimer?.Stop();
+            activityTimer?.Stop();
             manager.SaveState(state_path);
             client?.Dispose();
             verifyCodeReady.Set();
