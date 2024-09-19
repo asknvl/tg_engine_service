@@ -309,6 +309,10 @@ namespace tg_engine.userapi
             {
                 //var userChat = await getUserChat(unm.message.Peer.ID);
                 var userChat = await collectUserChat(input.Peer.ID);
+
+                if (userChat.chat.chat_type == ChatTypes.channel)
+                    return;
+
                 logger.inf(tag, $"getUserChat: {userChat.user} is_new={userChat.is_new}");
 
                 var message = input as Message;
@@ -433,6 +437,9 @@ namespace tg_engine.userapi
             try
             {                
                 var userChat = await collectUserChat(input.Peer.ID);
+
+                if (userChat.chat.chat_type == ChatTypes.channel)
+                    return;
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
 
