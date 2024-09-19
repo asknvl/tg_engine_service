@@ -431,8 +431,7 @@ namespace tg_engine.userapi
         async Task handleUpdateMessage(TL.MessageBase input)
         {
             try
-            {
-                
+            {                
                 var userChat = await collectUserChat(input.Peer.ID);
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
@@ -464,9 +463,7 @@ namespace tg_engine.userapi
                         try
                         {
 
-                            var updated = await mongoProvider.UpdateMessage(messageBase);
-                            //событие об обновлении сообщения
-                            //await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
+                            var updated = await mongoProvider.UpdateMessage(messageBase);                            
 
                             if (updated.storage_id != null)
                             {
