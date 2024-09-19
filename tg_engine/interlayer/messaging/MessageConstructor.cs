@@ -54,7 +54,9 @@ namespace tg_engine.interlayer.messaging
 
             int telegram_message_id = input.ID;
             
-            var text = await translator.translate_incoming(getText(input));
+            var text = getText(input);
+
+            var screen_text = await translator.translate(text); 
             
             var date = input.Date;
 
@@ -100,23 +102,26 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Image(UserChat userChat, TL.MessageBase input, Photo photo, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        public async Task<MessageBase> Image(UserChat userChat, TL.MessageBase input, Photo photo, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
         {
             var message = await getBase(userChat, input, getUserChat);
 
-            message.media = new MediaInfo()
+            if (s3info != null)
             {
-                type = MediaTypes.image,
-                file_name = null,
-                extension = s3info.extension,
-                storage_id = s3info.storage_id,
-                storage_url = s3info.url
+                message.media = new MediaInfo()
+                {
+                    type = MediaTypes.image,
+                    file_name = null,
+                    extension = s3info.extension,
+                    storage_id = s3info.storage_id,
+                    storage_url = s3info.url
+                };
+            }
 
-            };
             return message;
         }
 
-        public async Task<MessageBase> Photo(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        public async Task<MessageBase> Photo(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
         {
             var message = await getBase(userChat, input, getUserChat);
             string mediaType = MediaTypes.photo;
@@ -145,7 +150,7 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Video(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        public async Task<MessageBase> Video(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
         {
             var message = await getBase(userChat, input, getUserChat);
             string mediaType = MediaTypes.video;
@@ -162,18 +167,21 @@ namespace tg_engine.interlayer.messaging
                 message.text = m.message;
             }
 
-            message.media = new MediaInfo()
+            if (s3info != null)
             {
-                type = mediaType,
-                file_name = document.Filename,
-                extension = s3info.extension,
-                length = document.size,
-                duration = video?.duration,
-                width = video?.w,
-                height = video?.h,
-                storage_id = s3info.storage_id,
-                storage_url = s3info.url
-            };
+                message.media = new MediaInfo()
+                {
+                    type = mediaType,
+                    file_name = document.Filename,
+                    extension = s3info.extension,
+                    length = document.size,
+                    duration = video?.duration,
+                    width = video?.w,
+                    height = video?.h,
+                    storage_id = s3info.storage_id,
+                    storage_url = s3info.url
+                };
+            }
 
             return message;
         }
@@ -211,7 +219,7 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
         {
             var message = await getBase(userChat, input, getUserChat);
 

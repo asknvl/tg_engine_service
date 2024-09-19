@@ -229,7 +229,15 @@ namespace tg_engine.userapi
 
                 MemoryStream stream = new MemoryStream();
                 var ext = await client.DownloadFileAsync(photo, stream);
-                var s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
+
+                S3ItemInfo s3info = null;
+                try
+                {
+                    s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
+                } catch (Exception ex)
+                {
+                    logger.err(tag, $"handleImage: {ex.Message}");
+                }
 
                 message = await messageConstructor.Image(userChat, input, photo, collectUserChat, s3info);
             }
@@ -251,7 +259,16 @@ namespace tg_engine.userapi
 
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                var s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+
+                S3ItemInfo s3info = null;
+                try
+                {
+                    s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+                }
+                catch (Exception ex)
+                {
+                    logger.err(tag, $"handleImage: {ex.Message}");
+                }                
                 stopwatch.Stop();
 
                 logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");

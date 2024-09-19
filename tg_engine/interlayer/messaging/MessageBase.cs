@@ -19,6 +19,7 @@ namespace tg_engine.interlayer.messaging
         public string direction { get; set; }
         public long telegram_id { get; set; }
         public int telegram_message_id { get; set; }        
+        public string? screen_text { get; set; }    
         public string? text { get; set; }
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;
@@ -27,7 +28,7 @@ namespace tg_engine.interlayer.messaging
         public bool is_deleted { get; set; }
         public DateTime? deleted_date { get; set; } = null;
         public int? reply_to_message_id { get; set; }
-        public MediaInfo? media { get; set; }
+        public MediaInfo? media { get; set; } = null;
         public DateTime created_at { get; set; } = DateTime.UtcNow;
         public DateTime? updated_at { get; set; } = null;
         public bool is_business_bot_reply { get; set; } = false;

@@ -25,31 +25,28 @@ namespace tg_engine.translator
             translator = new Translator(settings.api_key);
         }
 
-        public async Task<string> translate_incoming(string text)
+        public async Task<string?> translate(string text)
         {
-            string res = "";
+            string? res = text;
 
-            try
+            if (settings.translate_incoming && !string.IsNullOrEmpty(text))
             {
-                string[] arr = { text };
-                var tr = await translator.TranslateTextAsync(arr, null, "RU");
-                res = tr[0].Text;
+                try
+                {
+                    string[] arr = { text };
+                    var tr = await translator.TranslateTextAsync(arr, null, "RU");
+                    res = tr[0].Text;
 
-                logger.dbg("deepl", $"{tr[0].Text}\n{tr[0].DetectedSourceLanguageCode}");
+                    logger.dbg("deepl", $"{tr[0].Text}\n{tr[0].DetectedSourceLanguageCode}");
 
-            } catch (Exception ex)
-            {
-                logger.err("deepl", $"translate_incoming: {text} {ex.Message}");    
-                res = text;
-            }
+                }
+                catch (Exception ex)
+                {
+                    logger.err("deepl", $"translate_incoming: {text} {ex.Message}");                    
+                }
+            }           
 
             return res; 
-        }
-            
-
-        public string translate_outcoming(string text)
-        {
-            return text;
-        }
+        }                  
     }
 }
