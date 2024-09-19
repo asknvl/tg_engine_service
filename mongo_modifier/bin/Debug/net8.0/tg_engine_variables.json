@@ -25,5 +25,11 @@
     "bucket" : "quasar-dev",
     "user" : "quasar-dev",
     "password" : "BwrbbyZHf1dKp1faB1Cd9U17X"
+  },
+  "settings_translator" : {
+    "provider" : "deepl",
+    "api_key" : "982bb450-95b3-49a1-bf05-3f67bd5edf26",
+    "translate_incoming" : true,
+    "translate_outcoming" : true
   }
-}
+} 

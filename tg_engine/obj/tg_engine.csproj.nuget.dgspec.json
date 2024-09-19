@@ -113,6 +113,10 @@
               "target": "Package",
               "version": "[3.7.400.1, )"
             },
+            "DeepL.net": {
+              "target": "Package",
+              "version": "[1.10.0, )"
+            },
             "Lsj.MediaInfo.Wrapper.Core": {
               "target": "Package",
               "version": "[22.12.1, )"

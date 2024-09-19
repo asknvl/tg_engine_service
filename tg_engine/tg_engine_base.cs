@@ -1,4 +1,4 @@
-﻿using logger;
+using logger;
 using System.Diagnostics;
 using System.Reflection;
 using tg_engine.config;
@@ -9,6 +9,7 @@ using tg_engine.interlayer.messaging;
 using tg_engine.rest;
 using tg_engine.s3;
 using tg_engine.tg_hub;
+using tg_engine.translator;
 
 namespace tg_engine
 {
@@ -25,6 +26,7 @@ namespace tg_engine
         IRestService restService;
         ITGHubProvider tgHubProvider;
         IS3Provider s3Provider;
+        ITranslator translator;
         MessageUpdatesRequestProcessor messageUpdateRequestProcessor;
         #endregion
 
@@ -66,16 +68,16 @@ namespace tg_engine
         }
 
         #region private
-        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, IMessageUpdatesObservable messageUpdatesObservable)
-        {            
-            foreach (var settings in dmStartupSettings.Where(s => s.account.status_id == 1))
+        async Task initDMhandlers(List<DMStartupSettings> dmStartupSettings, IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, IMessageUpdatesObservable messageUpdatesObservable)
+        {
+            foreach (var settings in dmStartupSettings)
             {
                 Debug.WriteLine($"{settings.source_name} {settings.account.phone_number}");
 
                 var found = DMHandlers.FirstOrDefault(d => d.settings.account.id == settings.account.id);
                 if (found == null)
                 {
-                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, logger);
+                    var dm = new DMHandlerBase(settings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
                     messageUpdatesObservable.Add(/*dm.tgProvider*/dm.user);
                     DMHandlers.Add(dm);
 
@@ -125,7 +127,9 @@ namespace tg_engine
 
                 s3Provider = new S3Provider(vars.tg_engine_variables.settings_s3);
 
-                await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, messageUpdateRequestProcessor);
+                translator = new Deepl(vars.tg_engine_variables.settings_translator, logger);
+
+                await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, messageUpdateRequestProcessor);
 
                 logger?.inf_urgent(tag, $"Инициализация выполнена");
 
@@ -165,7 +169,7 @@ namespace tg_engine
         public virtual async Task ToggleDMHandlers(List<Guid> guids, bool state)
         {
             var dMStartupSettings = await postgreProvider.GetStatupData();
-            await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, messageUpdateRequestProcessor);
+            await initDMhandlers(dMStartupSettings, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, messageUpdateRequestProcessor);
 
             if (guids == null || guids.Count == 0)
             {
