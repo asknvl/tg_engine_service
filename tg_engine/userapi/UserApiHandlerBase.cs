@@ -110,7 +110,7 @@ namespace tg_engine.userapi
             updateWatchdogTimer = new System.Timers.Timer();
             updateWatchdogTimer.AutoReset = true;
             updateWatchdogTimer.Interval = 5 * 60 * 1000;
-            updateWatchdogTimer.Elapsed += UpdateWatchdogTimer_Elapsed;         
+            updateWatchdogTimer.Elapsed += UpdateWatchdogTimer_Elapsed;
 
             activityTimer = new System.Timers.Timer();
             activityTimer.AutoReset = true;
@@ -120,8 +120,6 @@ namespace tg_engine.userapi
 
             status = UserApiStatus.inactive;
         }
-
-        
 
         #region private
         void processRpcException(RpcException ex)
@@ -243,7 +241,8 @@ namespace tg_engine.userapi
                 try
                 {
                     s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     logger.err(tag, $"handleImage: {ex.Message}");
                 }
@@ -277,7 +276,7 @@ namespace tg_engine.userapi
                 catch (Exception ex)
                 {
                     logger.err(tag, $"handleImage: {ex.Message}");
-                }                
+                }
                 stopwatch.Stop();
 
                 logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");
@@ -383,9 +382,10 @@ namespace tg_engine.userapi
                                     await mongoProvider.SaveMessage(messageBase);
                                     messagesToProcess.Add(messageBase);
                                 }
-                            
 
-                            } catch (Exception ex)
+
+                            }
+                            catch (Exception ex)
                             {
                                 logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
                             }
@@ -408,7 +408,8 @@ namespace tg_engine.userapi
                         await tgHubProvider.SendEvent(chEvent);
                         return;
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"getHistory: {ex.Message}");
                     }
@@ -422,9 +423,9 @@ namespace tg_engine.userapi
                     {
                         try
                         {
-                            
+
                             await mongoProvider.SaveMessage(messageBase);
-                            
+
 
                             userChat.chat = await postgreProvider.UpdateTopMessage(messageBase.chat_id,
                                                                                      messageBase.direction,
@@ -466,7 +467,7 @@ namespace tg_engine.userapi
         async Task handleUpdateMessage(TL.MessageBase input)
         {
             try
-            {                
+            {
                 var userChat = await collectUserChat(input.Peer.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
@@ -501,7 +502,7 @@ namespace tg_engine.userapi
                         try
                         {
 
-                            var updated = await mongoProvider.UpdateMessage(messageBase);                            
+                            var updated = await mongoProvider.UpdateMessage(messageBase);
 
                             if (updated.storage_id != null)
                             {
@@ -539,8 +540,8 @@ namespace tg_engine.userapi
             else
                 messages = await mongoProvider.MarkMessagesDeletedUser(account_id, message_ids);
 
-            if (messages.Count > 0)            
-                await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));            
+            if (messages.Count > 0)
+                await tgHubProvider.SendEvent(new deleteMessagesEvent(account_id, messages[0].chat_id, message_ids));
         }
         async Task<UserChat> handleMessageRead(UserChat userChat, string direction, int max_id)
         {
@@ -552,11 +553,11 @@ namespace tg_engine.userapi
 
             switch (direction)
             {
-                case "in":                    
+                case "in":
                     updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_inbox_count: unread_count, read_inbox_max_id: max_read_id);
                     break;
 
-                case "out":                    
+                case "out":
                     updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_outbox_count: unread_count, read_outbox_max_id: max_read_id);
                     break;
             }
@@ -565,9 +566,9 @@ namespace tg_engine.userapi
             await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_id));
 
             if (updatedChat != null)
-                userChat.chat = updatedChat;           
+                userChat.chat = updatedChat;
 
-           return userChat;
+            return userChat;
         }
 
         async Task loadServiceChat(InputPeer peer)
@@ -590,7 +591,6 @@ namespace tg_engine.userapi
                         //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
                     }
                     offset_id = messages.Messages[^1].ID;
-
                 }
             }
         }
@@ -599,11 +599,11 @@ namespace tg_engine.userapi
         {
             var channels = manager.Chats;
             if (channels.ContainsKey(udc.channel_id))
-            {                
+            {
                 var userChat = await collectUserChat(udc.channel_id);
                 if (userChat.chat.chat_type == ChatTypes.service_channel)
-                {                    
-                    loadServiceChat(new InputPeerUser(userChat.user.telegram_id, userChat.access_hash));
+                {
+                    loadServiceChat(new InputPeerChannel(userChat.user.telegram_id, userChat.access_hash));
                 }
             }
             await Task.CompletedTask;
@@ -620,7 +620,7 @@ namespace tg_engine.userapi
             updateCounter++;
 
             UserChat userChat = null;
-            long telegram_id = 0;            
+            long telegram_id = 0;
 
             switch (update)
             {
@@ -630,7 +630,8 @@ namespace tg_engine.userapi
                     try
                     {
                         await handleUpdateChannel(udc);
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"UpdateChannel: {udc.channel_id} {ex.Message}");
                     }
@@ -684,7 +685,8 @@ namespace tg_engine.userapi
                     {
                         await handleMessageDeletion(udcm.messages, udcm.channel_id);
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"UpdateDeleteChannelMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
@@ -692,21 +694,22 @@ namespace tg_engine.userapi
 
                 case UpdateDeleteMessages udm:
                     try
-                    {                          
-                        await handleMessageDeletion(udm.messages, chat_telegram_id: null);                        
-                        
-                    } catch (Exception ex)
+                    {
+                        await handleMessageDeletion(udm.messages, chat_telegram_id: null);
+
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"UpdateDeleteMessages: {ex.Message} {ex?.InnerException?.Message}");
                     }
-                    break;               
+                    break;
 
                 case UpdateNewChannelMessage uncm:
                     await handleNewMessage(uncm.message);
                     break;
 
                 case UpdateNewMessage unm:
-                    await handleNewMessage(unm.message);                  
+                    await handleNewMessage(unm.message);
                     break;
 
                 case UpdateEditChannelMessage uecm:
@@ -715,7 +718,7 @@ namespace tg_engine.userapi
 
                 case UpdateEditMessage uem:
                     await handleUpdateMessage(uem.message);
-                    break;                    
+                    break;
             }
         }
         #endregion
@@ -798,7 +801,7 @@ namespace tg_engine.userapi
                     if (cachedMedia.ContainsKey(storage_id))
                         cachedMedia.Remove(storage_id);
 
-                    cachedMedia.Add(storage_id, cahed);                    
+                    cachedMedia.Add(storage_id, cahed);
                 }
             }
 
@@ -820,7 +823,7 @@ namespace tg_engine.userapi
 
             if (!needUpload)
             {
-                 s3info = await s3Provider.GetInfo(storage_id);
+                s3info = await s3Provider.GetInfo(storage_id);
 
                 try
                 {
@@ -849,7 +852,7 @@ namespace tg_engine.userapi
             {
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
-                byte[] bytes = null;                
+                byte[] bytes = null;
 
                 (bytes, s3info) = await s3Provider.Download(storage_id);
                 stopwatch.Stop();
@@ -860,7 +863,7 @@ namespace tg_engine.userapi
                 {
                     var mediaProperties = new MediaInfoWrapper(new MemoryStream(bytes));
                     int cntr = 0;
-                    var file = await client.UploadFileAsync(stream, $"{file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });                    
+                    var file = await client.UploadFileAsync(stream, $"{file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
 
                     string? mime_type = null;
                     DocumentAttribute[]? attributes = null;
@@ -868,7 +871,7 @@ namespace tg_engine.userapi
                     InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
                     inputFile.ID = file.ID;
                     inputFile.Parts = file.Parts;
-                    
+
                     switch (type)
                     {
                         case MediaTypes.circle:
@@ -905,7 +908,7 @@ namespace tg_engine.userapi
                                 new DocumentAttributeFilename {
                                    file_name = file_name
                                 }
-                            };                        
+                            };
                             break;
                         case MediaTypes.voice:
                             mime_type = "audio/ogg";
@@ -940,7 +943,7 @@ namespace tg_engine.userapi
                     if (cachedMedia.ContainsKey(storage_id))
                         cachedMedia.Remove(storage_id);
 
-                    cachedMedia.Add(storage_id, cahed);                    
+                    cachedMedia.Add(storage_id, cahed);
                 }
             }
 
@@ -975,7 +978,8 @@ namespace tg_engine.userapi
                     client = new Client(config);
                     manager = client.WithUpdateManager(User_OnUpdate, state_path);
                     await client.LoginUserIfNeeded();
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     logger.err(tag, $"updateWatchDog: {ex.Message}");
                 }
@@ -993,9 +997,10 @@ namespace tg_engine.userapi
                 //await client.Messages_SetTyping()
 
 
-                await client.Account_UpdateStatus(offline: true);                               
+                await client.Account_UpdateStatus(offline: true);
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.err(tag, $"ActivityTimer_Elapsed: {ex.Message}");
             }
@@ -1046,7 +1051,7 @@ namespace tg_engine.userapi
                 try
                 {
                     await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);                    
+                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
                 }
                 catch (Exception ex)
                 {
@@ -1081,14 +1086,14 @@ namespace tg_engine.userapi
                 }
 
                 if (result != null && userChat != null)
-                {                                    
+                {
                     message.direction = "out";
-                    message.text = messageDto.text;              
-                    message.screen_text = messageDto.screen_text;   
+                    message.text = messageDto.text;
+                    message.screen_text = messageDto.screen_text;
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
                     message.operator_id = messageDto.operator_id;
-                    await mongoProvider.SaveMessage(message);                    
+                    await mongoProvider.SaveMessage(message);
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
                                                                              message.direction,
@@ -1137,7 +1142,7 @@ namespace tg_engine.userapi
             {
                 case readHistory rh:
                     try
-                    {                        
+                    {
                         await client.ReadHistory(peer, rh.max_id);
                         await handleMessageRead(userChat, "in", rh.max_id);
                         //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
@@ -1153,14 +1158,15 @@ namespace tg_engine.userapi
                     {
                         var ids = dm.ids.ToArray();
                         var res = await client.DeleteMessages(peer, ids);
-                        await handleMessageDeletion(ids, chat_telegram_id: null);                        
+                        await handleMessageDeletion(ids, chat_telegram_id: null);
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate deleteMessage tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
                     }
                     break;
-                    
+
             }
 
             await Task.CompletedTask;
@@ -1170,7 +1176,7 @@ namespace tg_engine.userapi
 
             int itteratonCntr = 5;
 
-            var dialogs = await client.Messages_GetDialogs(folder_id: folder_id, limit:100);
+            var dialogs = await client.Messages_GetDialogs(folder_id: folder_id, limit: 100);
             switch (dialogs)
             {
                 case Messages_DialogsSlice mds:
@@ -1196,7 +1202,7 @@ namespace tg_engine.userapi
 
                         dialogs = await client.Messages_GetDialogs(lastDate, lastMsgId, lastPeer, folder_id: folder_id);
                         if (dialogs is not Messages_Dialogs md) break;
-                        
+
                         foreach (var (key, value) in md.chats) mds.chats[key] = value;
                         foreach (var (key, value) in md.users) mds.users[key] = value;
 
@@ -1232,7 +1238,7 @@ namespace tg_engine.userapi
                 }
 
                 client = new Client(config);
-                
+
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
 
                 await client.LoginUserIfNeeded();
@@ -1266,7 +1272,7 @@ namespace tg_engine.userapi
                 client.Dispose();
                 throw;
             }
-        }        
+        }
         public void SetVerificationCode(string code)
         {
             logger.user_input(tag, $"Ввод кода верификации {code}");
