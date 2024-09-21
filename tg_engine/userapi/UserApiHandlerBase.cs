@@ -363,7 +363,8 @@ namespace tg_engine.userapi
                         if (user != null)
                         {
                             var is_min = user.flags.HasFlag(User.Flags.min);
-                            logger.warn(tag, $"getHistory: min flag found");
+                            if (is_min)
+                                logger.warn(tag, $"getHistory: min flag found");
                         }
 
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
