@@ -366,8 +366,11 @@ namespace tg_engine.userapi
                             if (is_min)
                             {
 
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(input);
-                                logger.warn(tag, json.ToString());
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(input);                                
+                                logger.warn(tag, $"getHistory: {json.ToString()}");
+
+                                json = Newtonsoft.Json.JsonConvert.SerializeObject(user);
+                                logger.warn(tag, $"getHistory: {json.ToString()}");
 
                                 logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
                                 var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
