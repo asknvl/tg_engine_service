@@ -375,17 +375,25 @@ namespace tg_engine.userapi
                                     logger.warn(tag, $"getHistory: users empty");
                                 }
 
+
+                                InputPeer chpeer = null;
+
+                                if (manager.Chats.ContainsKey(input.Peer.ID))
+                                {
+                                    chpeer = manager.Chats[input.Peer.ID];
+                                }
+
                                 var i = new InputPeerUserFromMessage()
                                 {
                                     msg_id = input.ID,
-                                    peer = user,
+                                    peer = chpeer,
                                     user_id = user.ID
                                 };
 
                                 var iu = new InputUserFromMessage()
                                 {
                                     msg_id = input.ID,
-                                    peer = user,
+                                    peer = chpeer,
                                     user_id = user.ID
                                 };
 
