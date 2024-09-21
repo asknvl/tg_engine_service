@@ -359,16 +359,41 @@ namespace tg_engine.userapi
 
                     try
                     {
+
                         manager.Users.TryGetValue(input.Peer.ID, out var user);
                         if (user != null)
                         {
-                            var is_min = user.flags.HasFlag(User.Flags.min);
-                            if (is_min)
-                                logger.warn(tag, $"getHistory: min flag found");
+                            var is_min = user.flags.HasFlag(User.Flags.min);                            
+                            logger.warn(tag, $"getHistory: min flag={is_min}");
+
+                            var i = new InputUserFromMessage()
+                            {
+                                msg_id = input.ID,
+                                peer = user.ToInputPeer(),
+                                user_id = user.ID
+                            };
                         }
 
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
+
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
+                        dialog.CollectUsersChats(manager.Users, manager.Chats);
+
+                        manager.Users.TryGetValue(input.Peer.ID, out user);
+
+                        if (user != null)
+                        {
+                            var is_min = user.flags.HasFlag(User.Flags.min);
+                            logger.warn(tag, $"getHistory: min flag={is_min}");
+
+                            var i = new InputUserFromMessage()
+                            {
+                                msg_id = input.ID,
+                                peer = user.ToInputPeer(),
+                                user_id = user.ID
+                            };
+                        }
+
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
                         var history = await client.Messages_GetHistory(peer, limit: 50);
