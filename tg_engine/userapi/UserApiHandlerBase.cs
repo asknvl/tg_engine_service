@@ -351,21 +351,23 @@ namespace tg_engine.userapi
                 }
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
-                {
-
-                    
+                {                   
 
                     logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
 
                     try
                     {
-
                         manager.Users.TryGetValue(input.Peer.ID, out var user);
                         if (user != null)
                         {
-                            var is_min = user.flags.HasFlag(User.Flags.min);                            
-                            logger.warn(tag, $"getHistory: min flag={is_min}");
-
+                            var is_min = user.flags.HasFlag(User.Flags.min);
+                            if (is_min)
+                            {
+                                logger.warn(tag, $"getHistory: min flag found access_hash = {userChat.access_hash}");
+                                var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
+                                logger.warn(tag, $"getHistory: new access_hash = {userChat.access_hash}");
+                            }
+                            
                             var i = new InputUserFromMessage()
                             {
                                 msg_id = input.ID,
@@ -375,24 +377,7 @@ namespace tg_engine.userapi
                         }
 
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
-
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
-                        dialog.CollectUsersChats(manager.Users, manager.Chats);
-
-                        manager.Users.TryGetValue(input.Peer.ID, out user);
-
-                        if (user != null)
-                        {
-                            var is_min = user.flags.HasFlag(User.Flags.min);
-                            logger.warn(tag, $"getHistory: min flag={is_min}");
-
-                            var i = new InputUserFromMessage()
-                            {
-                                msg_id = input.ID,
-                                peer = user.ToInputPeer(),
-                                user_id = user.ID
-                            };
-                        }
 
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
