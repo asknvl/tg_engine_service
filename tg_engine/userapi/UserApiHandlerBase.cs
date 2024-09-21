@@ -380,21 +380,31 @@ namespace tg_engine.userapi
 
                                 if (manager.Chats.ContainsKey(input.Peer.ID))
                                 {
-                                    chpeer = manager.Chats[input.Peer.ID];
+                                    chpeer = manager.Chats[input.Peer.ID].ToInputPeer();
+
+                                    try
+                                    {
+                                        logger.warn(tag, $"chpeer: {chpeer}");
+                                        logger.warn(tag, $"msg_id: {input.ID}");
+                                        logger.warn(tag, $"user_id: {input.From.ID}");
+                                    } catch (Exception ex)
+                                    {
+                                        logger.err(tag, $"prms {ex.Message}");
+                                    }
                                 }
 
                                 var i = new InputPeerUserFromMessage()
                                 {
                                     msg_id = input.ID,
                                     peer = chpeer,
-                                    user_id = user.ID
+                                    user_id = input.From.ID,
                                 };
 
                                 var iu = new InputUserFromMessage()
                                 {
                                     msg_id = input.ID,
                                     peer = chpeer,
-                                    user_id = user.ID
+                                    user_id = input.From.ID,
                                 };
 
                                 try

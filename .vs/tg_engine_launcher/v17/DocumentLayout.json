@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\userapi\\userapihandlerbase.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\postgreprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\database\\postgre\\postgreprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\tg_engine.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
     },
@@ -17,10 +21,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{30634235-5F14-444C-99FF-DFFBB35FE826}|tg_engine_launcher\\tg_engine_launcher.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine_launcher\\viewmodels\\dmhandlerslistvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{30634235-5F14-444C-99FF-DFFBB35FE826}|tg_engine_launcher\\tg_engine_launcher.csproj|solutionrelative:tg_engine_launcher\\viewmodels\\dmhandlerslistvm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\postgreprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\database\\postgre\\postgreprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\s3\\s3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -112,7 +112,7 @@
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAAHcBAAAAAAAAAAAAwHoBAAA3AAAA",
+              "ViewState": "AQIAAHkBAAAAAAAAAAAgwIcBAABKAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T17:22:14.505Z",
               "EditorCaption": ""
@@ -132,7 +132,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "dmHandlersListVM.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine_launcher\\ViewModels\\dmHandlersListVM.cs",
               "RelativeDocumentMoniker": "tg_engine_launcher\\ViewModels\\dmHandlersListVM.cs",
@@ -144,7 +144,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "tg_engine.csproj",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
               "RelativeDocumentMoniker": "tg_engine\\tg_engine.csproj",
@@ -351,7 +351,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "telegram_access_hash.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\models\\telegram_access_hash.cs",
               "RelativeDocumentMoniker": "tg_engine\\database\\postgre\\models\\telegram_access_hash.cs",
@@ -404,7 +404,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 1,
               "Title": "PostgreProvider.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\PostgreProvider.cs",
               "RelativeDocumentMoniker": "tg_engine\\database\\postgre\\PostgreProvider.cs",
