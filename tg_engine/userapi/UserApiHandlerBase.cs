@@ -373,75 +373,77 @@ namespace tg_engine.userapi
                                 logger.warn(tag, $"getHistory: {json.ToString()}");
 
                                 logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
-                                var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
-                                if (users != null && users.Length > 0)
-                                {
-                                    var uNew = users[0];
-                                    var p = uNew.ToInputPeer();
-                                    var ip = p as InputPeerUser;
-                                    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
-                                } else
-                                {
-                                    logger.warn(tag, $"getHistory: users empty");
-                                }
+                                //var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
+                                //if (users != null && users.Length > 0)
+                                //{
+                                //    var uNew = users[0];
+                                //    var p = uNew.ToInputPeer();
+                                //    var ip = p as InputPeerUser;
+                                //    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                //} else
+                                //{
+                                //    logger.warn(tag, $"getHistory: users empty");
+                                //}
 
+                                //var i = new InputPeerUserFromMessage()
+                                //{
+                                //    msg_id = input.ID,
 
-                                InputPeer chpeer = null;
-
-                                if (manager.Users.ContainsKey(input.Peer.ID))
-                                {
-                                    chpeer = manager.Users[input.Peer.ID].ToInputPeer();
-
-                                    try
-                                    {
-                                        logger.warn(tag, $"chpeer: {chpeer}");
-                                        logger.warn(tag, $"msg_id: {input.ID}");
-                                        logger.warn(tag, $"user_id: {input.From.ID}");
-                                    } catch (Exception ex)
-                                    {
-                                        logger.err(tag, $"prms {ex.Message}");
-                                    }
-                                } else
-                                {
-                                    logger.err(tag, $"Not contains");
-                                }
-
-                                var i = new InputPeerUserFromMessage()
-                                {
-                                    msg_id = input.ID,
-                                    peer = chpeer,
-                                    user_id = input.From.ID,
-                                };
-
-                                var iu = new InputUserFromMessage()
-                                {
-                                    msg_id = input.ID,
-                                    peer = chpeer,
-                                    user_id = input.From.ID,
-                                };
+                                //};
+                                                              
 
                                 try
                                 {
-                                    var h = await client.Messages_GetHistory(i, limit: 50);
+                                    logger.warn(tag, $"getHistory: 1");
+                                    var iu = new InputPeerUserFromMessage()
+                                    {
+                                        msg_id = input.ID,
+                                        peer = new InputUser(user.id, user.access_hash),
+                                        user_id = user.id
+                                    };
+                                    var h = await client.Messages_GetHistory(iu, limit: 50);
                                     logger.warn(tag, $"getHistory: h={h.Count}");
                                 } catch (Exception ex)
                                 {
+                                    logger.warn(tag, $"getHistory: 1 {ex.Message}");
                                 }
 
-                                users = await client.Users_GetUsers(new InputUserBase[] { iu });
+                                try
+                                {
+                                    logger.warn(tag, $"getHistory: 2");
 
-                                if (users != null && users.Length > 0)
-                                {
-                                    var uNew = users[0];
-                                    var p = uNew.ToInputPeer();
-                                    var ip = p as InputPeerUser;
-                                    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                    var foundChat = manager.Users[user.ID].ToInputPeer();
+                                    logger.warn(tag, $"getHistory: foundChat={manager.Chats[user.ID]}");
+
+                                    var iu = new InputPeerUserFromMessage()
+                                    {
+                                        msg_id = input.ID,
+                                        peer = foundChat,                                        
+                                        user_id = user.id
+                                    };
+
+                                    var h = await client.Messages_GetHistory(iu, limit: 50);
+                                    logger.warn(tag, $"getHistory: h={h.Count}");
                                 }
-                                else
+                                catch (Exception ex)
                                 {
-                                    logger.warn(tag, $"getHistory: users empty");
+                                    logger.warn(tag, $"getHistory: 2 {ex.Message}");
                                 }
-                                
+
+                                //users = await client.Users_GetUsers(new InputUserBase[] { iu });
+
+                                //if (users != null && users.Length > 0)
+                                //{
+                                //    var uNew = users[0];
+                                //    var p = uNew.ToInputPeer();
+                                //    var ip = p as InputPeerUser;
+                                //    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                //}
+                                //else
+                                //{
+                                //    logger.warn(tag, $"getHistory: users empty");
+                                //}
+
                             }
                             
                             
@@ -1325,8 +1327,21 @@ namespace tg_engine.userapi
                 await client.LoginUserIfNeeded();
 
 
-                var dialogs = await GetAllDialogs();//await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                
+                var dialogs = await GetAllDialogs();//await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                                
                 dialogs.CollectUsersChats(manager.Users, manager.Chats);
+
+                //var dialogs = await client.Messages_GetAllDialogs();
+
+                //var json = Newtonsoft.Json.JsonConvert.SerializeObject(dialogs);
+
+                //var path = Path.Combine(Directory.GetCurrentDirectory(), "dialogs");
+                //if (!Directory.Exists(path))
+                //    Directory.CreateDirectory(path);
+                //File.WriteAllText(Path.Combine(path, $"{phone_number}.json"), json);  
+
+                //logger.inf_urgent(tag, $"Всего диалогов: {dialogs.Dialogs.Length}");
+                //dialogs.CollectUsersChats(manager.Users, manager.Chats);
+
                 var chats = manager.Chats;
 
                 InputPeer peer = chats.Values.FirstOrDefault(c => c.Title.ToLower().Contains("service") && c.IsActive);
