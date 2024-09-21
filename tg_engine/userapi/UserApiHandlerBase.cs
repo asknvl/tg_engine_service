@@ -362,20 +362,59 @@ namespace tg_engine.userapi
                             var is_min = user.flags.HasFlag(User.Flags.min);
                             if (is_min)
                             {
-                                logger.warn(tag, $"getHistory: min flag found access_hash = {userChat.access_hash}");
+                                logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
                                 var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
-                                var uNew = users[0];
-                                var p = uNew.ToInputPeer();
-                                var ip = p as InputPeerUser;                                    
-                                logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                if (users != null && users.Length > 0)
+                                {
+                                    var uNew = users[0];
+                                    var p = uNew.ToInputPeer();
+                                    var ip = p as InputPeerUser;
+                                    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                } else
+                                {
+                                    logger.warn(tag, $"getHistory: users empty");
+                                }
+
+                                var i = new InputPeerUserFromMessage()
+                                {
+                                    msg_id = input.ID,
+                                    peer = user.ToInputPeer(),
+                                    user_id = user.ID
+                                };
+
+                                var iu = new InputUserFromMessage()
+                                {
+                                    msg_id = input.ID,
+                                    peer = user.ToInputPeer(),
+                                    user_id = user.ID
+                                };
+
+                                try
+                                {
+                                    var h = await client.Messages_GetHistory(i, limit: 50);
+                                    logger.warn(tag, $"getHistory: h={h.Count}");
+                                } catch (Exception ex)
+                                {
+                                }
+
+                                users = await client.Users_GetUsers(new InputUserBase[] { iu });
+
+                                if (users != null && users.Length > 0)
+                                {
+                                    var uNew = users[0];
+                                    var p = uNew.ToInputPeer();
+                                    var ip = p as InputPeerUser;
+                                    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                }
+                                else
+                                {
+                                    logger.warn(tag, $"getHistory: users empty");
+                                }
+                                
                             }
                             
-                            var i = new InputUserFromMessage()
-                            {
-                                msg_id = input.ID,
-                                peer = user.ToInputPeer(),
-                                user_id = user.ID
-                            };
+                            
+                            
                         }
 
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);                    
