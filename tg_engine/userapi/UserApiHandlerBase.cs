@@ -351,8 +351,7 @@ namespace tg_engine.userapi
                 }
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
-                {                   
-
+                {   
                     logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
 
                     try
@@ -365,7 +364,10 @@ namespace tg_engine.userapi
                             {
                                 logger.warn(tag, $"getHistory: min flag found access_hash = {userChat.access_hash}");
                                 var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
-                                logger.warn(tag, $"getHistory: new access_hash = {userChat.access_hash}");
+                                var uNew = users[0];
+                                var p = uNew.ToInputPeer();
+                                var ip = p as InputPeerUser;                                    
+                                logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
                             }
                             
                             var i = new InputUserFromMessage()
@@ -376,9 +378,8 @@ namespace tg_engine.userapi
                             };
                         }
 
-                        var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
+                        var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);                    
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
-
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
                         var history = await client.Messages_GetHistory(peer, limit: 50);
