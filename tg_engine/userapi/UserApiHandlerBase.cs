@@ -359,7 +359,7 @@ namespace tg_engine.userapi
                         manager.Users.TryGetValue(input.Peer.ID, out var user);
                         if (user != null)
                         {
-                            var is_min = user.flags.HasFlag(User.Flags.min);
+                            var is_min = user.flags.HasFlag(User.Flags.min);                            
                             if (is_min)
                             {
                                 logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
@@ -378,14 +378,14 @@ namespace tg_engine.userapi
                                 var i = new InputPeerUserFromMessage()
                                 {
                                     msg_id = input.ID,
-                                    peer = user.ToInputPeer(),
+                                    peer = user,
                                     user_id = user.ID
                                 };
 
                                 var iu = new InputUserFromMessage()
                                 {
                                     msg_id = input.ID,
-                                    peer = user.ToInputPeer(),
+                                    peer = user,
                                     user_id = user.ID
                                 };
 
