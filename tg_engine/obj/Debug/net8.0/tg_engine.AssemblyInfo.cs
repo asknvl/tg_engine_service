@@ -22,6 +22,7 @@ using System.Reflection;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+6280636811a6c0b2af47d0d3a7f5b159e1f1338a")]
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+eb69128f0027dbcb03fd87193d671d5195eaa202")]
@@ -46,6 +47,9 @@ using System.Reflection;
 >>>>>>> origin/v.1.0.7_file_optimization
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+7b8dd1d744bfc134336db33ef5c9b827b9c08606")]
+>>>>>>> origin/v.1.0.7_file_optimization
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+066a8bcb1c31a2f8c08b1f8672fd331b07963b9e")]
 >>>>>>> origin/v.1.0.7_file_optimization
 [assembly: System.Reflection.AssemblyProductAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tg_engine")]
