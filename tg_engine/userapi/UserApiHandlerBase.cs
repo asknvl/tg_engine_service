@@ -223,7 +223,6 @@ namespace tg_engine.userapi
             var message = await messageConstructor.Text(userChat, input, collectUserChat);
             return message;
         }
-
         async Task<IL.MessageBase> handleImage(TL.MessageBase input, MessageMediaPhoto mmp, UserChat userChat)
         {
 
@@ -252,7 +251,6 @@ namespace tg_engine.userapi
 
             return message;
         }
-
         async Task<IL.MessageBase> handleMediaDocument(TL.MessageBase input, MessageMediaDocument mmd, UserChat userChat)
         {
             Document document = mmd.document as Document;
@@ -308,7 +306,6 @@ namespace tg_engine.userapi
 
             return message;
         }
-
         async Task<IL.MessageBase> handleMessageType(TL.MessageBase input, UserChat userChat)
         {
             IL.MessageBase messageBase = null;
@@ -332,7 +329,6 @@ namespace tg_engine.userapi
 
             return messageBase;
         }
-
         async Task handleNewMessage(TL.MessageBase input)
         {
             try
@@ -357,10 +353,19 @@ namespace tg_engine.userapi
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
                 {
 
+                    
+
                     logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
 
                     try
                     {
+                        manager.Users.TryGetValue(input.Peer.ID, out var user);
+                        if (user != null)
+                        {
+                            var is_min = user.flags.HasFlag(User.Flags.min);
+                            logger.warn(tag, $"getHistory: min flag found");
+                        }
+
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
@@ -463,7 +468,6 @@ namespace tg_engine.userapi
                 logger.err(tag, ex.Message);
             }
         }
-
         async Task handleUpdateMessage(TL.MessageBase input)
         {
             try
@@ -529,7 +533,6 @@ namespace tg_engine.userapi
                 logger.err(tag, ex.Message);
             }
         }
-
         //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
         async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
@@ -570,7 +573,6 @@ namespace tg_engine.userapi
 
             return userChat;
         }
-
         async Task loadServiceChat(InputPeer peer)
         {
             if (peer != null)
@@ -594,7 +596,6 @@ namespace tg_engine.userapi
                 }
             }
         }
-
         async Task handleUpdateChannel(UpdateChannel udc)
         {
             var channels = manager.Chats;
@@ -608,7 +609,6 @@ namespace tg_engine.userapi
             }
             await Task.CompletedTask;
         }
-
         private async Task User_OnUpdate(Update update)
         {
 
@@ -840,7 +840,6 @@ namespace tg_engine.userapi
                     };
 
                     res = await client.SendMessageAsync(peer, text, document);
-
                 }
                 catch (Exception ex)
                 {

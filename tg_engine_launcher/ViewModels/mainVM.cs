@@ -2,7 +2,9 @@ using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using tg_engine;
 
@@ -30,7 +32,7 @@ namespace tg_engine_launcher.ViewModels
 
         public mainVM()
         {
-            Logger = new loggerVM();    
+            Logger = new loggerVM();
 
             tg_engine_v0 engine = new tg_engine_v0(Logger);
             dmHandlers = new dmHandlersListVM();
