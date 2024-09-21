@@ -1,9 +1,11 @@
 using logger;
 using MediaInfo;
+using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using System;
 using System.Diagnostics;
 using System.Runtime.Intrinsics.Arm;
+using System.Text.Json.Serialization;
 using tg_engine.database.mongo;
 using tg_engine.database.postgre;
 using tg_engine.database.postgre.dtos;
@@ -18,6 +20,7 @@ using tg_engine.translator;
 using TL;
 using TL.Methods;
 using WTelegram;
+using Newtonsoft;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
 
 using IL = tg_engine.interlayer.messaging;
@@ -362,6 +365,10 @@ namespace tg_engine.userapi
                             var is_min = user.flags.HasFlag(User.Flags.min);                            
                             if (is_min)
                             {
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(input);
+                                logger.warn(tag, json.ToString());
+
                                 logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
                                 var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
                                 if (users != null && users.Length > 0)
