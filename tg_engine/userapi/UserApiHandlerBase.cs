@@ -378,9 +378,9 @@ namespace tg_engine.userapi
 
                                 InputPeer chpeer = null;
 
-                                if (manager.Chats.ContainsKey(input.Peer.ID))
+                                if (manager.Users.ContainsKey(input.Peer.ID))
                                 {
-                                    chpeer = manager.Chats[input.Peer.ID].ToInputPeer();
+                                    chpeer = manager.Users[input.Peer.ID].ToInputPeer();
 
                                     try
                                     {
@@ -391,6 +391,9 @@ namespace tg_engine.userapi
                                     {
                                         logger.err(tag, $"prms {ex.Message}");
                                     }
+                                } else
+                                {
+                                    logger.err(tag, $"Not contains");
                                 }
 
                                 var i = new InputPeerUserFromMessage()
