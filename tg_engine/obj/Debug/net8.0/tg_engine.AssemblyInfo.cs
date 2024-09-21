@@ -15,9 +15,13 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.7.0")]
 <<<<<<< HEAD
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+6280636811a6c0b2af47d0d3a7f5b159e1f1338a")]
 =======
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+eb69128f0027dbcb03fd87193d671d5195eaa202")]
+>>>>>>> origin/v.1.0.7_file_optimization
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.7+49c72b84309d41af97baee28707a9f07a8d7eab3")]
 >>>>>>> origin/v.1.0.7_file_optimization
 [assembly: System.Reflection.AssemblyProductAttribute("tg_engine")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tg_engine")]
