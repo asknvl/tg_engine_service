@@ -418,10 +418,12 @@ namespace tg_engine.userapi
                                     
                                     logger.warn(tag, $"getHistory: foundChat={tuser}");
 
+                                    var u = client.User.ToInputPeer();
+
                                     var iu = new InputPeerUserFromMessage()
                                     {
                                         msg_id = input.ID,
-                                        peer = tuser,
+                                        peer = u,
                                         user_id = tuser.ID
                                     };
 

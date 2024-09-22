@@ -1379,7 +1379,7 @@
           "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
-      "WTelegramClient/4.1.9": {
+      "WTelegramClient/4.1.10": {
         "type": "package",
         "compile": {
           "lib/net8.0/WTelegramClient.dll": {
@@ -3600,10 +3600,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "WTelegramClient/4.1.9": {
-      "sha512": "Lmyi4VorJCpQruZjgjYFoN/ucJ+i4oTYWuykmpLsvTP1I53pw+HLiXowpHPlVMeeRquhz4UR7l9fRapWjnj3yw==",
+    "WTelegramClient/4.1.10": {
+      "sha512": "iWJtG57Ffq62wXzAQuU0JqQhpx4mC1bcdlkO8XOR/TRmWmG+X6KMr7i3byt0r07E5gIaLr0tFSdYIu2FjBEKrw==",
       "type": "package",
-      "path": "wtelegramclient/4.1.9",
+      "path": "wtelegramclient/4.1.10",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3615,7 +3615,7 @@
         "lib/netstandard2.0/WTelegramClient.dll",
         "lib/netstandard2.0/WTelegramClient.xml",
         "logo.png",
-        "wtelegramclient.4.1.9.nupkg.sha512",
+        "wtelegramclient.4.1.10.nupkg.sha512",
         "wtelegramclient.nuspec"
       ]
     },
@@ -3674,7 +3674,7 @@
       "MongoDB.Driver >= 2.27.0",
       "Newtonsoft.Json >= 13.0.3",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 8.0.4",
-      "WTelegramClient >= 4.1.9",
+      "WTelegramClient >= 4.1.10",
       "WTelegramClient.Extensions.Updates >= 1.2.2",
       "logger >= 1.0.0"
     ]
@@ -3771,7 +3771,7 @@
           },
           "WTelegramClient": {
             "target": "Package",
-            "version": "[4.1.9, )"
+            "version": "[4.1.10, )"
           },
           "WTelegramClient.Extensions.Updates": {
             "target": "Package",

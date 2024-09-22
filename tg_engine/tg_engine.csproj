@@ -21,7 +21,7 @@
     <PackageReference Include="MongoDB.Driver" Version="2.27.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-    <PackageReference Include="WTelegramClient" Version="4.1.9" />
+    <PackageReference Include="WTelegramClient" Version="4.1.10" />
     <PackageReference Include="WTelegramClient.Extensions.Updates" Version="1.2.2" />
   </ItemGroup>
 

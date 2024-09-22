@@ -106,7 +106,8 @@
               "RelativeToolTip": "tg_engine\\interlayer\\messaging\\MessageBase.cs",
               "ViewState": "AQIAADQAAAAAAAAAAAAQwFAAAAAsAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-21T11:17:33.021Z"
+              "WhenOpened": "2024-09-21T11:17:33.021Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -114,9 +115,9 @@
               "Title": "UserApiHandlerBase.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAALsBAAAAAAAAAAAAANQBAABOAAAA",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs*",
+              "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs*",
+              "ViewState": "AQIAAJMBAAAAAAAAAAAAAKkBAAAwAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T17:22:14.505Z",
               "EditorCaption": ""
@@ -142,9 +143,10 @@
               "RelativeDocumentMoniker": "tg_engine_launcher\\ViewModels\\dmHandlersListVM.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine_launcher\\ViewModels\\dmHandlersListVM.cs",
               "RelativeToolTip": "tg_engine_launcher\\ViewModels\\dmHandlersListVM.cs",
-              "ViewState": "AQIAADcAAAAAAAAAAAAAAEsAAAAuAAAA",
+              "ViewState": "AQIAADQAAAAAAAAAAIBJwEsAAAAuAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T21:22:29.535Z"
+              "WhenOpened": "2024-09-18T21:22:29.535Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -152,8 +154,8 @@
               "Title": "tg_engine.csproj",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
               "RelativeDocumentMoniker": "tg_engine\\tg_engine.csproj",
-              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
-              "RelativeToolTip": "tg_engine\\tg_engine.csproj",
+              "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj*",
+              "RelativeToolTip": "tg_engine\\tg_engine.csproj*",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAASAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2024-09-21T15:12:42.753Z",
@@ -167,9 +169,10 @@
               "RelativeDocumentMoniker": "tg_engine\\database\\mongo\\MongoProvider.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\database\\mongo\\MongoProvider.cs",
               "RelativeToolTip": "tg_engine\\database\\mongo\\MongoProvider.cs",
-              "ViewState": "AQIAABAAAAAAAAAAAAAAACIAAAAJAAAA",
+              "ViewState": "AQIAAA8AAAAAAAAAAAAxwCIAAAAJAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T05:16:27.115Z"
+              "WhenOpened": "2024-09-18T05:16:27.115Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -181,7 +184,8 @@
               "RelativeToolTip": "tg_engine\\tg_engine_base.cs",
               "ViewState": "AQIAAD4AAAAAAAAAAAAmwE8AAAAuAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T21:32:47.926Z"
+              "WhenOpened": "2024-09-18T21:32:47.926Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -191,9 +195,10 @@
               "RelativeDocumentMoniker": "tg_engine_launcher\\ViewModels\\mainVM.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine_launcher\\ViewModels\\mainVM.cs",
               "RelativeToolTip": "tg_engine_launcher\\ViewModels\\mainVM.cs",
-              "ViewState": "AQIAABgAAAAAAAAAAAAowCQAAAAMAAAA",
+              "ViewState": "AQIAAA4AAAAAAAAAAAAowCQAAAAMAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T21:22:14.878Z"
+              "WhenOpened": "2024-09-18T21:22:14.878Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -205,7 +210,8 @@
               "RelativeToolTip": "tg_engine\\tg_hub\\events\\readHistoryEvent.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAhAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-19T20:50:14.88Z"
+              "WhenOpened": "2024-09-19T20:50:14.88Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -217,7 +223,8 @@
               "RelativeToolTip": "tg_engine_launcher\\Models\\rest\\TGEngineApi.cs",
               "ViewState": "AQIAACMAAAAAAAAAAAAjwC4AAAArAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T21:22:59.41Z"
+              "WhenOpened": "2024-09-18T21:22:59.41Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -229,7 +236,8 @@
               "RelativeToolTip": "tg_engine\\s3\\IS3Provider.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAqwAoAAAAfAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T17:48:33.267Z"
+              "WhenOpened": "2024-09-18T17:48:33.267Z",
+              "EditorCaption": ""
             }
           ]
         },
@@ -288,7 +296,8 @@
               "RelativeToolTip": "tg_engine\\tg_hub\\events\\newMessageEvent.cs",
               "ViewState": "AQIAAAQAAAAAAAAAAAAIwCcAAAAOAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-19T21:17:11.102Z"
+              "WhenOpened": "2024-09-19T21:17:11.102Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -298,9 +307,10 @@
               "RelativeDocumentMoniker": "tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
               "RelativeToolTip": "tg_engine\\tg_hub\\events\\updateMessageEvent.cs",
-              "ViewState": "AQIAAAUAAAAAAAAAAAAAABQAAAAAAAAA",
+              "ViewState": "AQIAAAIAAAAAAAAAAIBJwBQAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-19T14:21:23.342Z"
+              "WhenOpened": "2024-09-19T14:21:23.342Z",
+              "EditorCaption": ""
             }
           ]
         }
@@ -414,7 +424,8 @@
               "RelativeToolTip": "tg_engine\\database\\postgre\\models\\storage_file_parameter.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAABcAAAAuAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-21T12:55:49.282Z"
+              "WhenOpened": "2024-09-21T12:55:49.282Z",
+              "EditorCaption": ""
             }
           ]
         }
