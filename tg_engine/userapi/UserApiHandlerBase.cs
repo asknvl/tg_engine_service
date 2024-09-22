@@ -178,7 +178,7 @@ namespace tg_engine.userapi
 
             telegram_user tlUser = new();
             if (isUser)
-            {
+            {                
                 tlUser = new telegram_user(tuser);
                 access_hash = tuser.access_hash;
             }
@@ -390,36 +390,38 @@ namespace tg_engine.userapi
                                 //    msg_id = input.ID,
 
                                 //};
-                                                              
 
-                                try
-                                {
-                                    logger.warn(tag, $"getHistory: 1");
-                                    var iu = new InputPeerUserFromMessage()
-                                    {
-                                        msg_id = input.ID,
-                                        peer = new InputUser(user.id, user.access_hash),
-                                        user_id = user.id
-                                    };
-                                    var h = await client.Messages_GetHistory(iu, limit: 50);
-                                    logger.warn(tag, $"getHistory: h={h.Count}");
-                                } catch (Exception ex)
-                                {
-                                    logger.warn(tag, $"getHistory: 1 {ex.Message}");
-                                }
+
+                                //try
+                                //{
+                                //    logger.warn(tag, $"getHistory: 1");
+                                //    var iu = new InputPeerUserFromMessage()
+                                //    {
+                                //        msg_id = input.ID,
+                                //        peer = new InputUser(user.id, user.access_hash),
+                                //        user_id = user.id
+                                //    };
+                                //    var h = await client.Messages_GetHistory(iu, limit: 50);
+                                //    logger.warn(tag, $"getHistory: h={h.Count}");
+                                //} catch (Exception ex)
+                                //{
+                                //    logger.warn(tag, $"getHistory: 1 {ex.Message}");
+                                //}
 
                                 try
                                 {
                                     logger.warn(tag, $"getHistory: 2");
 
-                                    var foundChat = manager.Users[user.ID].ToInputPeer();
-                                    logger.warn(tag, $"getHistory: foundChat={manager.Chats[user.ID]}");
+
+                                    manager.Users.TryGetValue(user.ID, out var tuser);
+                                    
+                                    logger.warn(tag, $"getHistory: foundChat={tuser}");
 
                                     var iu = new InputPeerUserFromMessage()
                                     {
                                         msg_id = input.ID,
-                                        peer = foundChat,                                        
-                                        user_id = user.id
+                                        peer = tuser,
+                                        user_id = tuser.ID
                                     };
 
                                     var h = await client.Messages_GetHistory(iu, limit: 50);
