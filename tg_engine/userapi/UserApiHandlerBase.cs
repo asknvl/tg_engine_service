@@ -461,7 +461,16 @@ namespace tg_engine.userapi
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
 
-                        var history = await client.Messages_GetHistory(peer, limit: 50);
+                        dialog.CollectUsersChats(manager.Users, manager.Chats);
+                        manager.Users.TryGetValue(userChat.user.telegram_id, out var nU);
+                        if (nU != null)
+                            logger.warn(tag, $"getHistory: collect new user hash={nU.access_hash}");
+                        else
+                            logger.warn(tag, $"getHistory: collect new user = null");
+
+                        var history = await client.Messages_GetHistory(nU, limit: 50);
+
+                        //var history = await client.Messages_GetHistory(peer, limit: 50);
                         List<IL.MessageBase> messagesToProcess = new();
 
                         foreach (var m in history.Messages)
