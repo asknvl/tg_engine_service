@@ -24,6 +24,7 @@ using Newtonsoft;
 using static tg_engine.rest.MessageUpdatesRequestProcessor;
 
 using IL = tg_engine.interlayer.messaging;
+using System.Security.Cryptography;
 
 namespace tg_engine.userapi
 {
@@ -424,8 +425,12 @@ namespace tg_engine.userapi
                                         user_id = tuser.ID
                                     };
 
-                                    var h = await client.Messages_GetHistory(iu, limit: 50);
-                                    logger.warn(tag, $"getHistory: h={h.Count}");
+                                    var m = await client.SendMessageAsync(iu, "Hello!");
+                                    logger.warn(tag, $"sent {m.ID}");
+
+
+                                    //var h = await client.Messages_GetHistory(iu, limit: 50);
+                                    //logger.warn(tag, $"getHistory: h={h.Count}");
                                 }
                                 catch (Exception ex)
                                 {
