@@ -420,15 +420,50 @@ namespace tg_engine.userapi
 
                                     var u = client.User.ToInputPeer();
 
-                                    var iu = new InputPeerUserFromMessage()
+                                    var ipu = new InputPeerUserFromMessage()
                                     {
                                         msg_id = input.ID,
                                         peer = u,
                                         user_id = tuser.ID
                                     };
 
-                                    var m = await client.SendMessageAsync(iu, "Hello!");
-                                    logger.warn(tag, $"sent {m.ID}");
+                                    var iu = new InputUserFromMessage()
+                                    {
+                                        msg_id = input.ID,
+                                        peer = u,
+                                        user_id = tuser.ID
+                                    };
+
+                                    logger.warn(tag, $"getHistory history?");
+
+                                    try
+                                    {
+                                        var h = await client.Messages_GetHistory(ipu, limit: 50);
+                                        logger.warn(tag, $"getHistory: h={h.Count}");
+                                    } catch (Exception ex)
+                                    {
+                                        logger.warn(tag, $"getHistory {ex.Message}");
+                                    }
+
+                                    logger.warn(tag, $"getHistory users?");
+
+                                    var users = await client.Users_GetUsers(new InputUserBase[] { iu });
+                                    if (users != null && users.Length > 0)
+                                    {
+                                        var uNew = users[0];
+                                        var p = uNew.ToInputPeer();
+                                        var ip = p as InputPeerUser;
+                                        logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
+                                    }
+                                    else
+                                    {
+                                        logger.warn(tag, $"getHistory: users empty");
+                                    }
+
+
+
+                                    //var m = await client.SendMessageAsync(iu, "Hello!");
+                                    //logger.warn(tag, $"sent {m.ID}");
 
 
                                     //var h = await client.Messages_GetHistory(iu, limit: 50);
