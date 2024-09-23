@@ -83,6 +83,9 @@ namespace tg_engine.userapi
 
         protected System.Timers.Timer updateWatchdogTimer;
         protected System.Timers.Timer activityTimer;
+
+        protected long ID;
+        protected string? business_bot_username = null;
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -168,7 +171,7 @@ namespace tg_engine.userapi
         #endregion
 
         #region helpers
-        async Task<UserChat> collectUserChat(long telegram_id)
+        async Task<UserChat> collectUserChat(long telegram_id, int? message_id = null)
         {
             string type = ChatTypes.user;
 
@@ -179,9 +182,46 @@ namespace tg_engine.userapi
 
             telegram_user tlUser = new();
             if (isUser)
-            {                
-                tlUser = new telegram_user(tuser);
+            {
+                logger.inf(tag, $"collectUserChat: id={tuser.ID} hash={tuser.access_hash}");
+
                 access_hash = tuser.access_hash;
+
+                if (tuser.flags.HasFlag(User.Flags.min))
+                {
+
+                    logger.warn(tag, $"collectUserChat: id={tuser.ID} hash={tuser.access_hash} min=true");
+
+                    var iu = new InputUserFromMessage()
+                    {
+                        msg_id = message_id.Value,
+                        peer = client.User.ToInputPeer(),
+                        user_id = tuser.ID
+                    };
+
+                    try
+                    {
+                        var users = await client.Users_GetUsers(new InputUserBase[] { iu });
+                        if (users != null && users.Length > 0)
+                        {
+                            var uNew = users[0];
+                            var p = uNew.ToInputPeer();
+                            var ip = p as InputPeerUser;
+
+                            access_hash = ip.access_hash;
+
+                            logger.warn(tag, $"collectUserChat: id={tuser.ID} hash {tuser.access_hash} -> {access_hash}");
+                        }
+                        else
+                        {
+                            logger.err(tag, $"collectUserChat: unable to get access hash from min constructor");
+                        }
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"collectUserChat: {ex.Message}");
+                    }
+                }
+                tlUser = new telegram_user(tuser);                
             }
             else
                 if (isChat)
@@ -224,7 +264,7 @@ namespace tg_engine.userapi
         #region updates
         async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
         {
-            var message = await messageConstructor.Text(userChat, input, collectUserChat);
+            var message = await messageConstructor.Text(userChat, input, business_bot_username);
             return message;
         }
         async Task<IL.MessageBase> handleImage(TL.MessageBase input, MessageMediaPhoto mmp, UserChat userChat)
@@ -250,7 +290,7 @@ namespace tg_engine.userapi
                     logger.err(tag, $"handleImage: {ex.Message}");
                 }
 
-                message = await messageConstructor.Image(userChat, input, photo, collectUserChat, s3info);
+                message = await messageConstructor.Image(userChat, input, photo, business_bot_username, s3info);
             }
 
             return message;
@@ -288,19 +328,19 @@ namespace tg_engine.userapi
                 switch (document.mime_type)
                 {
                     case "application/x-tgsticker":
-                        message = await messageConstructor.Sticker(userChat, input, document, collectUserChat, s3info);
+                        message = await messageConstructor.Sticker(userChat, input, document, business_bot_username, s3info);
                         break;
 
                     case "image/jpeg":
-                        message = await messageConstructor.Photo(userChat, input, document, collectUserChat, s3info);
+                        message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);
                         break;
 
                     case "video/mp4":
-                        message = await messageConstructor.Video(userChat, input, document, collectUserChat, s3info);
+                        message = await messageConstructor.Video(userChat, input, document, business_bot_username, s3info);
                         break;
 
                     case "audio/ogg":
-                        message = await messageConstructor.Voice(userChat, input, document, collectUserChat, s3info);
+                        message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);
                         break;
 
                     case "":
@@ -338,7 +378,7 @@ namespace tg_engine.userapi
             try
             {
                 //var userChat = await getUserChat(unm.message.Peer.ID);
-                var userChat = await collectUserChat(input.Peer.ID);
+                var userChat = await collectUserChat(input.Peer.ID, input.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
                     return;
@@ -359,155 +399,13 @@ namespace tg_engine.userapi
                     logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
 
                     try
-                    {
-                        manager.Users.TryGetValue(input.Peer.ID, out var user);
-                        if (user != null)
-                        {
-                            var is_min = user.flags.HasFlag(User.Flags.min);                            
-                            if (is_min)
-                            {
-
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(input);                                
-                                logger.warn(tag, $"getHistory: {json.ToString()}");
-
-                                json = Newtonsoft.Json.JsonConvert.SerializeObject(user);
-                                logger.warn(tag, $"getHistory: {json.ToString()}");
-
-                                logger.warn(tag, $"getHistory: {input.Peer.ID} min flag found access_hash = {userChat.access_hash}");
-                                //var users = await client.Users_GetUsers(new InputUser[] { new InputUser(userChat.user.telegram_id, userChat.access_hash) });
-                                //if (users != null && users.Length > 0)
-                                //{
-                                //    var uNew = users[0];
-                                //    var p = uNew.ToInputPeer();
-                                //    var ip = p as InputPeerUser;
-                                //    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
-                                //} else
-                                //{
-                                //    logger.warn(tag, $"getHistory: users empty");
-                                //}
-
-                                //var i = new InputPeerUserFromMessage()
-                                //{
-                                //    msg_id = input.ID,
-
-                                //};
-
-
-                                //try
-                                //{
-                                //    logger.warn(tag, $"getHistory: 1");
-                                //    var iu = new InputPeerUserFromMessage()
-                                //    {
-                                //        msg_id = input.ID,
-                                //        peer = new InputUser(user.id, user.access_hash),
-                                //        user_id = user.id
-                                //    };
-                                //    var h = await client.Messages_GetHistory(iu, limit: 50);
-                                //    logger.warn(tag, $"getHistory: h={h.Count}");
-                                //} catch (Exception ex)
-                                //{
-                                //    logger.warn(tag, $"getHistory: 1 {ex.Message}");
-                                //}
-
-                                try
-                                {
-                                    logger.warn(tag, $"getHistory: 2");
-
-
-                                    manager.Users.TryGetValue(user.ID, out var tuser);
-                                    
-                                    logger.warn(tag, $"getHistory: foundChat={tuser}");
-
-                                    var u = client.User.ToInputPeer();
-
-                                    var ipu = new InputPeerUserFromMessage()
-                                    {
-                                        msg_id = input.ID,
-                                        peer = u,
-                                        user_id = tuser.ID
-                                    };
-
-                                    var iu = new InputUserFromMessage()
-                                    {
-                                        msg_id = input.ID,
-                                        peer = u,
-                                        user_id = tuser.ID
-                                    };
-
-                                    logger.warn(tag, $"getHistory history?");
-
-                                    try
-                                    {
-                                        var h = await client.Messages_GetHistory(ipu, limit: 50);
-                                        logger.warn(tag, $"getHistory: h={h.Count}");
-                                    } catch (Exception ex)
-                                    {
-                                        logger.warn(tag, $"getHistory {ex.Message}");
-                                    }
-
-                                    logger.warn(tag, $"getHistory users?");
-
-                                    var users = await client.Users_GetUsers(new InputUserBase[] { iu });
-                                    if (users != null && users.Length > 0)
-                                    {
-                                        var uNew = users[0];
-                                        var p = uNew.ToInputPeer();
-                                        var ip = p as InputPeerUser;
-                                        logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
-                                    }
-                                    else
-                                    {
-                                        logger.warn(tag, $"getHistory: users empty");
-                                    }
-
-
-
-                                    //var m = await client.SendMessageAsync(iu, "Hello!");
-                                    //logger.warn(tag, $"sent {m.ID}");
-
-
-                                    //var h = await client.Messages_GetHistory(iu, limit: 50);
-                                    //logger.warn(tag, $"getHistory: h={h.Count}");
-                                }
-                                catch (Exception ex)
-                                {
-                                    logger.warn(tag, $"getHistory: 2 {ex.Message}");
-                                }
-
-                                //users = await client.Users_GetUsers(new InputUserBase[] { iu });
-
-                                //if (users != null && users.Length > 0)
-                                //{
-                                //    var uNew = users[0];
-                                //    var p = uNew.ToInputPeer();
-                                //    var ip = p as InputPeerUser;
-                                //    logger.warn(tag, $"getHistory: new access_hash = {ip.access_hash}");
-                                //}
-                                //else
-                                //{
-                                //    logger.warn(tag, $"getHistory: users empty");
-                                //}
-
-                            }
-                            
-                            
-                            
-                        }
-
+                    {                      
                         var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);                    
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
-
-                        dialog.CollectUsersChats(manager.Users, manager.Chats);
-                        manager.Users.TryGetValue(userChat.user.telegram_id, out var nU);
-                        if (nU != null)
-                            logger.warn(tag, $"getHistory: collect new user hash={nU.access_hash}");
-                        else
-                            logger.warn(tag, $"getHistory: collect new user = null");
-
-                        var history = await client.Messages_GetHistory(nU, limit: 50);
-
-                        //var history = await client.Messages_GetHistory(peer, limit: 50);
+                        
+                        var history = await client.Messages_GetHistory(peer, limit: 50);
+                        
                         List<IL.MessageBase> messagesToProcess = new();
 
                         foreach (var m in history.Messages)
@@ -609,7 +507,7 @@ namespace tg_engine.userapi
         {
             try
             {
-                var userChat = await collectUserChat(input.Peer.ID);
+                var userChat = await collectUserChat(input.Peer.ID, input.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
                     return;
@@ -1374,11 +1272,21 @@ namespace tg_engine.userapi
                 }
 
                 client = new Client(config);
+                ID = client.User.ID;
 
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
-
                 await client.LoginUserIfNeeded();
 
+                try
+                {
+                    var bots = await client.Account_GetConnectedBots();
+                    if (bots.users != null && bots.users.Count > 0)
+                    {
+                        business_bot_username = bots.users[bots.connected_bots[0].bot_id].username;
+                    }
+                } catch (Exception ex) {
+                    logger.err(tag, $"GetConnectedBots: {ex.Message}");
+                }
 
                 var dialogs = await GetAllDialogs();//await client.Messages_GetDialogs(limit: 100); //сделать 500 ?                                
                 dialogs.CollectUsersChats(manager.Users, manager.Chats);

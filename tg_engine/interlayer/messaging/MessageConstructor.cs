@@ -43,7 +43,7 @@ namespace tg_engine.interlayer.messaging
                 throw new Exception("getText: message=null");
         }
 
-        async Task<MessageBase> getBase(UserChat userChat, TL.MessageBase input, Func<long, Task<UserChat>> getUserChat)
+        async Task<MessageBase> getBase(UserChat userChat, TL.MessageBase input, string? business_bot_un)
         {
             var chat_id = userChat.chat.id;
             var account_id = userChat.chat.account_id;
@@ -69,10 +69,8 @@ namespace tg_engine.interlayer.messaging
 
                 is_business_bot_reply = m.flags2.HasFlag(Message.Flags2.has_via_business_bot_id);
                 if (is_business_bot_reply)
-                {
-                    var uc = await getUserChat(m.via_business_bot_id);
-                    if (uc != null)
-                        business_bot_username = uc.user.username;
+                {                    
+                    business_bot_username = business_bot_un;
                 }
             }
 
@@ -96,16 +94,16 @@ namespace tg_engine.interlayer.messaging
         #endregion
 
         #region public
-        public async Task<MessageBase> Text(UserChat userChat, TL.MessageBase input, Func<long, Task<UserChat>> getUserChat)
+        public async Task<MessageBase> Text(UserChat userChat, TL.MessageBase input, string? business_bot_un)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_un);
             //message.text = getText(input);
             return message;
         }
 
-        public async Task<MessageBase> Image(UserChat userChat, TL.MessageBase input, Photo photo, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
+        public async Task<MessageBase> Image(UserChat userChat, TL.MessageBase input, Photo photo, string? business_bot_username, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_username);
 
             if (s3info != null)
             {
@@ -122,9 +120,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Photo(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
+        public async Task<MessageBase> Photo(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_un);
             string mediaType = MediaTypes.photo;
 
             var photo = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeImageSize) as TL.DocumentAttributeImageSize;
@@ -151,9 +149,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Video(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
+        public async Task<MessageBase> Video(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_un);
             string mediaType = MediaTypes.video;
 
             var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
@@ -187,9 +185,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
+        public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo s3info)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_un);
             string mediaType = MediaTypes.voice;
 
             //var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
@@ -220,9 +218,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo? s3info)
+        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, getUserChat);
+            var message = await getBase(userChat, input, business_bot_un);
 
             var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker) as DocumentAttributeSticker;
 
