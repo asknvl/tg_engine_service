@@ -1048,11 +1048,15 @@ namespace tg_engine.userapi
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
+                logger.inf(tag, $"OnNewMessage: chat_id={messageDto.chat_id}");
+
                 TL.Message result = null;
                 var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
-                InputPeer peer = null;
-                manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
+                logger.inf(tag, $"OnNewMessage: {userChat.user.telegram_id} {userChat.access_hash}");
+                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
+
+                //manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
                 IL.MessageBase message = new()
                 {
@@ -1060,24 +1064,6 @@ namespace tg_engine.userapi
                     chat_id = userChat.chat.id,
                     chat_type = userChat.chat.chat_type
                 };
-
-                string access_hash = "";
-
-                if (user != null)
-                {
-                    peer = user;
-                    access_hash = "TG_" + user.access_hash;
-                }
-                else
-                {
-                    if (userChat != null)
-                    {
-                        peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
-                        access_hash = "DB_" + userChat.access_hash;
-                    }
-                }
-
-                logger.inf(tag, $"OnNewMessage: {userChat.user}, {access_hash}");
 
                 //Временное сообщение о прочтении чата
                 try
@@ -1144,7 +1130,7 @@ namespace tg_engine.userapi
             }
             catch (Exception ex)
             {
-                logger.err(tag, $"OnMessageTX: {ex.Message}");
+                logger.err(tag, $"OnMessage: {ex.Message}");
             }
         }
         public async Task OnNewUpdate(UpdateBase update)
@@ -1270,10 +1256,10 @@ namespace tg_engine.userapi
                 }
 
                 client = new Client(config);
-                ID = client.User.ID;
 
                 manager = client.WithUpdateManager(User_OnUpdate, state_path);
                 await client.LoginUserIfNeeded();
+                ID = client.User.ID;
 
                 try
                 {
