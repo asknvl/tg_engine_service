@@ -179,6 +179,7 @@ namespace tg_engine.userapi
             bool isChat = manager.Chats.TryGetValue(telegram_id, out var tchat);
 
             long access_hash = 0;
+            bool is_min = false;
 
             telegram_user tlUser = new();
             if (isUser)
@@ -187,7 +188,7 @@ namespace tg_engine.userapi
 
                 access_hash = tuser.access_hash;
 
-                if (tuser.flags.HasFlag(User.Flags.min))
+                if (is_min = tuser.flags.HasFlag(User.Flags.min))
                 {
 
                     logger.warn(tag, $"collectUserChat: id={tuser.ID} hash={tuser.access_hash} min=true");
@@ -246,7 +247,7 @@ namespace tg_engine.userapi
                 tlUser.telegram_id = telegram_id;
             }
 
-            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser, access_hash, type);
+            var userChat = await chatsProvider.CollectUserChat(account_id, source_id, tlUser, access_hash, is_min, type);
 
             return userChat;
         }

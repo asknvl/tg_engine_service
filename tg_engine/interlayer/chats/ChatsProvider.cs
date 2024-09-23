@@ -26,7 +26,7 @@ namespace tg_engine.interlayer.chats
             this.postgreProvider = postgreProvider;
         }
 
-        public async Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, long access_hash, string type)
+        public async Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, long access_hash, bool is_min, string type)
         {
 
             if (access_hash == 0)
@@ -44,11 +44,16 @@ namespace tg_engine.interlayer.chats
 
                 if (userChat.access_hash != access_hash)
                 {
-
-                    await postgreProvider.CreateOrUpdateAccessHash(account_id, user.telegram_id, access_hash);
-
-                    logger.warn("chatsProvider", $"access_hash changed: {userChat.access_hash}->{access_hash}, {userChat.user}");
-                    userChat.access_hash = access_hash;                    
+                    if (!is_min)
+                    {
+                        await postgreProvider.CreateOrUpdateAccessHash(account_id, user.telegram_id, access_hash);
+                        userChat.access_hash = access_hash;
+                        logger.warn("chatsProvider", $"access_hash change OK: {userChat.access_hash}->{access_hash}, {userChat.user}");
+                    }
+                    else
+                    {
+                        logger.warn("chatsProvider", $"access_hash change IGNORED: {userChat.access_hash}->{access_hash}, {userChat.user}");
+                    }
                 }
 
                 //bool needUpdate = false;

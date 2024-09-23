@@ -10,7 +10,7 @@ namespace tg_engine.interlayer.chats
 {
     public interface IChatsProvider
     {
-        Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, long access_hash, string? type = null);
+        Task<UserChat> CollectUserChat(Guid account_id, Guid source_id, telegram_user user, long access_hash, bool is_min, string? type = null);
         Task<UserChat?> GetUserChat(Guid account_id, Guid telegram_user_id);
     }
 }
