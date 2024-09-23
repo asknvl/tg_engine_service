@@ -383,8 +383,6 @@ namespace tg_engine.userapi
                 if (userChat.chat.chat_type == ChatTypes.channel)
                     return;
 
-                logger.inf(tag, $"getUserChat: {userChat.user} is_new={userChat.is_new}");
-
                 var message = input as Message;
 
                 var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
