@@ -279,6 +279,7 @@ namespace tg_engine.userapi
             {
 
                 MemoryStream stream = new MemoryStream();
+
                 var ext = await client.DownloadFileAsync(photo, stream);
 
                 S3ItemInfo s3info = null;
