@@ -25,6 +25,7 @@ using static tg_engine.rest.MessageUpdatesRequestProcessor;
 
 using IL = tg_engine.interlayer.messaging;
 using System.Security.Cryptography;
+using tg_engine.database.hash;
 
 namespace tg_engine.userapi
 {
@@ -277,14 +278,18 @@ namespace tg_engine.userapi
 
             if (photo != null)
             {
-
-                MemoryStream stream = new MemoryStream();
-
-                var ext = await client.DownloadFileAsync(photo, stream);
-
-                S3ItemInfo s3info = null;
                 try
                 {
+                    MemoryStream stream = new MemoryStream();
+
+                    var ext = await client.DownloadFileAsync(photo, stream);
+
+                    byte[] bytes = stream.ToArray();
+
+                    var hash = MediaHash.Get(bytes);
+
+                    S3ItemInfo s3info = null;
+
                     s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
                 }
                 catch (Exception ex)

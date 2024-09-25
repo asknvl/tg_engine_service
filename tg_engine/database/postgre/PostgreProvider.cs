@@ -480,7 +480,17 @@ namespace tg_engine.database.postgre
             }
         }
 
-        
+        async Task<storage_file_parameter?> GetFileParameters(byte[] hash)
+        {
+            storage_file_parameter? result = null;
+
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                result = await context.storage_file_parameters.SingleOrDefaultAsync(p => p.hash == hash);   
+            }
+
+            return result;
+        }
 
     }        
 }
