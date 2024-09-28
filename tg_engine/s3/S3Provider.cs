@@ -50,7 +50,7 @@ namespace tg_engine.s3
         #region public 
         public async Task<S3ItemInfo> Upload(byte[] bytes, string extension)
         {
-            string key = $"{Guid.NewGuid()}.{extension}";
+            string key = $"{Guid.NewGuid()}.{extension}";            
 
             try
             {

@@ -16,8 +16,8 @@ namespace tg_engine.s3
 
     public class S3ItemInfo
     {
-        public string storage_id { get; set; }
-        public string? extension { get; set; }
-        public string? url { get; set; }
+        public string? storage_id { get; set; } = null;
+        public string? extension { get; set; } = null;
+        public string? url { get; set; } = null;    
     }
 }

@@ -278,6 +278,9 @@ namespace tg_engine.userapi
 
             if (photo != null)
             {
+
+                S3ItemInfo s3info = new();
+
                 try
                 {
                     MemoryStream stream = new MemoryStream();
@@ -288,9 +291,32 @@ namespace tg_engine.userapi
 
                     var hash = MediaHash.Get(bytes);
 
-                    S3ItemInfo s3info = null;
+                    var fparams = await postgreProvider.GetFileParameters(hash);
+                    if (fparams != null)
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                        s3info.extension = fparams.file_extension;
+                        s3info.storage_id = fparams.storage_id;
+                        s3info.url = fparams.link;                        
+                    }
+                    else
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                        s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
+                        fparams = new storage_file_parameter()
+                        {
+                            hash = hash,
+                            file_length = bytes.Length,
+                            file_type = MediaTypes.image,
+                            file_extension = $"{ext}",
+                            is_uploaded = true,
+                            storage_id = s3info.storage_id,
+                            link = s3info.url,
+                            uploaded_at = DateTime.UtcNow
+                        };
 
-                    s3info = await s3Provider.Upload(stream.ToArray(), $"{ext}");
+                        await postgreProvider.CreateFileParameters(fparams);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -311,35 +337,39 @@ namespace tg_engine.userapi
             if (document != null)
             {
 
+                S3ItemInfo s3info = new();
+                bool needSaveParams = false;
+
                 MemoryStream stream = new MemoryStream();
                 var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
+                var extension = getExtensionFromMimeType(ext);
 
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-
-                S3ItemInfo s3info = null;
-                try
+                byte[] bytes = stream.ToArray();
+                var hash = MediaHash.Get(bytes);
+                
+                var fparams = await postgreProvider.GetFileParameters(hash);
+                if (fparams != null)
                 {
-                    s3info = await s3Provider.Upload(stream.ToArray(), getExtensionFromMimeType(ext));
+                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                    s3info.extension = fparams.file_extension;
+                    s3info.storage_id = fparams.storage_id;
+                    s3info.url = fparams.link;
                 }
-                catch (Exception ex)
+                else
                 {
-                    logger.err(tag, $"handleImage: {ex.Message}");
+                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                    s3info = await s3Provider.Upload(stream.ToArray(), extension);                     
+                    needSaveParams = true;
                 }
-                stopwatch.Stop();
-
-                logger.inf(tag, $"S3 upload t={stopwatch.ElapsedMilliseconds}");
-
-                //мб нужно кешировать
 
                 switch (document.mime_type)
                 {
                     case "application/x-tgsticker":
-                        message = await messageConstructor.Sticker(userChat, input, document, business_bot_username, s3info);
+                        message = await messageConstructor.Sticker(userChat, input, document, business_bot_username, s3info);                        
                         break;
 
                     case "image/jpeg":
-                        message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);
+                        message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);                        
                         break;
 
                     case "video/mp4":
@@ -347,11 +377,28 @@ namespace tg_engine.userapi
                         break;
 
                     case "audio/ogg":
-                        message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);
+                        message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);                        
                         break;
 
                     case "":
                         break;
+                }
+
+                if (needSaveParams)
+                {
+                    fparams = new storage_file_parameter()
+                    {
+                        hash = hash,
+                        file_length = bytes.Length,
+                        file_type = message.media.type,
+                        file_extension = extension,
+                        is_uploaded = true,
+                        storage_id = s3info.storage_id,
+                        link = s3info.url,
+                        uploaded_at = DateTime.UtcNow
+                    };
+
+                    await postgreProvider.CreateFileParameters(fparams);
                 }
             }
 
@@ -910,7 +957,8 @@ namespace tg_engine.userapi
                     InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
                     inputFile.ID = file.ID;
                     inputFile.Parts = file.Parts;
-
+                    inputFile.Name = file.Name;
+                    
                     switch (type)
                     {
                         case MediaTypes.circle:
@@ -934,8 +982,8 @@ namespace tg_engine.userapi
                                     duration = mediaProperties.Duration / 1000.0,
                                     w = mediaProperties.Width,
                                     h = mediaProperties.Height,
-                                    flags = DocumentAttributeVideo.Flags.supports_streaming
-                                },
+                                    flags = DocumentAttributeVideo.Flags.supports_streaming                              
+                                },                                
                                 new DocumentAttributeFilename {
                                     file_name = file_name
                                 }

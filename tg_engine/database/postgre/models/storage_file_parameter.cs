@@ -9,7 +9,7 @@ namespace tg_engine.database.postgre.models
     public class storage_file_parameter
     {
         public Guid id { get; set; }
-        required public byte[] hash { get; set; }
+        required public string hash { get; set; }
         required public int file_length { get; set; }
         required public string file_type { get; set; }   
         public string? file_name { get; set; }
@@ -20,7 +20,7 @@ namespace tg_engine.database.postgre.models
         public bool is_removed { get; set; } = false;
         public DateTime? uploaded_at { get; set; } = null;
         public DateTime? removed_at { get; set; } = null;
-        public DateTime created_at { get; set; } = DateTime.Now;
-        public DateTime? updated_at { get; set; } = DateTime.Now;
+        public DateTime created_at { get; set; } = DateTime.UtcNow;
+        public DateTime? updated_at { get; set; } = DateTime.UtcNow;
     }
 }
