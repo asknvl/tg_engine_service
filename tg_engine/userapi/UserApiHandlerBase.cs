@@ -603,11 +603,11 @@ namespace tg_engine.userapi
 
                             var updated = await mongoProvider.UpdateMessage(messageBase);
 
-                            if (updated.storage_id != null)
-                            {
-                                await s3Provider.Delete(updated.storage_id);
-                                logger.inf(tag, $"s3: {updated.storage_id} deleted");
-                            }
+                            //if (updated.storage_id != null)
+                            //{
+                            //    await s3Provider.Delete(updated.storage_id);
+                            //    logger.inf(tag, $"s3: {updated.storage_id} deleted");
+                            //}
 
                             await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
 
