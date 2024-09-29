@@ -337,69 +337,77 @@ namespace tg_engine.userapi
             if (document != null)
             {
 
-                S3ItemInfo s3info = new();
-                bool needSaveParams = false;
-
-                MemoryStream stream = new MemoryStream();
-                var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
-                var extension = getExtensionFromMimeType(ext);
-
-                byte[] bytes = stream.ToArray();
-                var hash = MediaHash.Get(bytes);
-                
-                var fparams = await postgreProvider.GetFileParameters(hash);
-                if (fparams != null)
+                if (document.mime_type == "application/x-tgsticker" || document.mime_type == "image/webp")
                 {
-                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
-                    s3info.extension = fparams.file_extension;
-                    s3info.storage_id = fparams.storage_id;
-                    s3info.url = fparams.link;
+                    message = await messageConstructor.Sticker(userChat, input, document, business_bot_username);
                 }
                 else
                 {
-                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
-                    s3info = await s3Provider.Upload(stream.ToArray(), extension);                     
-                    needSaveParams = true;
-                }
+                    S3ItemInfo s3info = new();
+                    bool needSaveParams = false;
 
-                switch (document.mime_type)
-                {
-                    case "application/x-tgsticker":
-                        message = await messageConstructor.Sticker(userChat, input, document, business_bot_username, s3info);                        
-                        break;
+                    MemoryStream stream = new MemoryStream();
+                    var ext = await client.DownloadFileAsync(document, stream, progress: (a, b) => { logger.inf(tag, $"dowloaded {a} of {b}"); });
+                    var extension = getExtensionFromMimeType(ext);
 
-                    case "image/jpeg":
-                        message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);                        
-                        break;
+                    byte[] bytes = stream.ToArray();
+                    var hash = MediaHash.Get(bytes);
 
-                    case "video/mp4":
-                        message = await messageConstructor.Video(userChat, input, document, business_bot_username, s3info);
-                        break;
-
-                    case "audio/ogg":
-                        message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);                        
-                        break;
-
-                    case "":
-                        break;
-                }
-
-                if (needSaveParams)
-                {
-                    fparams = new storage_file_parameter()
+                    var fparams = await postgreProvider.GetFileParameters(hash);
+                    if (fparams != null)
                     {
-                        hash = hash,
-                        file_length = bytes.Length,
-                        file_type = message.media.type,
-                        file_extension = extension,
-                        is_uploaded = true,
-                        storage_id = s3info.storage_id,
-                        link = s3info.url,
-                        uploaded_at = DateTime.UtcNow
-                    };
+                        logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                        s3info.extension = fparams.file_extension;
+                        s3info.storage_id = fparams.storage_id;
+                        s3info.url = fparams.link;
+                    }
+                    else
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                        s3info = await s3Provider.Upload(stream.ToArray(), extension);
+                        needSaveParams = true;
+                    }
 
-                    await postgreProvider.CreateFileParameters(fparams);
+                    switch (document.mime_type)
+                    {
+                        //case "application/x-tgsticker":
+                        //    message = await messageConstructor.Sticker(userChat, input, document, business_bot_username, s3info);
+                        //    break;
+
+                        case "image/jpeg":
+                            message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);
+                            break;
+
+                        case "video/mp4":
+                            message = await messageConstructor.Video(userChat, input, document, business_bot_username, s3info);
+                            break;
+
+                        case "audio/ogg":
+                            message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);
+                            break;
+
+                        case "":
+                            break;
+                    }
+
+                    if (needSaveParams)
+                    {
+                        fparams = new storage_file_parameter()
+                        {
+                            hash = hash,
+                            file_length = bytes.Length,
+                            file_type = message.media.type,
+                            file_extension = extension,
+                            is_uploaded = true,
+                            storage_id = s3info.storage_id,
+                            link = s3info.url,
+                            uploaded_at = DateTime.UtcNow
+                        };
+
+                        await postgreProvider.CreateFileParameters(fparams);
+                    }
                 }
+
             }
 
             return message;

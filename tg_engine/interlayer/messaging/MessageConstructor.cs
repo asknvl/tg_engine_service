@@ -218,13 +218,13 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
+        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un)
         {
             var message = await getBase(userChat, input, business_bot_un);
 
             var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker) as DocumentAttributeSticker;
 
-            message.text = sticker?.alt;
+            message.text = sticker?.alt;            
 
             return message;
         }
