@@ -995,7 +995,7 @@ namespace tg_engine.userapi
                                 },                                
                                 new DocumentAttributeFilename {
                                     file_name = file_name
-                                }
+                                }                                
                             };
                             break;
                         case MediaTypes.photo:
@@ -1017,11 +1017,13 @@ namespace tg_engine.userapi
                             break;
                     }
 
+                    //var thumb = new InputMediaUploadedDocument()
+
                     var document = new InputMediaUploadedDocument()
                     {
                         file = inputFile,
                         mime_type = mime_type,
-                        attributes = attributes
+                        attributes = attributes,                        
                     };
 
                     res = await client.SendMessageAsync(peer, text, document);

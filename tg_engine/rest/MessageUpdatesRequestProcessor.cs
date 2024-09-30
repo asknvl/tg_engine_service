@@ -128,9 +128,7 @@ namespace tg_engine.rest
                     case "send-clipped":
                         try
                         {
-                            clippedDto clippedDto = new clippedDto();
-
-
+                            clippedDto clippedDto = new clippedDto();                            
 
                             using (var memoryStream = new MemoryStream())
                             {

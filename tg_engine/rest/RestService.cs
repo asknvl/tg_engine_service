@@ -147,6 +147,7 @@ namespace tg_engine.rest
                     break;
 
                 case "POST":
+                    logger.dbg(tag, $"RX POST: ContentType={request.ContentType}");
                     (code, responseText) = await processPostRequest(context);
                     break;
 
