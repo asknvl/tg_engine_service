@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "zAo5Qd1XPCqIYkHPTT1e2ooGJHpA1sbmI9isctKRKjpfZohRBvSLZ0SjnUJz/ySzhXPOVls+3B4B6AGnN9orug==",
+  "dgSpecHash": "kdgDiulow+UQurbkFLZ1cXBPUL/ubi6nrooq84/Y50dm5FYapw6euQQtBDX1aIOIGkPhDtm+vPLEgQcpKKHvuw==",
   "success": true,
   "projectFilePath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
   "expectedPackageFiles": [
@@ -9,6 +9,7 @@
     "C:\\Users\\asknvl\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\deepl.net\\1.10.0\\deepl.net.1.10.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
+    "C:\\Users\\asknvl\\.nuget\\packages\\httpmultipartparser\\8.4.0\\httpmultipartparser.8.4.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\lsj.mediainfo.core.native\\22.12.0\\lsj.mediainfo.core.native.22.12.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\lsj.mediainfo.wrapper.core\\22.12.1\\lsj.mediainfo.wrapper.core.22.12.1.nupkg.sha512",
@@ -40,6 +41,7 @@
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.extensions.options\\8.0.0\\microsoft.extensions.options.8.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.extensions.options.configurationextensions\\8.0.0\\microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.extensions.primitives\\8.0.0\\microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.io.recyclablememorystream\\3.0.0\\microsoft.io.recyclablememorystream.3.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
     "C:\\Users\\asknvl\\.nuget\\packages\\mongodb.bson\\2.27.0\\mongodb.bson.2.27.0.nupkg.sha512",

@@ -150,13 +150,17 @@ namespace tg_engine.rest
             return (code, responseText);
         }
 
-        public async Task<(HttpStatusCode, string)> ProcessPostRequest(string[] splt_route, string data)
+        public async Task<(HttpStatusCode, string)> ProcessPostRequest(string[] splt_route, HttpListenerRequest request)
         {
             var code = HttpStatusCode.NotFound;
             var responseText = code.ToString();
 
             try
             {
+
+                using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+                var data = await reader.ReadToEndAsync();
+
                 switch (splt_route[2])
                 {
                     case "dmhandlers":

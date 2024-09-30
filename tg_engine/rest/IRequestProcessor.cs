@@ -10,6 +10,7 @@ namespace tg_engine.rest
     public interface IRequestProcessor
     {
         Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route);
-        Task<(HttpStatusCode, string)> ProcessPostRequest(string[] splt_route, string data);
+//        Task<(HttpStatusCode, string)> ProcessPostRequest(string[] splt_route, string data);
+        Task<(HttpStatusCode, string)> ProcessPostRequest(string[] splt_route, HttpListenerRequest request);
     }
 }

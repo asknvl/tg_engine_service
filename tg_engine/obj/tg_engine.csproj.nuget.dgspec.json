@@ -117,6 +117,10 @@
               "target": "Package",
               "version": "[1.10.0, )"
             },
+            "HttpMultipartParser": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
             "Lsj.MediaInfo.Wrapper.Core": {
               "target": "Package",
               "version": "[22.12.1, )"

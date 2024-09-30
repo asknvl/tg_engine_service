@@ -26,6 +26,7 @@ using static tg_engine.rest.MessageUpdatesRequestProcessor;
 using IL = tg_engine.interlayer.messaging;
 using System.Security.Cryptography;
 using tg_engine.database.hash;
+using System.IO;
 
 namespace tg_engine.userapi
 {
@@ -874,7 +875,7 @@ namespace tg_engine.userapi
                 using (var stream = new MemoryStream(bytes))
                 {
 
-                    var file = await client.UploadFileAsync(stream, $"{storage_id}.jpeg");
+                    var file = await client.UploadFileAsync(stream, $"{storage_id}");
 
                     var uploadedPhoto = new InputMediaUploadedPhoto()
                     {
@@ -1193,7 +1194,112 @@ namespace tg_engine.userapi
             }
             catch (Exception ex)
             {
-                logger.err(tag, $"OnMessage: {ex.Message}");
+                logger.err(tag, $"OnNewMessage: {ex.Message}");
+            }
+        }
+
+        public async Task OnNewMessage(clippedDto clippedDto)
+        {
+            try
+            {
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+
+                logger.inf(tag, $"OnNewClipped: chat_id={clippedDto.chat_id}");
+
+                TL.Message result = null;
+                S3ItemInfo s3info = new();
+
+                var userChat = await chatsProvider.GetUserChat(account_id, clippedDto.telegram_user_id);
+
+                logger.inf(tag, $"OnNewClipped: {userChat.user.telegram_id} {userChat.access_hash}");
+                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
+
+                IL.MessageBase message = new()
+                {
+                    account_id = account_id,
+                    chat_id = userChat.chat.id,
+                    chat_type = userChat.chat.chat_type
+                };
+
+                try
+                {
+                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                }
+                catch (Exception ex)
+                {
+                }
+
+                var hash = MediaHash.Get(clippedDto.file);
+
+                var fparams = await postgreProvider.GetFileParameters(hash);
+                if (fparams != null)
+                {
+                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                    s3info.extension = fparams.file_extension;
+                    s3info.storage_id = fparams.storage_id;
+                    s3info.url = fparams.link;
+                } else
+                {
+                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                    s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
+
+                    fparams = new storage_file_parameter()
+                    {
+                        hash = hash,
+                        file_length = clippedDto.file.Length,
+                        file_type = MediaTypes.image,
+                        file_extension = clippedDto.file_extension,
+                        is_uploaded = true,
+                        storage_id = s3info.storage_id,
+                        link = s3info.url,
+                        uploaded_at = DateTime.UtcNow
+                    };
+
+                    await postgreProvider.CreateFileParameters(fparams);
+                }
+
+                switch (clippedDto.type)
+                {
+                    case MediaTypes.image:
+                        result = await SendImage(peer, clippedDto.text, s3info.storage_id, message);
+                        break;
+
+                    case MediaTypes.video:
+                    case MediaTypes.photo:
+                        result = await SendMediaDocument(peer, clippedDto.text, clippedDto.type, clippedDto.file_name, s3info.storage_id, message);
+                        break;
+                }
+
+                if (result != null && userChat != null)
+                {
+                    message.direction = "out";
+                    message.text = clippedDto.text;
+                    message.screen_text = clippedDto.screen_text;
+                    message.telegram_message_id = result.ID;
+                    message.date = result.Date;
+                    message.operator_id = clippedDto.operator_id.ToString();
+                    await mongoProvider.SaveMessage(message);
+
+                    var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
+                                                                             message.direction,
+                                                                             message.telegram_message_id,
+                                                                             message.text ?? "Медиа", message.date);
+
+                    userChat.chat = updatedChat;
+                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
+
+                    stopwatch.Stop();
+
+                    logger.inf(tag, $"{message.direction}:{userChat.user} time={stopwatch.ElapsedMilliseconds} ms");
+                }
+
+            } 
+            catch (Exception ex)
+            {
+                logger.err(tag, $"OnNewClipped: {ex.Message}");
             }
         }
         public async Task OnNewUpdate(UpdateBase update)

@@ -1,6 +1,10 @@
-﻿using logger;
+﻿using Amazon.Runtime.Internal;
+using HttpMultipartParser;
+using logger;
+using SharpCompress.Compressors.Xz;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using tg_engine.config;
 using tg_engine.rest;
+using TL;
 
 namespace tg_engine.rest
 {
@@ -80,13 +85,7 @@ namespace tg_engine.rest
 
                 var request = context.Request;
                 string path = request.Url.AbsolutePath;
-
-                using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
-                var requestBody = await reader.ReadToEndAsync();
                 var splt = path.Split('/');
-
-                var m = $"RX:\n{path}\n{requestBody}";
-                logger.dbg(tag, m);
 
                 try
                 {
@@ -98,7 +97,7 @@ namespace tg_engine.rest
                             var p = RequestProcessors.FirstOrDefault(p => p is EngineControlRequestProcessor);
                             if (p != null)
                             {
-                                (code, text) = await p.ProcessPostRequest(splt, requestBody);
+                                (code, text) = await p.ProcessPostRequest(splt, request);
                             }
                             break;
 
@@ -106,7 +105,7 @@ namespace tg_engine.rest
                             processor = RequestProcessors.FirstOrDefault(p => p is MessageUpdatesRequestProcessor);
                             if (processor != null)
                             {
-                                (code, text) = await processor.ProcessPostRequest(splt, requestBody);
+                                (code, text) = await processor.ProcessPostRequest(splt, request);
                             }
                             break;
 
@@ -131,7 +130,8 @@ namespace tg_engine.rest
 
             });
             return (code, text);
-        }
+        }      
+
         async Task processRequest(HttpListenerContext context)
         {
             var request = context.Request;
@@ -167,7 +167,7 @@ namespace tg_engine.rest
             var m = $"TX:\n{code}";
             logger.dbg(tag, m);
 
-        }
+        }      
         #endregion
 
         #region public

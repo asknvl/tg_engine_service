@@ -12,6 +12,7 @@ namespace tg_engine.interlayer.messaging
     {
         Guid account_id { get; }
         Task OnNewMessage(messageDto message);
+        Task OnNewMessage(clippedDto message);
         Task OnNewUpdate(UpdateBase update);
     }
 }
