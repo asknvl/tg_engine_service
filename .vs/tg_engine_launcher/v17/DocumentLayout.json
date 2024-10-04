@@ -11,12 +11,12 @@
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\database\\postgre\\postgreprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\s3\\s3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\s3\\s3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\s3\\is3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\s3\\is3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\s3\\s3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|solutionrelative:tg_engine\\s3\\s3provider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7E6E83CE-6BB4-448A-882E-C63A6483CE19}|tg_engine\\tg_engine.csproj|c:\\work\\raceup\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\models\\storage_file_parameter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -89,12 +89,16 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 164,
-          "SelectedChildIndex": 2,
+          "DockedWidth": 162,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
             },
             {
               "$type": "Document",
@@ -110,7 +114,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "IS3Provider.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\s3\\IS3Provider.cs",
               "RelativeDocumentMoniker": "tg_engine\\s3\\IS3Provider.cs",
@@ -244,8 +248,8 @@
           ]
         },
         {
-          "DockedWidth": 554,
-          "SelectedChildIndex": 7,
+          "DockedWidth": 556,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -272,10 +276,6 @@
               "Name": "ST:0:0:{4a18f9d0-b838-11d0-93eb-00a0c90f2734}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{a80febb4-e7e0-4147-b476-21aaf2453969}"
-            },
-            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "UserApiHandlerBase.cs",
@@ -283,14 +283,14 @@
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAAKAFAAAAAAAAAAAAANgAAAAZAAAA",
+              "ViewState": "AQIAAH0CAAAAAAAAAAAlwJkCAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T17:22:14.505Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "S3Provider.cs",
               "DocumentMoniker": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\s3\\S3Provider.cs",
               "RelativeDocumentMoniker": "tg_engine\\s3\\S3Provider.cs",
@@ -298,8 +298,7 @@
               "RelativeToolTip": "tg_engine\\s3\\S3Provider.cs",
               "ViewState": "AQIAACIAAAAAAAAAAAAgwDIAAAAsAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-18T17:12:28.224Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-18T17:12:28.224Z"
             },
             {
               "$type": "Document",
@@ -311,8 +310,7 @@
               "RelativeToolTip": "tg_engine\\database\\hash\\MediaHash.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-24T21:31:06.643Z",
-              "EditorCaption": ""
+              "WhenOpened": "2024-09-24T21:31:06.643Z"
             },
             {
               "$type": "Document",
@@ -398,7 +396,7 @@
               "RelativeDocumentMoniker": "tg_engine\\database\\postgre\\PostgreProvider.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\database\\postgre\\PostgreProvider.cs",
               "RelativeToolTip": "tg_engine\\database\\postgre\\PostgreProvider.cs",
-              "ViewState": "AQIAAOcBAAAAAAAAAAAwwPwBAAAOAAAA",
+              "ViewState": "AQIAAAUBAAAAAAAAAAAIwB8BAAAUAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-24T21:13:30.736Z",
               "EditorCaption": ""

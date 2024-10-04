@@ -661,11 +661,11 @@ namespace tg_engine.userapi
                     break;
             }
 
-            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_id));
-
             if (updatedChat != null)
                 userChat.chat = updatedChat;
+
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_id));
 
             return userChat;
         }
