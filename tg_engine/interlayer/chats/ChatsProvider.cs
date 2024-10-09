@@ -98,7 +98,9 @@ namespace tg_engine.interlayer.chats
                 userChat = await postgreProvider.GetUserChat(account_id, telegram_id);
                 if (userChat != null)
                     userChats.Add(userChat);
-            }
+            } else
+                userChat.is_new = false;    
+
             return userChat;
         }
 

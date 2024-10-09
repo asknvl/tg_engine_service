@@ -87,7 +87,9 @@ namespace tg_engine.userapi
         protected System.Timers.Timer activityTimer;
 
         protected long ID;
+
         protected string? business_bot_username = null;
+        protected long? business_bot_id = null;
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -100,7 +102,7 @@ namespace tg_engine.userapi
 
             messageConstructor = new MessageConstructor(translator);
 
-            tag = $"usrapi ..{phone_number.Substring(phone_number.Length - 5, 4)}";
+            tag = $"usrapi ..{phone_number.Substring(phone_number.Length - 4, 4)}";
 
             this.phone_number = phone_number;
             this._2fa_password = _2fa_password;
@@ -189,6 +191,8 @@ namespace tg_engine.userapi
                 logger.inf(tag, $"collectUserChat: id={tuser.ID} hash={tuser.access_hash}");
 
                 access_hash = tuser.access_hash;
+                if (tuser.IsBot)
+                    type = ChatTypes.bot;
 
                 if (is_min = tuser.flags.HasFlag(User.Flags.min))
                 {
@@ -265,6 +269,8 @@ namespace tg_engine.userapi
         #endregion
 
         #region updates
+
+        #region handlers
         async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
         {
             var message = await messageConstructor.Text(userChat, input, business_bot_username);
@@ -436,15 +442,62 @@ namespace tg_engine.userapi
 
             return messageBase;
         }
+        async Task handleBot(TL.MessageBase input, UserChat userChat)
+        {
+            if (userChat.user.telegram_id != business_bot_id)
+                return;
+
+            if (input is Message message && !string.IsNullOrEmpty(message.message))
+            {
+                logger.inf(tag, $"bsnsBot: {business_bot_username} > {message.message}");
+
+                //var message = $"AI:STATE:{tg_id}:{state}";
+
+                var splt = message.message.Split(":");
+
+                switch (splt[0])
+                {
+                    case "AI":
+
+                        switch (splt[1])
+                        {
+                            case "STATE":
+                                var tg_id = long.Parse(splt[2]);    
+                                var state = splt[3].Equals("ON");
+                                var foundUserChat = await chatsProvider.GetUserChat(account_id, tg_id);
+                                if (foundUserChat != null)
+                                {
+                                    //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state));
+                                    logger.warn(tag, $"GPT {tg_id} ON={state}");
+                                }
+                                else
+                                    logger.err(tag, $"GPT {tg_id} chat not found");
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }                
+            }            
+        }
         async Task handleNewMessage(TL.MessageBase input)
         {
             try
-            {
-                //var userChat = await getUserChat(unm.message.Peer.ID);
+            {                
                 var userChat = await collectUserChat(input.Peer.ID, input.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
                     return;
+
+                if (userChat.chat.chat_type == ChatTypes.bot)
+                {
+                    await handleBot(input, userChat);
+                    return;
+                }                    
 
                 var message = input as Message;
 
@@ -628,8 +681,7 @@ namespace tg_engine.userapi
             {
                 logger.err(tag, ex.Message);
             }
-        }
-        //TODO добавить удаление всего чата, нужно поменить чат как удаленный и прокинуть ивент
+        }        
         async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
             List<IL.MessageBase> messages = new List<IL.MessageBase>();
@@ -705,6 +757,9 @@ namespace tg_engine.userapi
             }
             await Task.CompletedTask;
         }
+        #endregion
+
+        #region OnUpdate
         private async Task User_OnUpdate(Update update)
         {
 
@@ -817,6 +872,8 @@ namespace tg_engine.userapi
                     break;
             }
         }
+        #endregion
+
         #endregion
 
         #region rx message
@@ -1438,6 +1495,7 @@ namespace tg_engine.userapi
                     if (bots.users != null && bots.users.Count > 0)
                     {
                         business_bot_username = bots.users[bots.connected_bots[0].bot_id].username;
+                        business_bot_id = bots.connected_bots[0].bot_id;
                     }
                 } catch (Exception ex) {
                     logger.err(tag, $"GetConnectedBots: {ex.Message}");

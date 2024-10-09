@@ -220,31 +220,6 @@ namespace tg_engine.database.postgre
             return res;
         }
 
-        public async Task UpdateUser(telegram_user user)
-        {   
-            //using (var context = new PostgreDbContext(dbContextOptions))
-            //{
-            //    var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == user.id);
-
-            //    if (foundUser != null)
-            //    {
-            //        bool updated = false;
-
-            //        if (user.access_hash != null && user.access_hash != foundUser.access_hash)
-            //        {
-            //            foundUser.access_hash = user.access_hash;                        
-            //            updated = true;
-            //        }
-
-            //        if (updated)
-            //        {
-            //            await context.SaveChangesAsync();                        
-            //        }
-            //    }
-
-            //}            
-        }
-
         public async Task UpdateChatType(Guid chat_id, string chat_type)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
@@ -263,8 +238,6 @@ namespace tg_engine.database.postgre
 
             UserChat? res = null;
 
-            var foundHash = await GetAccessHash(account_id, telegram_id);
-
             using (var context = new PostgreDbContext(dbContextOptions))
             {
                 try
@@ -280,12 +253,14 @@ namespace tg_engine.database.postgre
 
                     var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
                     if (foundUser == null)
-                        throw new KeyNotFoundException($"Uset telegram_user_id={foundChat.telegram_user_id} not found");
+                        throw new KeyNotFoundException($"User telegram_user_id={foundChat.telegram_user_id} not found");
 
                     res = new UserChat();
                     res.chat = foundChat;
                     res.user = foundUser;
-                    res.access_hash = foundHash.access_hash;
+
+                    var access_hash = await GetAccessHash(account_id, foundUser.telegram_id);
+                    res.access_hash = access_hash.access_hash;
                 }
                 catch (Exception ex)
                 {
@@ -317,7 +292,7 @@ namespace tg_engine.database.postgre
 
                     var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
                     if (foundUser == null)
-                        throw new KeyNotFoundException($"Uset telegram_user_id={foundChat.telegram_user_id} not found");
+                        throw new KeyNotFoundException($"User telegram_user_id={foundChat.telegram_user_id} not found");
 
                     res = new UserChat();
                     res.chat = foundChat;
