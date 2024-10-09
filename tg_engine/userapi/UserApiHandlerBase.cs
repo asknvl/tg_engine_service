@@ -1177,7 +1177,7 @@ namespace tg_engine.userapi
                 var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
                 logger.inf(tag, $"OnNewMessage: {userChat.user.telegram_id} {userChat.access_hash}");
-                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
+                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash + 1);
 
                 //manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
@@ -1193,6 +1193,18 @@ namespace tg_engine.userapi
                 {
                     await client.ReadHistory(peer, (int)userChat.chat.top_message);
                     await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                } catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
+                {                    
+                    var un = userChat.user.username;
+                    if (!string.IsNullOrEmpty(un))
+                    {
+                        var resolved = await client.Contacts_ResolveUsername(un);
+                        var user = new telegram_user(resolved.User);
+                        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
+                        peer = resolved.User.ToInputPeer();
+
+                    }
+
                 }
                 catch (Exception ex)
                 {
