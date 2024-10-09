@@ -109,7 +109,7 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 167,
+          "DockedWidth": 150,
           "SelectedChildIndex": 2,
           "Children": [
             {
@@ -280,7 +280,7 @@
           ]
         },
         {
-          "DockedWidth": 551,
+          "DockedWidth": 568,
           "SelectedChildIndex": 9,
           "Children": [
             {
@@ -351,7 +351,7 @@
               "RelativeDocumentMoniker": "tg_engine\\userapi\\UserApiHandlerBase.cs",
               "ToolTip": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\userapi\\UserApiHandlerBase.cs",
               "RelativeToolTip": "tg_engine\\userapi\\UserApiHandlerBase.cs",
-              "ViewState": "AQIAAJMEAAAAAAAAAAAAAJsEAABiAAAA",
+              "ViewState": "AQIAAPwBAAAAAAAAAAAewD0CAAAYAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T17:22:14.505Z",
               "EditorCaption": ""

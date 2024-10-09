@@ -522,10 +522,12 @@ namespace tg_engine.userapi
                         
                         List<IL.MessageBase> messagesToProcess = new();
 
-                        foreach (var m in history.Messages)
+                        for (int i = history.Messages.Length - 1; i >= 0; i--)
                         {
 
-                            logger.inf(tag, $"getHisory message: {m}");
+                            var m = history.Messages[i];
+
+                            logger.inf(tag, $"getHisory message {i} of {history.Count}");
 
                             try
                             {
@@ -544,6 +546,30 @@ namespace tg_engine.userapi
                                 logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
                             }
                         }
+
+
+                        //foreach (var m in history.Messages)
+                        //{
+
+                        //    logger.inf(tag, $"getHisory message: {m}");
+
+                        //    try
+                        //    {
+                        //        var mb = m as TL.MessageBase;
+                        //        var messageBase = await handleMessageType(m, userChat);
+                        //        if (messageBase != null)
+                        //        {
+                        //            await mongoProvider.SaveMessage(messageBase);
+                        //            messagesToProcess.Add(messageBase);
+                        //        }
+
+
+                        //    }
+                        //    catch (Exception ex)
+                        //    {
+                        //        logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
+                        //    }
+                        //}
 
                         userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
                         userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
