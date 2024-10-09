@@ -1177,7 +1177,7 @@ namespace tg_engine.userapi
                 var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
                 logger.inf(tag, $"OnNewMessage: {userChat.user.telegram_id} {userChat.access_hash}");
-                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash + 1);
+                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
 
                 //manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
 
