@@ -467,7 +467,7 @@ namespace tg_engine.userapi
                                 var foundUserChat = await chatsProvider.GetUserChat(account_id, tg_id);
                                 if (foundUserChat != null)
                                 {
-                                    //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state));
+                                    //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state)); //TODO
                                     logger.warn(tag, $"GPT {tg_id} ON={state}");
                                 }
                                 else
