@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace tg_engine.rest.updates
 {
-    public class gptStatus : UpdateBase
+    public class aiStatus : UpdateBase
     {
         public bool is_active { get; set; }
     }

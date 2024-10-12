@@ -27,6 +27,7 @@ using IL = tg_engine.interlayer.messaging;
 using System.Security.Cryptography;
 using tg_engine.database.hash;
 using System.IO;
+using tg_engine.business_bot;
 
 namespace tg_engine.userapi
 {
@@ -88,8 +89,12 @@ namespace tg_engine.userapi
 
         protected long ID;
 
+        IBusinessBotProtocol botProtocol;
+        protected InputPeer botPeer = null;
         protected string? business_bot_username = null;
         protected long? business_bot_id = null;
+
+        
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -117,6 +122,8 @@ namespace tg_engine.userapi
             this.logger = logger;
 
             chatsProvider = new ChatsProvider(postgreProvider, logger);
+
+            botProtocol = new BusinessBotProtocol();
 
             updateWatchdogTimer = new System.Timers.Timer();
             updateWatchdogTimer.AutoReset = true;
@@ -442,7 +449,7 @@ namespace tg_engine.userapi
 
             return messageBase;
         }
-        async Task handleBot(TL.MessageBase input, UserChat userChat)
+        async Task handleBusinessBot(TL.MessageBase input, UserChat userChat)
         {
             if (userChat.user.telegram_id != business_bot_id)
                 return;
@@ -450,8 +457,6 @@ namespace tg_engine.userapi
             if (input is Message message && !string.IsNullOrEmpty(message.message))
             {
                 logger.inf(tag, $"bsnsBot: {business_bot_username} > {message.message}");
-
-                //var message = $"AI:STATE:{tg_id}:{state}";
 
                 var splt = message.message.Split(":");
 
@@ -461,14 +466,24 @@ namespace tg_engine.userapi
 
                         switch (splt[1])
                         {
-                            case "STATE":
+                            case "STATUS":
                                 var tg_id = long.Parse(splt[2]);    
                                 var state = splt[3].Equals("ON");
+                                string code = "";
+
+                                if (splt.Length == 5)
+                                    code = splt[4];
+
                                 var foundUserChat = await chatsProvider.GetUserChat(account_id, tg_id);
                                 if (foundUserChat != null)
                                 {
+                                    var updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
+                                    foundUserChat.chat = updatedChat;
+                                    var chEvent = new updateChatEvent(foundUserChat, source_id, source_name);                                    
+                                    await tgHubProvider.SendEvent(chEvent);
+
                                     //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state)); //TODO
-                                    logger.warn(tag, $"GPT {tg_id} ON={state}");
+                                    logger.warn(tag, $"AI {tg_id} is_active={state} code={code}");
                                 }
                                 else
                                     logger.err(tag, $"GPT {tg_id} chat not found");
@@ -495,7 +510,7 @@ namespace tg_engine.userapi
 
                 if (userChat.chat.chat_type == ChatTypes.bot)
                 {
-                    await handleBot(input, userChat);
+                    await handleBusinessBot(input, userChat);
                     return;
                 }                    
 
@@ -546,30 +561,6 @@ namespace tg_engine.userapi
                                 logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
                             }
                         }
-
-
-                        //foreach (var m in history.Messages)
-                        //{
-
-                        //    logger.inf(tag, $"getHisory message: {m}");
-
-                        //    try
-                        //    {
-                        //        var mb = m as TL.MessageBase;
-                        //        var messageBase = await handleMessageType(m, userChat);
-                        //        if (messageBase != null)
-                        //        {
-                        //            await mongoProvider.SaveMessage(messageBase);
-                        //            messagesToProcess.Add(messageBase);
-                        //        }
-
-
-                        //    }
-                        //    catch (Exception ex)
-                        //    {
-                        //        logger.err(tag, $"getHistory: messages {m} {m.ID} {userChat.user.telegram_id} {ex.Message}");
-                        //    }
-                        //}
 
                         userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
                         userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
@@ -683,12 +674,6 @@ namespace tg_engine.userapi
 
                             var updated = await mongoProvider.UpdateMessage(messageBase);
 
-                            //if (updated.storage_id != null)
-                            //{
-                            //    await s3Provider.Delete(updated.storage_id);
-                            //    logger.inf(tag, $"s3: {updated.storage_id} deleted");
-                            //}
-
                             await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
@@ -760,11 +745,8 @@ namespace tg_engine.userapi
                         var from = messages.UserOrChat(msgBase.From ?? msgBase.Peer); // from can be User/Chat/Channel
                         if (msgBase is Message msg)
                         {
-                            await handleUpdateMessage(msgBase/*, update: true*/);
+                            await handleUpdateMessage(msgBase);
                         }
-
-                        //else if (msgBase is MessageService ms)
-                        //    Console.WriteLine($"{from} [{ms.action.GetType().Name[13..]}]");
                     }
                     offset_id = messages.Messages[^1].ID;
                 }
@@ -1291,10 +1273,9 @@ namespace tg_engine.userapi
             }
             catch (Exception ex)
             {
-                logger.err(tag, $"OnNewMessage: {ex.Message}");
+                logger.err(tag, $"OnNewMessage: chat_id={messageDto.chat_id} {ex.Message}");
             }
         }
-
         public async Task OnNewMessage(clippedDto clippedDto)
         {
             try
@@ -1396,7 +1377,7 @@ namespace tg_engine.userapi
             } 
             catch (Exception ex)
             {
-                logger.err(tag, $"OnNewClipped: {ex.Message}");
+                logger.err(tag, $"OnNewClipped: chat_id={clippedDto.chat_id} {ex.Message}");
             }
         }
         public async Task OnNewUpdate(UpdateBase update)
@@ -1448,6 +1429,22 @@ namespace tg_engine.userapi
                     catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate deleteMessage tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                    }
+                    break;
+
+                case aiStatus gs:
+                    try
+                    {
+                        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
+                        if (botPeer != null)                        
+                            await client.SendMessageAsync(botPeer, command);
+
+                        logger.warn(tag, $"OnNewUpdate {command}");
+
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
                     }
                     break;
 
@@ -1533,7 +1530,9 @@ namespace tg_engine.userapi
                     if (bots.users != null && bots.users.Count > 0)
                     {
                         business_bot_username = bots.users[bots.connected_bots[0].bot_id].username;
-                        business_bot_id = bots.connected_bots[0].bot_id;
+                        business_bot_id = bots.connected_bots[0].bot_id;                
+                        var resolved = await client.Contacts_ResolveUsername(business_bot_username);
+                        botPeer = resolved.User.ToInputPeer();
                     }
                 } catch (Exception ex) {
                     logger.err(tag, $"GetConnectedBots: {ex.Message}");

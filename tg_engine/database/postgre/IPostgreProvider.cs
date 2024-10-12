@@ -26,6 +26,7 @@ namespace tg_engine.database.postgre
         Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction, int top_message, string? top_message_text, DateTime top_message_date, bool igonreUnread = false);
         Task<storage_file_parameter> GetFileParameters(string hash);
         Task CreateFileParameters(storage_file_parameter parameters);
+        Task<telegram_chat> SetAIStatus(Guid chat_id, bool status);
         DbContextOptions<PostgreDbContext> DbContextOptions { get; }
     }
 }
