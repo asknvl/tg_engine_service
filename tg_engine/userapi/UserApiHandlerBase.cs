@@ -638,9 +638,13 @@ namespace tg_engine.userapi
         {
             try
             {
-                var userChat = await collectUserChat(input.Peer.ID, input.ID);
+                //var userChat = await collectUserChat(input.Peer.ID, input.ID);
+                var userChat = await chatsProvider.GetUserChat(account_id, input.Peer.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
+                    return;
+
+                if (userChat.chat.chat_type == ChatTypes.bot)
                     return;
 
                 logger.dbg(tag, $"getUserChat: {userChat.user}");
