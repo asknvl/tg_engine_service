@@ -33,7 +33,9 @@ namespace tg_engine.tg_hub.events
                 unread_inbox_count = userChat.chat.unread_inbox_count,
                 unread_inbox_mark = userChat.chat.unread_inbox_mark,
                 unread_outbox_count = userChat.chat.unread_outbox_count,
-                unread_outbox_mark = userChat.chat.unread_outbox_mark,                    
+                unread_outbox_mark = userChat.chat.unread_outbox_mark,
+                is_ai_active = userChat.chat.is_ai_active,
+                
 
                 user = new userData()
                 {
@@ -72,6 +74,7 @@ namespace tg_engine.tg_hub.events
         public bool? unread_inbox_mark { get; set; }
         public int? unread_outbox_count { get; set; }
         public bool? unread_outbox_mark { get; set; }
+        public bool is_ai_active { get; set; }
 
         public userData user { get; set; } 
         public sourceData source { get; set; }
