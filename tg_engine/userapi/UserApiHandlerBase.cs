@@ -501,6 +501,7 @@ namespace tg_engine.userapi
         }
         async Task handleNewMessage(TL.MessageBase input)
         {
+
             try
             {                
                 var userChat = await collectUserChat(input.Peer.ID, input.ID);
@@ -736,6 +737,7 @@ namespace tg_engine.userapi
 
             return userChat;
         }
+       
         async Task loadServiceChat(InputPeer peer)
         {
             if (peer != null)
@@ -778,7 +780,7 @@ namespace tg_engine.userapi
             logger.inf(tag, $"{update}");
 
             if (update is UpdateMessagePoll)
-                return;
+                return;           
 
             updateCounter++;
 
@@ -1159,19 +1161,12 @@ namespace tg_engine.userapi
         {
             try
             {
-
-                //var userChat = chatsProvider.GetUserChat()
-                //await client.Messages_SetTyping()
-
-
                 await client.Account_UpdateStatus(offline: true);
-
             }
             catch (Exception ex)
             {
                 logger.err(tag, $"ActivityTimer_Elapsed: {ex.Message}");
             }
-
         }
         #endregion
 
@@ -1449,6 +1444,28 @@ namespace tg_engine.userapi
                     } catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
+                    }
+                    break;
+
+                case sendTyping st:
+                    try
+                    {
+                        await client.Messages_SetTyping(peer, new SendMessageTypingAction());                        
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate sendTyping tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                    }
+                    break;
+
+                case sendStatus ss:
+                    try
+                    {
+                        await client.Account_UpdateStatus(ss.is_online);                        
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate sendStatus tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
                     }
                     break;
 
