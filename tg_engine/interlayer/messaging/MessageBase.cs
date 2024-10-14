@@ -34,6 +34,7 @@ namespace tg_engine.interlayer.messaging
         public bool is_business_bot_reply { get; set; } = false;
         public string? business_bot_username { get; set; } = null;
         public string? operator_id { get; set; } = null;
+        public string? operator_letters { get; set;} = null;
     }
 
     public class MediaInfo

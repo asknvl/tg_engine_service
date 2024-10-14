@@ -1253,6 +1253,7 @@ namespace tg_engine.userapi
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
                     message.operator_id = messageDto.operator_id;
+                    message.operator_letters = messageDto.operator_letters;
                     await mongoProvider.SaveMessage(message);
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
@@ -1356,7 +1357,8 @@ namespace tg_engine.userapi
                     message.screen_text = clippedDto.screen_text;
                     message.telegram_message_id = result.ID;
                     message.date = result.Date;
-                    message.operator_id = clippedDto.operator_id.ToString();
+                    message.operator_id = clippedDto.operator_id;
+                    message.operator_letters = clippedDto.operator_letters;
                     await mongoProvider.SaveMessage(message);
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,

@@ -28,7 +28,9 @@ namespace tg_engine.tg_hub.events
                 reply_to_message_id = message.reply_to_message_id,
                 media = message.media,
                 is_business_bot_reply = message.is_business_bot_reply,
-                business_bot_username = message.business_bot_username
+                business_bot_username = message.business_bot_username,
+                operator_id = message.operator_id,
+                operator_letters = message.operator_letters
             };
         }
     }
@@ -47,5 +49,7 @@ namespace tg_engine.tg_hub.events
         public IL.MediaInfo? media { get; set; }
         public bool is_business_bot_reply { get; set; }
         public string? business_bot_username { get; set; }
+        public string? operator_id { get; set; }
+        public string? operator_letters { get; set; }   
     }
 }

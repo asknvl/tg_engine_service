@@ -29,6 +29,7 @@ namespace tg_engine.rest
             public Guid chat_id { get; set; }
             public Guid telegram_user_id { get; set; }
             public string? operator_id { get; set; }
+            public string? operator_letters { get; set; }
             public mediaDto? media { get; set; } 
             public string? text { get; set; }
             public string? screen_text { get; set; }
@@ -46,6 +47,8 @@ namespace tg_engine.rest
             public Guid account_id { get; set; }
             public Guid chat_id { get; set; }
             public Guid telegram_user_id { get; set; }
+            public string? operator_id { get; set; }
+            public string? operator_letters { get; set; }
             public int? reply_to_message_id { get; set; } = null;
             public string? text { get; set; } = null;
             public string? screen_text { get; set; } = null;
@@ -53,8 +56,7 @@ namespace tg_engine.rest
             public string file_name { get; set; }
             public string file_extension { get; set; }
             public string? file_hash { get; set; } = null;
-            public byte[] file { get; set; }
-            public Guid? operator_id { get; set; } = null;
+            public byte[] file { get; set; }            
         }
         #endregion
 
@@ -169,11 +171,8 @@ namespace tg_engine.rest
                                     throw new Exception("Illegal type");
                                 clippedDto.type = type; 
 
-                                var operator_id = parser.GetParameterValue("operator_id");
-                                if (string.IsNullOrEmpty(operator_id) || !Guid.TryParse(operator_id, out var _operator_id))
-                                    throw new Exception("Illegal operator_id");
-                                clippedDto.operator_id = _operator_id;
-
+                                var operator_id = parser.GetParameterValue("operator_id");                                
+                                clippedDto.operator_id = operator_id;
 
                                 var file = parser.Files.First();
                                 if (file != null)
