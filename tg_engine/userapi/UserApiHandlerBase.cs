@@ -479,13 +479,19 @@ namespace tg_engine.userapi
                                 var foundUserChat = await chatsProvider.GetUserChat(account_id, tg_id);
                                 if (foundUserChat != null)
                                 {
-                                    var updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
+                                    telegram_chat updatedChat;
+
+                                    if (!code.Equals("MANUAL") && !state)
+                                        updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, (int)AIStatuses.done);
+                                    else
+                                        updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
+
                                     foundUserChat.chat = updatedChat;
                                     var chEvent = new updateChatEvent(foundUserChat, source_id, source_name);
                                     await tgHubProvider.SendEvent(chEvent);
 
                                     //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state)); //TODO
-                                    logger.warn(tag, $"AI {tg_id} is_active={state} code={code}");
+                                    logger.warn(tag, $"AI {tg_id} is_active={state} code={code} status={updatedChat.ai_status}");
                                 }
                                 else
                                     logger.err(tag, $"GPT {tg_id} chat not found");
@@ -735,7 +741,7 @@ namespace tg_engine.userapi
                 userChat.chat = updatedChat;
 
             await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
-            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_id));
+            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_read_id));
 
             return userChat;
         }
@@ -1464,9 +1470,7 @@ namespace tg_engine.userapi
                             if (botPeer != null)
                                 await client.SendMessageAsync(botPeer, command);
                             logger.warn(tag, $"OnNewUpdate {command}");
-                        }
-                        else
-                            await postgreProvider.SetAIStatus(userChat.chat.id, st.status);
+                        }                        
                     }
                     catch (Exception ex)
                     {
