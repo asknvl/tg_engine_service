@@ -70,6 +70,14 @@ namespace tg_engine.rest
                 res = input.Substring(index + 1);
             return res;
         }
+
+        string getTypeFromMimeType(string input)
+        {
+            var res = input;
+            var index = input.IndexOf('/');
+            res = res.Remove(index);
+            return res;
+        }
         #endregion
 
         #region public
@@ -174,6 +182,9 @@ namespace tg_engine.rest
                                 var operator_id = parser.GetParameterValue("operator_id");                                
                                 clippedDto.operator_id = operator_id;
 
+                                var operator_letters = parser.GetParameterValue("operator_letters");
+                                clippedDto.operator_letters = operator_letters;
+
                                 var file = parser.Files.First();
                                 if (file != null)
                                 {                                   
@@ -214,13 +225,102 @@ namespace tg_engine.rest
                         }
                         break;
 
+                    case "edit-message":
+                        try
+                        {
+                            editMessage editMessage = new editMessage();
+
+                            using (var memoryStream = new MemoryStream())
+                            {
+                                await request.InputStream.CopyToAsync(memoryStream);
+                                memoryStream.Position = 0;
+                                var parser = await MultipartFormDataParser.ParseAsync(memoryStream);
+
+                                var account_id = parser.GetParameterValue("account_id");
+                                if (string.IsNullOrEmpty(account_id) || !Guid.TryParse(account_id, out var _account_id))
+                                    throw new Exception("Illegal account_id");
+                                editMessage.account_id = _account_id;
+
+
+                                var chat_id = parser.GetParameterValue("chat_id");
+                                if (string.IsNullOrEmpty(chat_id) || !Guid.TryParse(chat_id, out var _chat_id))
+                                    throw new Exception("Illegal chat_id");
+                                editMessage.chat_id = _chat_id;
+
+                                var telegram_user_id = parser.GetParameterValue("telegram_user_id");
+                                if (string.IsNullOrEmpty(telegram_user_id) || !Guid.TryParse(telegram_user_id, out var _telegram_user_id))
+                                    throw new Exception("Illegal telegram_user_id");
+                                editMessage.telegram_user_id = _telegram_user_id;
+
+                                var telegram_message_id = parser.GetParameterValue("telegram_message_id");
+                                if (int.TryParse(telegram_message_id, out var _telegram_message_id))
+                                    editMessage.telegram_message_id = _telegram_message_id;
+                                else throw new Exception("Illegal telegram_message_id");
+
+                                var text = parser.GetParameterValue("text");
+                                editMessage.text = text;
+
+                                var screen_text = parser.GetParameterValue("screen_text");
+                                editMessage.screen_text = screen_text;
+
+                                var operator_id = parser.GetParameterValue("operator_id");
+                                editMessage.operator_id = operator_id;
+
+                                var operator_letters = parser.GetParameterValue("operator_letters");
+                                editMessage.operator_letters = operator_letters;
+
+                                if (parser.Files.Count > 0 && parser.Files[0].Data.Length > 0)
+                                {
+                                    var file = parser.Files.First();
+                                    editMessage.file_name = file.FileName;
+                                    editMessage.file_extension = getExtensionFromMimeType(file.ContentType);
+                                    
+                                    switch (getTypeFromMimeType(file.ContentType))
+                                    {
+                                        case "video":
+                                            editMessage.type = MediaTypes.video;
+                                            break;
+
+                                        case "image":
+                                            editMessage.type = MediaTypes.image;
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+
+                                    Stream data = file.Data;
+                                    using (var ms = new MemoryStream())
+                                    {
+                                        data.CopyTo(ms);
+                                        editMessage.file = ms.ToArray();
+                                    }
+                                }
+
+                                observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == editMessage.account_id);
+                                if (observer != null)
+                                {
+                                    observer.OnNewUpdate(editMessage);
+
+                                    code = HttpStatusCode.OK;
+                                    responseText = code.ToString();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            code = HttpStatusCode.BadRequest;
+                            responseText = $"{updReq}: {ex.Message}";
+                        }
+                        break;
+
                     case "read-history":
                         try
                         {
                             using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
                             var data = await reader.ReadToEndAsync();
-
                             var update = JsonConvert.DeserializeObject<readHistory>(data);
+
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
                             if (observer != null)
                             {
@@ -241,8 +341,8 @@ namespace tg_engine.rest
                         {
                             using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
                             var data = await reader.ReadToEndAsync();
-
                             var update = JsonConvert.DeserializeObject<deleteMessage>(data);
+
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
                             if (observer != null)
                             {
@@ -262,8 +362,8 @@ namespace tg_engine.rest
                         {
                             using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
                             var data = await reader.ReadToEndAsync();
-
                             var update = JsonConvert.DeserializeObject<aiStatus>(data);
+
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
 
                             if (observer != null)
@@ -285,7 +385,6 @@ namespace tg_engine.rest
                         {
                             using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
                             var data = await reader.ReadToEndAsync();
-
                             var update = JsonConvert.DeserializeObject<sendTyping>(data);
 
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
@@ -309,7 +408,6 @@ namespace tg_engine.rest
                         {
                             using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
                             var data = await reader.ReadToEndAsync();
-
                             var update = JsonConvert.DeserializeObject<sendStatus>(data);
 
                             observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
@@ -327,7 +425,7 @@ namespace tg_engine.rest
                             code = HttpStatusCode.BadRequest;
                             responseText = $"{updReq}: {ex.Message}";
                         }
-                        break;
+                        break;                    
 
                     default:
                         break;

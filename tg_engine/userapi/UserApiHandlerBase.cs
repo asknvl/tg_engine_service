@@ -28,6 +28,7 @@ using System.Security.Cryptography;
 using tg_engine.database.hash;
 using System.IO;
 using tg_engine.business_bot;
+using SharpCompress.Compressors.Xz;
 
 namespace tg_engine.userapi
 {
@@ -94,7 +95,7 @@ namespace tg_engine.userapi
         protected string? business_bot_username = null;
         protected long? business_bot_id = null;
 
-        
+
         #endregion
 
         public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
@@ -230,12 +231,13 @@ namespace tg_engine.userapi
                         {
                             logger.err(tag, $"collectUserChat: unable to get access hash from min constructor");
                         }
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"collectUserChat: {ex.Message}");
                     }
                 }
-                tlUser = new telegram_user(tuser);                
+                tlUser = new telegram_user(tuser);
             }
             else
                 if (isChat)
@@ -311,7 +313,7 @@ namespace tg_engine.userapi
                         logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
                         s3info.extension = fparams.file_extension;
                         s3info.storage_id = fparams.storage_id;
-                        s3info.url = fparams.link;                        
+                        s3info.url = fparams.link;
                     }
                     else
                     {
@@ -467,7 +469,7 @@ namespace tg_engine.userapi
                         switch (splt[1])
                         {
                             case "STATUS":
-                                var tg_id = long.Parse(splt[2]);    
+                                var tg_id = long.Parse(splt[2]);
                                 var state = splt[3].Equals("ON");
                                 string code = "";
 
@@ -479,7 +481,7 @@ namespace tg_engine.userapi
                                 {
                                     var updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
                                     foundUserChat.chat = updatedChat;
-                                    var chEvent = new updateChatEvent(foundUserChat, source_id, source_name);                                    
+                                    var chEvent = new updateChatEvent(foundUserChat, source_id, source_name);
                                     await tgHubProvider.SendEvent(chEvent);
 
                                     //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state)); //TODO
@@ -496,14 +498,14 @@ namespace tg_engine.userapi
 
                     default:
                         break;
-                }                
-            }            
+                }
+            }
         }
         async Task handleNewMessage(TL.MessageBase input)
         {
 
             try
-            {                
+            {
                 var userChat = await collectUserChat(input.Peer.ID, input.ID);
 
                 if (userChat.chat.chat_type == ChatTypes.channel)
@@ -513,7 +515,7 @@ namespace tg_engine.userapi
                 {
                     await handleBusinessBot(input, userChat);
                     return;
-                }                    
+                }
 
                 var message = input as Message;
 
@@ -525,17 +527,17 @@ namespace tg_engine.userapi
                 }
 
                 if (userChat.chat.chat_type == ChatTypes.user && userChat.is_new)
-                {   
+                {
                     logger.inf(tag, $"getHistory?: {userChat.user} is_new={userChat.is_new}");
 
                     try
-                    {                      
-                        var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);                    
+                    {
+                        var peer = new InputPeerUser(userChat.user.telegram_id, (long)userChat.access_hash);
                         var dialog = await client.Messages_GetPeerDialogs(new InputDialogPeerBase[] { peer });
                         var dlg = dialog.dialogs.FirstOrDefault() as Dialog;
-                        
+
                         var history = await client.Messages_GetHistory(peer, limit: 50);
-                        
+
                         List<IL.MessageBase> messagesToProcess = new();
 
                         for (int i = history.Messages.Length - 1; i >= 0; i--)
@@ -697,7 +699,7 @@ namespace tg_engine.userapi
             {
                 logger.err(tag, ex.Message);
             }
-        }        
+        }
         async Task handleMessageDeletion(int[] message_ids, long? chat_telegram_id)
         {
             List<IL.MessageBase> messages = new List<IL.MessageBase>();
@@ -737,7 +739,7 @@ namespace tg_engine.userapi
 
             return userChat;
         }
-       
+
         async Task loadServiceChat(InputPeer peer)
         {
             if (peer != null)
@@ -780,7 +782,7 @@ namespace tg_engine.userapi
             logger.inf(tag, $"{update}");
 
             if (update is UpdateMessagePoll)
-                return;           
+                return;
 
             updateCounter++;
 
@@ -884,6 +886,7 @@ namespace tg_engine.userapi
                 case UpdateEditMessage uem:
                     await handleUpdateMessage(uem.message);
                     break;
+
             }
         }
         #endregion
@@ -1038,7 +1041,7 @@ namespace tg_engine.userapi
                     inputFile.ID = file.ID;
                     inputFile.Parts = file.Parts;
                     inputFile.Name = file.Name;
-                    
+
                     switch (type)
                     {
                         case MediaTypes.circle:
@@ -1062,11 +1065,11 @@ namespace tg_engine.userapi
                                     duration = mediaProperties.Duration / 1000.0,
                                     w = mediaProperties.Width,
                                     h = mediaProperties.Height,
-                                    flags = DocumentAttributeVideo.Flags.supports_streaming                              
-                                },                                
+                                    flags = DocumentAttributeVideo.Flags.supports_streaming
+                                },
                                 new DocumentAttributeFilename {
                                     file_name = file_name
-                                }                                
+                                }
                             };
                             break;
                         case MediaTypes.photo:
@@ -1094,7 +1097,7 @@ namespace tg_engine.userapi
                     {
                         file = inputFile,
                         mime_type = mime_type,
-                        attributes = attributes,                        
+                        attributes = attributes,
                     };
 
                     res = await client.SendMessageAsync(peer, text, document);
@@ -1200,8 +1203,9 @@ namespace tg_engine.userapi
                 {
                     await client.ReadHistory(peer, (int)userChat.chat.top_message);
                     await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                } catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
-                {                    
+                }
+                catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
+                {
                     var un = userChat.user.username;
                     if (!string.IsNullOrEmpty(un))
                     {
@@ -1318,7 +1322,8 @@ namespace tg_engine.userapi
                     s3info.extension = fparams.file_extension;
                     s3info.storage_id = fparams.storage_id;
                     s3info.url = fparams.link;
-                } else
+                }
+                else
                 {
                     logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
                     s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
@@ -1327,7 +1332,7 @@ namespace tg_engine.userapi
                     {
                         hash = hash,
                         file_length = clippedDto.file.Length,
-                        file_type = MediaTypes.image,
+                        file_type = clippedDto.type,
                         file_extension = clippedDto.file_extension,
                         is_uploaded = true,
                         storage_id = s3info.storage_id,
@@ -1375,7 +1380,7 @@ namespace tg_engine.userapi
                     logger.inf(tag, $"{message.direction}:{userChat.user} time={stopwatch.ElapsedMilliseconds} ms");
                 }
 
-            } 
+            }
             catch (Exception ex)
             {
                 logger.err(tag, $"OnNewClipped: chat_id={clippedDto.chat_id} {ex.Message}");
@@ -1437,13 +1442,14 @@ namespace tg_engine.userapi
                     try
                     {
                         var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
-                        if (botPeer != null)                        
+                        if (botPeer != null)
                             await client.SendMessageAsync(botPeer, command);
 
                         logger.warn(tag, $"OnNewUpdate {command}");
 
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
                     }
@@ -1452,9 +1458,10 @@ namespace tg_engine.userapi
                 case sendTyping st:
                     try
                     {
-                        await client.Messages_SetTyping(peer, new SendMessageTypingAction());                        
+                        await client.Messages_SetTyping(peer, new SendMessageTypingAction());
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate sendTyping tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
                     }
@@ -1463,11 +1470,133 @@ namespace tg_engine.userapi
                 case sendStatus ss:
                     try
                     {
-                        await client.Account_UpdateStatus(ss.is_online);                        
+                        await client.Account_UpdateStatus(ss.is_online);
 
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.err(tag, $"OnNewUpdate sendStatus tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                    }
+                    break;
+
+                case editMessage em:
+                    try
+                    {
+                        IL.MessageBase message = new IL.MessageBase()
+                        {
+                            account_id = em.account_id,
+                            chat_id = em.chat_id,
+                            chat_type = ChatTypes.user,
+                            telegram_message_id = em.telegram_message_id,
+                            text = em.text,
+                            operator_id = em.operator_id,
+                            operator_letters = em.operator_letters                          
+                        };
+
+                        InputMedia? media = null;
+
+                        if (em.file != null)
+                        {
+                            S3ItemInfo s3info = new();
+                            var hash = MediaHash.Get(em.file);
+
+                            var fparams = await postgreProvider.GetFileParameters(hash);
+                            if (fparams != null)
+                            {
+                                logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                                s3info.extension = fparams.file_extension;
+                                s3info.storage_id = fparams.storage_id;
+                                s3info.url = fparams.link;
+                            }
+                            else
+                            {
+                                logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                                s3info = await s3Provider.Upload(em.file, em.file_extension);
+
+                                fparams = new storage_file_parameter()
+                                {
+                                    hash = hash,
+                                    file_length = em.file.Length,
+                                    file_type = em.type,
+                                    file_extension = em.file_extension,
+                                    is_uploaded = true,
+                                    storage_id = s3info.storage_id,
+                                    link = s3info.url,
+                                    uploaded_at = DateTime.UtcNow
+                                };
+
+                                await postgreProvider.CreateFileParameters(fparams);
+                            }
+
+                            switch (em.type)
+                            {
+                                case MediaTypes.image:
+                                    using (var stream = new MemoryStream(em.file))
+                                    {
+                                        var file = await client.UploadFileAsync(stream, $"{s3info.storage_id}");
+                                        media = new InputMediaUploadedPhoto()
+                                        {
+                                            file = file
+                                        };
+
+                                        IL.MediaInfo il_media = new IL.MediaInfo()
+                                        {
+                                            file_name = em.file_name,                                            
+                                            type = em.type,
+                                            storage_id = s3info.storage_id,
+                                            storage_url = s3info.url,
+                                            extension = s3info.extension
+                                        };
+                                    }
+                                    break;
+                                case MediaTypes.video:
+                                    using (var stream = new MemoryStream(em.file))
+                                    {
+                                        var mediaProperties = new MediaInfoWrapper(new MemoryStream(em.file));
+                                        int cntr = 0;
+                                        var file = await client.UploadFileAsync(stream, $"{em.file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
+
+                                        string? mime_type = null;
+                                        DocumentAttribute[]? attributes = null;
+
+                                        InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
+                                        inputFile.ID = file.ID;
+                                        inputFile.Parts = file.Parts;
+                                        inputFile.Name = file.Name;
+
+                                        mime_type = "video/mp4";
+                                        attributes = new DocumentAttribute[] {
+                                            new DocumentAttributeVideo {
+                                                    duration = mediaProperties.Duration / 1000.0,
+                                                    w = mediaProperties.Width,
+                                                    h = mediaProperties.Height,
+                                                    flags = DocumentAttributeVideo.Flags.supports_streaming
+                                                },
+                                                new DocumentAttributeFilename {
+                                                    file_name = em.file_name
+                                                }
+                                            };
+
+                                        media = new InputMediaUploadedDocument()
+                                        {
+                                            file = inputFile,
+                                            mime_type = mime_type,
+                                            attributes = attributes,
+                                        };
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                        }
+
+                        await client.Messages_EditMessage(peer, em.telegram_message_id, message: em.text, media: media);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.err(tag, $"OnNewUpdate editMessage tg_id={userChat.user.telegram_id} peer={peer.ID} message_id={0} {ex.Message}");
                     }
                     break;
 
@@ -1553,11 +1682,13 @@ namespace tg_engine.userapi
                     if (bots.users != null && bots.users.Count > 0)
                     {
                         business_bot_username = bots.users[bots.connected_bots[0].bot_id].username;
-                        business_bot_id = bots.connected_bots[0].bot_id;                
+                        business_bot_id = bots.connected_bots[0].bot_id;
                         var resolved = await client.Contacts_ResolveUsername(business_bot_username);
                         botPeer = resolved.User.ToInputPeer();
                     }
-                } catch (Exception ex) {
+                }
+                catch (Exception ex)
+                {
                     logger.err(tag, $"GetConnectedBots: {ex.Message}");
                 }
 
