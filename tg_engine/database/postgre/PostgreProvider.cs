@@ -3,6 +3,7 @@ using tg_engine.config;
 using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 using tg_engine.dm;
+using tg_engine.rest.updates;
 using TL;
 
 namespace tg_engine.database.postgre
@@ -489,6 +490,30 @@ namespace tg_engine.database.postgre
             }
         }
 
+        //public async Task<telegram_chat> SetAIStatus(Guid chat_id, bool status)
+        //{
+        //    using (var context = new PostgreDbContext(dbContextOptions))
+        //    {
+        //        try
+        //        {
+        //            var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
+        //            if (foundChat == null)
+        //                throw new KeyNotFoundException($"Chat {chat_id} not found");
+
+        //            foundChat.is_ai_active = status;
+
+        //            await context.SaveChangesAsync();
+
+        //            return foundChat;
+
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            throw new Exception($"UpdateUnreadCount error", ex);
+        //        }
+        //    }
+        //}
+
         public async Task<telegram_chat> SetAIStatus(Guid chat_id, bool status)
         {
             using (var context = new PostgreDbContext(dbContextOptions))
@@ -500,7 +525,8 @@ namespace tg_engine.database.postgre
                         throw new KeyNotFoundException($"Chat {chat_id} not found");
 
                     foundChat.is_ai_active = status;
-                    
+                    foundChat.ai_status = (status) ? (int)AIStatuses.on : (int)AIStatuses.off;
+
                     await context.SaveChangesAsync();
 
                     return foundChat;
@@ -508,10 +534,38 @@ namespace tg_engine.database.postgre
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"UpdateUnreadCount error", ex);
+                    throw new Exception($"SetAIStatus error", ex);
                 }
             }
         }
+
+        public async Task<telegram_chat> SetAIStatus(Guid chat_id, int status)
+        {
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                try
+                {
+                    var foundChat = await context.telegram_chats.SingleOrDefaultAsync(ch => ch.id == chat_id);
+                    if (foundChat == null)
+                        throw new KeyNotFoundException($"Chat {chat_id} not found");
+
+                    if (Enum.IsDefined(typeof(AIStatuses), status))
+                    {
+                        foundChat.ai_status = status;
+                        await context.SaveChangesAsync();
+                    }                    
+
+                    return foundChat;
+
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"SetAIStatus error", ex);
+                }
+            }
+        }
+
+
     }        
 }
 

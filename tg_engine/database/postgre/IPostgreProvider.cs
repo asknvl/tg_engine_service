@@ -27,6 +27,7 @@ namespace tg_engine.database.postgre
         Task<storage_file_parameter> GetFileParameters(string hash);
         Task CreateFileParameters(storage_file_parameter parameters);
         Task<telegram_chat> SetAIStatus(Guid chat_id, bool status);
+        Task<telegram_chat> SetAIStatus(Guid chat_id, int status);
         DbContextOptions<PostgreDbContext> DbContextOptions { get; }
     }
 }

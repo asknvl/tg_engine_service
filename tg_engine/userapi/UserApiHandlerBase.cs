@@ -1438,16 +1438,35 @@ namespace tg_engine.userapi
                     }
                     break;
 
-                case aiStatus gs:
+                //case aiStatus gs:
+                //    try
+                //    {
+                //        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
+                //        if (botPeer != null)
+                //            await client.SendMessageAsync(botPeer, command);
+
+                //        logger.warn(tag, $"OnNewUpdate {command}");
+
+
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
+                //    }
+                //    break;
+
+                case aiStatus st:
                     try
                     {
-                        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
-                        if (botPeer != null)
-                            await client.SendMessageAsync(botPeer, command);
-
-                        logger.warn(tag, $"OnNewUpdate {command}");
-
-
+                        var command = botProtocol.GetCommand(userChat.user.telegram_id, st);
+                        if (!string.IsNullOrEmpty(command))
+                        {
+                            if (botPeer != null)
+                                await client.SendMessageAsync(botPeer, command);
+                            logger.warn(tag, $"OnNewUpdate {command}");
+                        }
+                        else
+                            await postgreProvider.SetAIStatus(userChat.chat.id, st.status);
                     }
                     catch (Exception ex)
                     {

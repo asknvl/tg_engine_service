@@ -34,25 +34,26 @@ namespace tg_engine.tg_hub.events
                 unread_inbox_mark = userChat.chat.unread_inbox_mark,
                 unread_outbox_count = userChat.chat.unread_outbox_count,
                 unread_outbox_mark = userChat.chat.unread_outbox_mark,
-                is_ai_active = userChat.chat.is_ai_active,                
+                is_ai_active = userChat.chat.is_ai_active,
+                ai_status = userChat.chat.ai_status,
 
                 user = new userData()
                 {
                     id = userChat.user.id,
                     telegram_id = userChat.user.telegram_id,
-                    firstname = userChat.user.firstname,    
+                    firstname = userChat.user.firstname,
                     lastname = userChat.user.lastname,
                     username = userChat.user.username
                 },
 
                 source = new sourceData()
-                {                    
+                {
                     id = source_id,
                     source_name = source_name
                 }
 
             };
-        }      
+        }
     }
 
     class chatData
@@ -74,24 +75,25 @@ namespace tg_engine.tg_hub.events
         public int? unread_outbox_count { get; set; }
         public bool? unread_outbox_mark { get; set; }
         public bool is_ai_active { get; set; }
+        public int ai_status { get; set; }
 
-        public userData user { get; set; } 
+        public userData user { get; set; }
         public sourceData source { get; set; }
     }
 
     class userData
     {
         public Guid id { get; set; }
-        public long telegram_id { get; set; }       
+        public long telegram_id { get; set; }
         public string? firstname { get; set; }
         public string? lastname { get; set; }
         public string? username { get; set; }
 
     }
 
-    class sourceData 
+    class sourceData
     {
-        public Guid id { get; set; }            
+        public Guid id { get; set; }
         public string source_name { get; set; }
 
     }

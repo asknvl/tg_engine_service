@@ -357,6 +357,29 @@ namespace tg_engine.rest
                         }
                         break;
 
+                    //case "ai-status":
+                    //    try
+                    //    {
+                    //        using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+                    //        var data = await reader.ReadToEndAsync();
+                    //        var update = JsonConvert.DeserializeObject<aiStatus>(data);
+
+                    //        observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == update.account_id);
+
+                    //        if (observer != null)
+                    //        {
+                    //            await observer.OnNewUpdate(update);
+                    //            code = HttpStatusCode.OK;
+                    //            responseText = code.ToString();
+                    //        }
+
+                    //    } catch (Exception ex)
+                    //    {
+                    //        code = HttpStatusCode.BadRequest;
+                    //        responseText = $"{updReq}: {ex.Message}";
+                    //    }
+                    //    break;
+
                     case "ai-status":
                         try
                         {
@@ -373,7 +396,8 @@ namespace tg_engine.rest
                                 responseText = code.ToString();
                             }
 
-                        } catch (Exception ex)
+                        }
+                        catch (Exception ex)
                         {
                             code = HttpStatusCode.BadRequest;
                             responseText = $"{updReq}: {ex.Message}";
