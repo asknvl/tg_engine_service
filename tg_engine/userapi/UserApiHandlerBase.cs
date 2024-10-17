@@ -571,8 +571,10 @@ namespace tg_engine.userapi
                             }
                         }
 
-                        userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
-                        userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
+                        //if (dlg.read_outbox_max_id > 0)
+                            userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
+                        //if (dlg.read_inbox_max_id > 0)
+                            userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
 
                         var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
 
@@ -725,6 +727,34 @@ namespace tg_engine.userapi
             telegram_chat updatedChat = null;
 
             (unread_count, max_read_id) = await mongoProvider.MarkMessagesRead(userChat.chat.id, direction, max_id);
+
+            switch (direction)
+            {
+                case "in":
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_inbox_count: unread_count, read_inbox_max_id: max_read_id);
+                    break;
+
+                case "out":
+                    updatedChat = await postgreProvider.UpdateUnreadCount(userChat.chat.id, unread_outbox_count: unread_count, read_outbox_max_id: max_read_id);
+                    break;
+            }
+
+            if (updatedChat != null)
+                userChat.chat = updatedChat;
+
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+            await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_read_id));
+
+            return userChat;
+        }
+
+        async Task<UserChat> handleMessageRead(UserChat userChat, string direction)
+        {
+            int unread_count = 0;
+            int max_read_id = 0;
+            telegram_chat updatedChat = null;
+
+            (unread_count, max_read_id) = await mongoProvider.MarkMessagesRead(userChat.chat.id, direction);
 
             switch (direction)
             {
@@ -1421,7 +1451,7 @@ namespace tg_engine.userapi
                     try
                     {
                         await client.ReadHistory(peer, rh.max_id);
-                        await handleMessageRead(userChat, "in", rh.max_id);
+                        await handleMessageRead(userChat, "in");
                         //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
                     }
                     catch (Exception ex)

@@ -157,20 +157,47 @@ namespace tg_engine.database.mongo
 
             FilterDefinition<MessageBase> filter;
 
-            if (max_message_id > 0)
-            {
-                filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
-                             Builders<MessageBase>.Filter.Eq("direction", direction) &
-                             Builders<MessageBase>.Filter.Eq("is_read", false) &
-                             Builders<MessageBase>.Filter.Lte("telegram_message_id", max_message_id);
-            }
-            else
-            {
+            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("is_read", false) &
+                         Builders<MessageBase>.Filter.Lte("telegram_message_id", max_message_id);
 
-                filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
-                             Builders<MessageBase>.Filter.Eq("direction", direction) &
-                             Builders<MessageBase>.Filter.Eq("is_read", false);
+            var cursor = await messages.FindAsync(filter);
+            var found = await cursor.ToListAsync();
+
+            if (found.Count > 0)
+            {
+                maxId = found.Max(m => m.telegram_message_id);
+
+                var update = Builders<MessageBase>.Update
+                    .Set(m => m.is_read, true)
+                    .Set(m => m.read_date, DateTime.UtcNow)
+                    .Set(m => m.updated_at, DateTime.UtcNow);
+
+                await messages.UpdateManyAsync(filter, update);
             }
+
+            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("is_read", false);
+
+            unreadCount = (int)await messages.CountDocumentsAsync(filter);
+            //maxId = max_message_id;
+
+            return (unreadCount, maxId);
+        }
+
+        public async Task<(int, int)> MarkMessagesRead(Guid chat_id, string direction)
+        {
+            int maxId = 0;
+            int unreadCount = 0;
+
+            FilterDefinition<MessageBase> filter;
+
+            filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+                         Builders<MessageBase>.Filter.Eq("direction", direction) &
+                         Builders<MessageBase>.Filter.Eq("is_read", false);
+
 
             var cursor = await messages.FindAsync(filter);
             var found = await cursor.ToListAsync();
