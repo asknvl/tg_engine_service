@@ -14,7 +14,7 @@ namespace tg_engine.tg_hub.events
         [JsonIgnore]
         public override string path => "events/new-chat";
 
-        public newChatEvent(UserChat userChat, Guid source_id, string source_name) : base(userChat)
+        public newChatEvent(UserChat userChat, Guid source_id, string source_name, Guid direction_id) : base(userChat)
         {
             data = new chatData()
             {
@@ -49,9 +49,9 @@ namespace tg_engine.tg_hub.events
                 source = new sourceData()
                 {
                     id = source_id,
-                    source_name = source_name
+                    source_name = source_name,
+                    direction_id = direction_id
                 }
-
             };
         }
     }
@@ -95,6 +95,7 @@ namespace tg_engine.tg_hub.events
     {
         public Guid id { get; set; }
         public string source_name { get; set; }
+        public Guid direction_id { get; set; }  
 
     }
 }

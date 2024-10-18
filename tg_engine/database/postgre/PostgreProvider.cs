@@ -53,6 +53,7 @@ namespace tg_engine.database.postgre
                             {
                                 source_name = source.source_name,
                                 source_id = source.id,
+                                direction_id = source.direction_id,
                                 account = account
                             };
 
@@ -64,6 +65,7 @@ namespace tg_engine.database.postgre
                     {
                         source_name = q.source_name,
                         source_id = q.source_id,
+                        direction_id = q.direction_id,
                         account = q.account
                     });
                 }

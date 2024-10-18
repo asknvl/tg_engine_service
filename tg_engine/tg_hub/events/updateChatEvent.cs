@@ -12,7 +12,7 @@ namespace tg_engine.tg_hub.events
     {
         [JsonIgnore]
         public override string path => "events/update-chat";
-        public updateChatEvent(UserChat userChat, Guid source_id, string source_name) : base(userChat, source_id, source_name)
+        public updateChatEvent(UserChat userChat, Guid source_id, string source_name, Guid direction_id) : base(userChat, source_id, source_name, direction_id)
         {
         }
     }

@@ -37,9 +37,9 @@ namespace tg_engine.userapi
             this.s3Provider = s3Provider;
             this.translator = translator;
         }
-        public UserApiHandlerBase Get(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password)
+        public UserApiHandlerBase Get(Guid account_id, Guid source_id, string source_name, Guid direction_id, string phone_number, string _2fa_password)
         {
-            return new userapi_handler_v0(account_id, source_id, source_name, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
+            return new userapi_handler_v0(account_id, source_id, source_name, direction_id, phone_number, _2fa_password, api_id, api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
         }
     }
 }

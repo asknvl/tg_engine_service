@@ -56,6 +56,7 @@ namespace tg_engine.userapi
         public Guid account_id { get; }
         public Guid source_id { get; }
         public string source_name { get; }
+        public Guid direction_id { get; }
         #endregion
 
         #region vars
@@ -98,12 +99,13 @@ namespace tg_engine.userapi
 
         #endregion
 
-        public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, string phone_number, string _2fa_password, string api_id, string api_hash,
+        public UserApiHandlerBase(Guid account_id, Guid source_id, string source_name, Guid direction_id, string phone_number, string _2fa_password, string api_id, string api_hash,
                                   IPostgreProvider postgreProvider, IMongoProvider mongoProvider, ITGHubProvider tgHubProvider, IS3Provider s3Provider, ITranslator translator, ILogger logger)
         {
             this.account_id = account_id;
             this.source_id = source_id;
             this.source_name = source_name;
+            this.direction_id = direction_id;
             this.translator = translator;
 
             messageConstructor = new MessageConstructor(translator);
@@ -487,7 +489,7 @@ namespace tg_engine.userapi
                                         updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
 
                                     foundUserChat.chat = updatedChat;
-                                    var chEvent = new updateChatEvent(foundUserChat, source_id, source_name);
+                                    var chEvent = new updateChatEvent(foundUserChat, source_id, source_name, direction_id);
                                     await tgHubProvider.SendEvent(chEvent);
 
                                     //await tgHubProvider.SendEvent(new gptStatusEvent(account_id, foundUserChat.chat.id, state)); //TODO
@@ -585,7 +587,7 @@ namespace tg_engine.userapi
                                                                                messagesToProcess[0].date,
                                                                                igonreUnread: true);
 
-                        var chEvent = new newChatEvent(userChat, source_id, source_name);
+                        var chEvent = new newChatEvent(userChat, source_id, source_name, direction_id);
                         logger.inf(tag, $"getHistory sendNewChat: {userChat.user} is_new={userChat.is_new}");
                         await tgHubProvider.SendEvent(chEvent);
                         return;
@@ -616,7 +618,7 @@ namespace tg_engine.userapi
                                                                                      messageBase.date);
 
 
-                            var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name) : new updateChatEvent(userChat, source_id, source_name);
+                            var chEvent = (userChat.is_new) ? new newChatEvent(userChat, source_id, source_name, direction_id) : new updateChatEvent(userChat, source_id, source_name, direction_id);
 
                             await tgHubProvider.SendEvent(chEvent);
 
@@ -742,7 +744,7 @@ namespace tg_engine.userapi
             if (updatedChat != null)
                 userChat.chat = updatedChat;
 
-            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name, direction_id)); //обновляем чат чтобы прочитанные поменить на фронте
             await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_read_id));
 
             return userChat;
@@ -770,7 +772,7 @@ namespace tg_engine.userapi
             if (updatedChat != null)
                 userChat.chat = updatedChat;
 
-            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name)); //обновляем чат чтобы прочитанные поменить на фронте
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name, direction_id)); //обновляем чат чтобы прочитанные поменить на фронте
             await tgHubProvider.SendEvent(new readHistoryEvent(userChat, direction, max_read_id));
 
             return userChat;
@@ -1302,7 +1304,7 @@ namespace tg_engine.userapi
                                                                              message.text ?? "Медиа", message.date);
 
                     userChat.chat = updatedChat;
-                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name, direction_id));
                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
                     stopwatch.Stop();
@@ -1408,7 +1410,7 @@ namespace tg_engine.userapi
                                                                              message.text ?? "Медиа", message.date);
 
                     userChat.chat = updatedChat;
-                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                    await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name, direction_id));
                     await tgHubProvider.SendEvent(new newMessageEvent(userChat, message));
 
                     stopwatch.Stop();

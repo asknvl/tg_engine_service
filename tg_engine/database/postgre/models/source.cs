@@ -13,6 +13,7 @@ namespace tg_engine.database.postgre.models
         public Guid id { get; set; }
         public Guid channel_id { get; set; }
         public string source_name { get; set; }
-        public int status_id { get; set; }        
+        public int status_id { get; set; }   
+        public Guid direction_id { get; set; }   
     }
 }

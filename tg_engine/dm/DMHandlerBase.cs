@@ -45,7 +45,7 @@ namespace tg_engine.dm
 
             userApiFactory = new UserApiFactory(settings.account.api_id, settings.account.api_hash, postgreProvider, mongoProvider, tgHubProvider, s3Provider, translator, logger);
 
-            user = userApiFactory.Get(settings.account.id, settings.source_id, settings.source_name, settings.account.phone_number, settings.account.two_fa);
+            user = userApiFactory.Get(settings.account.id, settings.source_id, settings.source_name, settings.direction_id, settings.account.phone_number, settings.account.two_fa);
             user.StatusChangedEvent += User_StatusChangedEvent;
 
             status = DMHandlerStatus.inactive;
