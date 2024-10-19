@@ -573,10 +573,8 @@ namespace tg_engine.userapi
                             }
                         }
 
-                        //if (dlg.read_outbox_max_id > 0)
-                            userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
-                        //if (dlg.read_inbox_max_id > 0)
-                            userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
+                        userChat = await handleMessageRead(userChat, "out", dlg.read_outbox_max_id);
+                        userChat = await handleMessageRead(userChat, "in", dlg.read_inbox_max_id);
 
                         var lastMsg = history.Messages.FirstOrDefault() as TL.MessageBase;
 
@@ -1537,16 +1535,18 @@ namespace tg_engine.userapi
                 case editMessage em:
                     try
                     {
-                        IL.MessageBase message = new IL.MessageBase()
-                        {
-                            account_id = em.account_id,
-                            chat_id = em.chat_id,
-                            chat_type = ChatTypes.user,
-                            telegram_message_id = em.telegram_message_id,
-                            text = em.text,
-                            operator_id = em.operator_id,
-                            operator_letters = em.operator_letters                          
-                        };
+                        //IL.MessageBase message = new IL.MessageBase()
+                        //{
+                        //    account_id = em.account_id,
+                        //    chat_id = em.chat_id,
+                        //    chat_type = ChatTypes.user,
+                        //    telegram_message_id = em.telegram_message_id,
+                        //    text = em.text,
+                        //    operator_id = em.operator_id,
+                        //    operator_letters = em.operator_letters                          
+                        //};
+
+                        //получить сообщение из монги
 
                         InputMedia? media = null;
 
