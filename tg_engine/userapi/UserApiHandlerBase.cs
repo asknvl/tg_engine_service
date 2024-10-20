@@ -689,7 +689,7 @@ namespace tg_engine.userapi
 
                             var updated = await mongoProvider.UpdateMessage(messageBase);
 
-                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
+                            await tgHubProvider.SendEvent(new updateMessageEvent(userChat, updated.updated));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +
@@ -1659,7 +1659,7 @@ namespace tg_engine.userapi
 
                             var updated = await mongoProvider.UpdateMessage(message);
 
-                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
+                            await tgHubProvider.SendEvent(new updateMessageEvent(userChat, updated.updated));
                             
 
                             logger.inf(tag, $"{updated.updated.direction}:" +

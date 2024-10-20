@@ -30,7 +30,9 @@ namespace tg_engine.tg_hub.events
                 is_business_bot_reply = message.is_business_bot_reply,
                 business_bot_username = message.business_bot_username,
                 operator_id = message.operator_id,
-                operator_letters = message.operator_letters
+                operator_letters = message.operator_letters,
+                created_at = message.created_at,
+                updated_at = message.updated_at
             };
         }
     }
@@ -51,5 +53,7 @@ namespace tg_engine.tg_hub.events
         public string? business_bot_username { get; set; }
         public string? operator_id { get; set; }
         public string? operator_letters { get; set; }   
+        public DateTime created_at { get; set; }
+        public DateTime? updated_at { get; set; }
     }
 }
