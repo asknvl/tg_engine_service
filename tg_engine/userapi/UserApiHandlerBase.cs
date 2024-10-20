@@ -620,16 +620,16 @@ namespace tg_engine.userapi
 
                             await tgHubProvider.SendEvent(chEvent);
 
-                            if (userChat.is_new) //тоже временное уловие
+                            if (userChat.is_new)
                                 logger.inf(tag, $"userChat:{source_name} {userChat.user}");
-
-                            //событие о новом сообщении                
+                            
                             await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +
                                             $"({messageBase.media?.type ?? "text"}) " +
-                                            $"{messageBase.telegram_message_id}");
+                                            $"id={messageBase.telegram_message_id} " +
+                                            $"rep={messageBase.reply_to_message_id}");
 
                         }
                         catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
@@ -747,7 +747,6 @@ namespace tg_engine.userapi
 
             return userChat;
         }
-
         async Task<UserChat> handleMessageRead(UserChat userChat, string direction)
         {
             int unread_count = 0;
@@ -775,7 +774,6 @@ namespace tg_engine.userapi
 
             return userChat;
         }
-
         async Task loadServiceChat(InputPeer peer)
         {
             if (peer != null)
@@ -930,9 +928,9 @@ namespace tg_engine.userapi
         #endregion
 
         #region rx message
-        async Task<TL.Message> SendTextMessage(InputPeer peer, string text)
+        async Task<TL.Message> SendTextMessage(InputPeer peer, string text, int reply_to_message_id = 0)
         {
-            return await client.SendMessageAsync(peer, text);
+            return await client.SendMessageAsync(peer, text, reply_to_msg_id: reply_to_message_id);
         }
         class mediaCahceItem
         {
@@ -943,7 +941,7 @@ namespace tg_engine.userapi
         }
 
         Dictionary<string, mediaCahceItem> cachedMedia = new();
-        async Task<TL.Message> SendImage(InputPeer peer, string? text, string storage_id, IL.MessageBase message)
+        async Task<TL.Message> SendImage(InputPeer peer, string? text, string storage_id, IL.MessageBase message, int reply_to_message_id = 0)
         {
 
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
@@ -968,7 +966,7 @@ namespace tg_engine.userapi
                         }
                     };
 
-                    res = await client.SendMessageAsync(peer, text, media);
+                    res = await client.SendMessageAsync(peer, text, media, reply_to_msg_id: reply_to_message_id);
 
                 }
                 catch (Exception ex)
@@ -1021,7 +1019,7 @@ namespace tg_engine.userapi
 
             return res;
         }
-        async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string? file_name, string storage_id, IL.MessageBase message)
+        async Task<TL.Message> SendMediaDocument(InputPeer peer, string? text, string type, string? file_name, string storage_id, IL.MessageBase message, int reply_to_message_id = 0)
         {
             bool needUpload = !(cachedMedia.ContainsKey(storage_id));
             Message res = null;
@@ -1045,7 +1043,7 @@ namespace tg_engine.userapi
                         }
                     };
 
-                    res = await client.SendMessageAsync(peer, text, document);
+                    res = await client.SendMessageAsync(peer, text, document, reply_to_msg_id: reply_to_message_id);
                 }
                 catch (Exception ex)
                 {
@@ -1136,7 +1134,7 @@ namespace tg_engine.userapi
                         attributes = attributes,
                     };
 
-                    res = await client.SendMessageAsync(peer, text, document);
+                    res = await client.SendMessageAsync(peer, text, document, reply_to_msg_id: reply_to_message_id);
 
                     var mmd = res.media as MessageMediaDocument;
                     var doc = mmd?.document as Document;
@@ -1235,28 +1233,30 @@ namespace tg_engine.userapi
                 };
 
                 //Временное сообщение о прочтении чата
-                try
-                {
-                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                }
-                catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
-                {
-                    var un = userChat.user.username;
-                    if (!string.IsNullOrEmpty(un))
-                    {
-                        var resolved = await client.Contacts_ResolveUsername(un);
-                        var user = new telegram_user(resolved.User);
-                        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
-                        peer = resolved.User.ToInputPeer();
+                //try
+                //{
+                //    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                //    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                //}
+                //catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
+                //{
+                //    var un = userChat.user.username;
+                //    if (!string.IsNullOrEmpty(un))
+                //    {
+                //        var resolved = await client.Contacts_ResolveUsername(un);
+                //        var user = new telegram_user(resolved.User);
+                //        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
+                //        peer = resolved.User.ToInputPeer();
 
-                    }
+                //    }
 
-                }
-                catch (Exception ex)
-                {
+                //}
+                //catch (Exception ex)
+                //{
 
-                }
+                //}
+
+                int replyToMessageId = (messageDto.reply_to_message_id == null) ? 0 : messageDto.reply_to_message_id.Value;
 
                 switch (messageDto.media)
                 {
@@ -1266,21 +1266,21 @@ namespace tg_engine.userapi
                         switch (mediaInfo.type)
                         {
                             case MediaTypes.image:
-                                result = await SendImage(peer, messageDto.text, mediaInfo.storage_id, message);
+                                result = await SendImage(peer, messageDto.text, mediaInfo.storage_id, message, reply_to_message_id: replyToMessageId);
                                 break;
 
                             case MediaTypes.video:
                             case MediaTypes.circle:
                             case MediaTypes.photo:
                             case MediaTypes.voice:
-                                result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.file_name, mediaInfo.storage_id, message);
+                                result = await SendMediaDocument(peer, messageDto.text, mediaInfo.type, mediaInfo.file_name, mediaInfo.storage_id, message, reply_to_message_id: replyToMessageId);
                                 break;
 
                         }
                         break;
 
                     default:
-                        result = await SendTextMessage(peer, messageDto.text);
+                        result = await SendTextMessage(peer, messageDto.text, reply_to_message_id: replyToMessageId);
                         break;
 
                 }
@@ -1294,6 +1294,7 @@ namespace tg_engine.userapi
                     message.date = result.Date;
                     message.operator_id = messageDto.operator_id;
                     message.operator_letters = messageDto.operator_letters;
+                    message.reply_to_message_id = messageDto.reply_to_message_id;
                     await mongoProvider.SaveMessage(message);
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
@@ -1340,14 +1341,14 @@ namespace tg_engine.userapi
                     chat_type = userChat.chat.chat_type
                 };
 
-                try
-                {
-                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                }
-                catch (Exception ex)
-                {
-                }
+                //try
+                //{
+                //    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                //    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                //}
+                //catch (Exception ex)
+                //{
+                //}
 
                 var hash = MediaHash.Get(clippedDto.file);
 

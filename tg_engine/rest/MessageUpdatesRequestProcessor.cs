@@ -30,6 +30,7 @@ namespace tg_engine.rest
             public Guid telegram_user_id { get; set; }
             public string? operator_id { get; set; }
             public string? operator_letters { get; set; }
+            public int? reply_to_message_id { get; set; } = null;
             public mediaDto? media { get; set; } 
             public string? text { get; set; }
             public string? screen_text { get; set; }

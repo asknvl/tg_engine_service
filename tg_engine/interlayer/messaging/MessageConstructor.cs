@@ -52,6 +52,11 @@ namespace tg_engine.interlayer.messaging
             bool incomnig = isIncoming(input);
             var direction = (incomnig) ? "in" : "out";
 
+            int reply_to_message_id = 0;
+            var replyHeader = input.ReplyTo as MessageReplyHeader;
+            if (replyHeader != null)
+                reply_to_message_id = replyHeader.reply_to_msg_id;
+
             int telegram_message_id = input.ID;
             
             var text = getText(input);
@@ -80,6 +85,7 @@ namespace tg_engine.interlayer.messaging
                 chat_id = chat_id,      
                 chat_type = chat_type,
                 direction = direction,
+                reply_to_message_id = reply_to_message_id,
                 telegram_id = userChat.user.telegram_id,
                 telegram_message_id = telegram_message_id,
                 text = text,
