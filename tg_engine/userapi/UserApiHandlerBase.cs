@@ -1548,79 +1548,74 @@ namespace tg_engine.userapi
 
                         //получить сообщение из монги
 
-                        InputMedia? media = null;
+                        var message = await mongoProvider.GetMessage(em.chat_id, em.telegram_message_id);
 
-                        if (em.file != null)
+                        if (message != null)
                         {
-                            S3ItemInfo s3info = new();
-                            var hash = MediaHash.Get(em.file);
+                            InputMedia? media = null;
 
-                            var fparams = await postgreProvider.GetFileParameters(hash);
-                            if (fparams != null)
+                            if (em.file != null)
                             {
-                                logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
-                                s3info.extension = fparams.file_extension;
-                                s3info.storage_id = fparams.storage_id;
-                                s3info.url = fparams.link;
-                            }
-                            else
-                            {
-                                logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
-                                s3info = await s3Provider.Upload(em.file, em.file_extension);
+                                S3ItemInfo s3info = new();
+                                var hash = MediaHash.Get(em.file);
 
-                                fparams = new storage_file_parameter()
+                                var fparams = await postgreProvider.GetFileParameters(hash);
+                                if (fparams != null)
                                 {
-                                    hash = hash,
-                                    file_length = em.file.Length,
-                                    file_type = em.type,
-                                    file_extension = em.file_extension,
-                                    is_uploaded = true,
-                                    storage_id = s3info.storage_id,
-                                    link = s3info.url,
-                                    uploaded_at = DateTime.UtcNow
-                                };
+                                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                                    s3info.extension = fparams.file_extension;
+                                    s3info.storage_id = fparams.storage_id;
+                                    s3info.url = fparams.link;
+                                }
+                                else
+                                {
+                                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                                    s3info = await s3Provider.Upload(em.file, em.file_extension);
 
-                                await postgreProvider.CreateFileParameters(fparams);
-                            }
-
-                            switch (em.type)
-                            {
-                                case MediaTypes.image:
-                                    using (var stream = new MemoryStream(em.file))
+                                    fparams = new storage_file_parameter()
                                     {
-                                        var file = await client.UploadFileAsync(stream, $"{s3info.storage_id}");
-                                        media = new InputMediaUploadedPhoto()
+                                        hash = hash,
+                                        file_length = em.file.Length,
+                                        file_type = em.type,
+                                        file_extension = em.file_extension,
+                                        is_uploaded = true,
+                                        storage_id = s3info.storage_id,
+                                        link = s3info.url,
+                                        uploaded_at = DateTime.UtcNow
+                                    };
+
+                                    await postgreProvider.CreateFileParameters(fparams);
+                                }
+
+                                switch (em.type)
+                                {
+                                    case MediaTypes.image:
+                                        using (var stream = new MemoryStream(em.file))
                                         {
-                                            file = file
-                                        };
-
-                                        IL.MediaInfo il_media = new IL.MediaInfo()
+                                            var file = await client.UploadFileAsync(stream, $"{s3info.storage_id}");
+                                            media = new InputMediaUploadedPhoto()
+                                            {
+                                                file = file
+                                            };                                            
+                                        }
+                                        break;
+                                    case MediaTypes.video:
+                                        using (var stream = new MemoryStream(em.file))
                                         {
-                                            file_name = em.file_name,                                            
-                                            type = em.type,
-                                            storage_id = s3info.storage_id,
-                                            storage_url = s3info.url,
-                                            extension = s3info.extension
-                                        };
-                                    }
-                                    break;
-                                case MediaTypes.video:
-                                    using (var stream = new MemoryStream(em.file))
-                                    {
-                                        var mediaProperties = new MediaInfoWrapper(new MemoryStream(em.file));
-                                        int cntr = 0;
-                                        var file = await client.UploadFileAsync(stream, $"{em.file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
+                                            var mediaProperties = new MediaInfoWrapper(new MemoryStream(em.file));
+                                            int cntr = 0;
+                                            var file = await client.UploadFileAsync(stream, $"{em.file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
 
-                                        string? mime_type = null;
-                                        DocumentAttribute[]? attributes = null;
+                                            string? mime_type = null;
+                                            DocumentAttribute[]? attributes = null;
 
-                                        InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
-                                        inputFile.ID = file.ID;
-                                        inputFile.Parts = file.Parts;
-                                        inputFile.Name = file.Name;
+                                            InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
+                                            inputFile.ID = file.ID;
+                                            inputFile.Parts = file.Parts;
+                                            inputFile.Name = file.Name;
 
-                                        mime_type = "video/mp4";
-                                        attributes = new DocumentAttribute[] {
+                                            mime_type = "video/mp4";
+                                            attributes = new DocumentAttribute[] {
                                             new DocumentAttributeVideo {
                                                     duration = mediaProperties.Duration / 1000.0,
                                                     w = mediaProperties.Width,
@@ -1632,21 +1627,47 @@ namespace tg_engine.userapi
                                                 }
                                             };
 
-                                        media = new InputMediaUploadedDocument()
-                                        {
-                                            file = inputFile,
-                                            mime_type = mime_type,
-                                            attributes = attributes,
-                                        };
-                                    }
-                                    break;
-                                default:
-                                    break;
+                                            media = new InputMediaUploadedDocument()
+                                            {
+                                                file = inputFile,
+                                                mime_type = mime_type,
+                                                attributes = attributes,
+                                            };
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                IL.MediaInfo il_media = new IL.MediaInfo()
+                                {
+                                    file_name = em.file_name,
+                                    type = em.type,
+                                    storage_id = s3info.storage_id,
+                                    storage_url = s3info.url,
+                                    extension = s3info.extension
+                                };
+                                
+                                message.media = il_media;
+
                             }
 
-                        }
+                            message.text = em.text;
+                            message.screen_text = em.screen_text;
 
-                        await client.Messages_EditMessage(peer, em.telegram_message_id, message: em.text, media: media);
+                            var res = await client.Messages_EditMessage(peer, em.telegram_message_id, message: em.text, media: media);
+
+                            var updated = await mongoProvider.UpdateMessage(message);
+
+                            await tgHubProvider.SendEvent(new newMessageEvent(userChat, updated.updated));
+                            
+
+                            logger.inf(tag, $"{updated.updated.direction}:" +
+                                            $"{userChat.user} " +
+                                            $"(updated message_id={updated.updated.telegram_message_id})");
+
+
+                        }
 
                     }
                     catch (Exception ex)
