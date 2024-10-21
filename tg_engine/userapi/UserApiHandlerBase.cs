@@ -622,7 +622,7 @@ namespace tg_engine.userapi
 
                             if (userChat.is_new)
                                 logger.inf(tag, $"userChat:{source_name} {userChat.user}");
-                            
+
                             await tgHubProvider.SendEvent(new newMessageEvent(userChat, messageBase));
 
                             logger.inf(tag, $"{messageBase.direction}:" +
@@ -1380,15 +1380,27 @@ namespace tg_engine.userapi
                     await postgreProvider.CreateFileParameters(fparams);
                 }
 
+                int replyToMessageId = (clippedDto.reply_to_message_id == null) ? 0 : clippedDto.reply_to_message_id.Value;
+
                 switch (clippedDto.type)
                 {
                     case MediaTypes.image:
-                        result = await SendImage(peer, clippedDto.text, s3info.storage_id, message);
+                        result = await SendImage(peer,
+                                                 clippedDto.text,
+                                                 s3info.storage_id,
+                                                 message,
+                                                 reply_to_message_id: replyToMessageId);
                         break;
 
                     case MediaTypes.video:
                     case MediaTypes.photo:
-                        result = await SendMediaDocument(peer, clippedDto.text, clippedDto.type, clippedDto.file_name, s3info.storage_id, message);
+                        result = await SendMediaDocument(peer,
+                                                         clippedDto.text,
+                                                         clippedDto.type,
+                                                         clippedDto.file_name,
+                                                         s3info.storage_id,
+                                                         message,
+                                                         reply_to_message_id: replyToMessageId);
                         break;
                 }
 
@@ -1398,6 +1410,7 @@ namespace tg_engine.userapi
                     message.text = clippedDto.text;
                     message.screen_text = clippedDto.screen_text;
                     message.telegram_message_id = result.ID;
+                    message.reply_to_message_id = clippedDto.reply_to_message_id;
                     message.date = result.Date;
                     message.operator_id = clippedDto.operator_id;
                     message.operator_letters = clippedDto.operator_letters;
@@ -1426,197 +1439,186 @@ namespace tg_engine.userapi
         public async Task OnNewUpdate(UpdateBase update)
         {
 
-            var userChat = await chatsProvider.GetUserChat(account_id, update.telegram_user_id);
-            InputPeer peer = null;
-
-            manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
-
-            if (user != null)
+            try
             {
-                peer = user;
-            }
-            else
-            {
-                if (userChat != null)
+
+                logger.inf(tag, $"OnNewUpdate: {update.GetType().Name} chat_id={update.chat_id}");
+                var userChat = await chatsProvider.GetUserChat(account_id, update.telegram_user_id);
+
+                logger.inf(tag, $"OnNewUpdate: {update.GetType().Name} {userChat.user.telegram_id} {userChat.access_hash}");
+                InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
+
+                switch (update)
                 {
-                    peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
-                }
-            }
-
-            if (peer == null)
-                return;
-
-            switch (update)
-            {
-                case readHistory rh:
-                    try
-                    {
-                        await client.ReadHistory(peer, rh.max_id);
-                        await handleMessageRead(userChat, "in");
-                        //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate readHistory tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
-                    }
-                    break;
-
-                case deleteMessage dm:
-                    try
-                    {
-                        var ids = dm.ids.ToArray();
-                        var res = await client.DeleteMessages(peer, ids);
-                        await handleMessageDeletion(ids, chat_telegram_id: null);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate deleteMessage tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
-                    }
-                    break;
-
-                //case aiStatus gs:
-                //    try
-                //    {
-                //        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
-                //        if (botPeer != null)
-                //            await client.SendMessageAsync(botPeer, command);
-
-                //        logger.warn(tag, $"OnNewUpdate {command}");
-
-
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
-                //    }
-                //    break;
-
-                case aiStatus st:
-                    try
-                    {
-                        var command = botProtocol.GetCommand(userChat.user.telegram_id, st);
-                        if (!string.IsNullOrEmpty(command))
+                    case readHistory rh:
+                        try
                         {
-                            if (botPeer != null)
-                                await client.SendMessageAsync(botPeer, command);
-                            logger.warn(tag, $"OnNewUpdate {command}");
-                        }                        
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
-                    }
-                    break;
-
-                case sendTyping st:
-                    try
-                    {
-                        await client.Messages_SetTyping(peer, new SendMessageTypingAction());
-
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate sendTyping tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
-                    }
-                    break;
-
-                case sendStatus ss:
-                    try
-                    {
-                        await client.Account_UpdateStatus(ss.is_online);
-
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate sendStatus tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
-                    }
-                    break;
-
-                case editMessage em:
-                    try
-                    {
-                        //IL.MessageBase message = new IL.MessageBase()
-                        //{
-                        //    account_id = em.account_id,
-                        //    chat_id = em.chat_id,
-                        //    chat_type = ChatTypes.user,
-                        //    telegram_message_id = em.telegram_message_id,
-                        //    text = em.text,
-                        //    operator_id = em.operator_id,
-                        //    operator_letters = em.operator_letters                          
-                        //};
-
-                        //получить сообщение из монги
-
-                        var message = await mongoProvider.GetMessage(em.chat_id, em.telegram_message_id);
-
-                        if (message != null)
+                            await client.ReadHistory(peer, rh.max_id);
+                            await handleMessageRead(userChat, "in");
+                            //await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name));
+                        }
+                        catch (Exception ex)
                         {
-                            InputMedia? media = null;
+                            logger.err(tag, $"OnNewUpdate readHistory tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                        }
+                        break;
 
-                            if (em.file != null)
+                    case deleteMessage dm:
+                        try
+                        {
+                            var ids = dm.ids.ToArray();
+                            var res = await client.DeleteMessages(peer, ids);
+                            await handleMessageDeletion(ids, chat_telegram_id: null);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate deleteMessage tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                        }
+                        break;
+
+                    //case aiStatus gs:
+                    //    try
+                    //    {
+                    //        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
+                    //        if (botPeer != null)
+                    //            await client.SendMessageAsync(botPeer, command);
+
+                    //        logger.warn(tag, $"OnNewUpdate {command}");
+
+
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
+                    //    }
+                    //    break;
+
+                    case aiStatus st:
+                        try
+                        {
+                            var command = botProtocol.GetCommand(userChat.user.telegram_id, st);
+                            if (!string.IsNullOrEmpty(command))
                             {
-                                S3ItemInfo s3info = new();
-                                var hash = MediaHash.Get(em.file);
+                                if (botPeer != null)
+                                    await client.SendMessageAsync(botPeer, command);
+                                logger.warn(tag, $"OnNewUpdate {command}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
+                        }
+                        break;
 
-                                var fparams = await postgreProvider.GetFileParameters(hash);
-                                if (fparams != null)
-                                {
-                                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
-                                    s3info.extension = fparams.file_extension;
-                                    s3info.storage_id = fparams.storage_id;
-                                    s3info.url = fparams.link;
-                                }
-                                else
-                                {
-                                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
-                                    s3info = await s3Provider.Upload(em.file, em.file_extension);
+                    case sendTyping st:
+                        try
+                        {
+                            await client.Messages_SetTyping(peer, new SendMessageTypingAction());
 
-                                    fparams = new storage_file_parameter()
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate sendTyping tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                        }
+                        break;
+
+                    case sendStatus ss:
+                        try
+                        {
+                            await client.Account_UpdateStatus(ss.is_online);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate sendStatus tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                        }
+                        break;
+
+                    case editMessage em:
+                        try
+                        {
+                            //IL.MessageBase message = new IL.MessageBase()
+                            //{
+                            //    account_id = em.account_id,
+                            //    chat_id = em.chat_id,
+                            //    chat_type = ChatTypes.user,
+                            //    telegram_message_id = em.telegram_message_id,
+                            //    text = em.text,
+                            //    operator_id = em.operator_id,
+                            //    operator_letters = em.operator_letters                          
+                            //};
+
+                            //получить сообщение из монги
+
+                            var message = await mongoProvider.GetMessage(em.chat_id, em.telegram_message_id);
+
+                            if (message != null)
+                            {
+                                InputMedia? media = null;
+
+                                if (em.file != null)
+                                {
+                                    S3ItemInfo s3info = new();
+                                    var hash = MediaHash.Get(em.file);
+
+                                    var fparams = await postgreProvider.GetFileParameters(hash);
+                                    if (fparams != null)
                                     {
-                                        hash = hash,
-                                        file_length = em.file.Length,
-                                        file_type = em.type,
-                                        file_extension = em.file_extension,
-                                        is_uploaded = true,
-                                        storage_id = s3info.storage_id,
-                                        link = s3info.url,
-                                        uploaded_at = DateTime.UtcNow
-                                    };
+                                        logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                                        s3info.extension = fparams.file_extension;
+                                        s3info.storage_id = fparams.storage_id;
+                                        s3info.url = fparams.link;
+                                    }
+                                    else
+                                    {
+                                        logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                                        s3info = await s3Provider.Upload(em.file, em.file_extension);
 
-                                    await postgreProvider.CreateFileParameters(fparams);
-                                }
-
-                                switch (em.type)
-                                {
-                                    case MediaTypes.image:
-                                        using (var stream = new MemoryStream(em.file))
+                                        fparams = new storage_file_parameter()
                                         {
-                                            var file = await client.UploadFileAsync(stream, $"{s3info.storage_id}");
-                                            media = new InputMediaUploadedPhoto()
+                                            hash = hash,
+                                            file_length = em.file.Length,
+                                            file_type = em.type,
+                                            file_extension = em.file_extension,
+                                            is_uploaded = true,
+                                            storage_id = s3info.storage_id,
+                                            link = s3info.url,
+                                            uploaded_at = DateTime.UtcNow
+                                        };
+
+                                        await postgreProvider.CreateFileParameters(fparams);
+                                    }
+
+                                    switch (em.type)
+                                    {
+                                        case MediaTypes.image:
+                                            using (var stream = new MemoryStream(em.file))
                                             {
-                                                file = file
-                                            };                                            
-                                        }
-                                        break;
-                                    case MediaTypes.video:
-                                        using (var stream = new MemoryStream(em.file))
-                                        {
-                                            var mediaProperties = new MediaInfoWrapper(new MemoryStream(em.file));
-                                            int cntr = 0;
-                                            var file = await client.UploadFileAsync(stream, $"{em.file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
+                                                var file = await client.UploadFileAsync(stream, $"{s3info.storage_id}");
+                                                media = new InputMediaUploadedPhoto()
+                                                {
+                                                    file = file
+                                                };
+                                            }
+                                            break;
+                                        case MediaTypes.video:
+                                            using (var stream = new MemoryStream(em.file))
+                                            {
+                                                var mediaProperties = new MediaInfoWrapper(new MemoryStream(em.file));
+                                                int cntr = 0;
+                                                var file = await client.UploadFileAsync(stream, $"{em.file_name}", progress: (a, b) => { logger.inf(tag, $"uploaded {a} of {b} cntr={cntr++}"); });
 
-                                            string? mime_type = null;
-                                            DocumentAttribute[]? attributes = null;
+                                                string? mime_type = null;
+                                                DocumentAttribute[]? attributes = null;
 
-                                            InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
-                                            inputFile.ID = file.ID;
-                                            inputFile.Parts = file.Parts;
-                                            inputFile.Name = file.Name;
+                                                InputFileBase inputFile = (mediaProperties.Size <= 10 * 1024 * 1024) ? new InputFile() : new InputFileBig();
+                                                inputFile.ID = file.ID;
+                                                inputFile.Parts = file.Parts;
+                                                inputFile.Name = file.Name;
 
-                                            mime_type = "video/mp4";
-                                            attributes = new DocumentAttribute[] {
+                                                mime_type = "video/mp4";
+                                                attributes = new DocumentAttribute[] {
                                             new DocumentAttributeVideo {
                                                     duration = mediaProperties.Duration / 1000.0,
                                                     w = mediaProperties.Width,
@@ -1628,55 +1630,61 @@ namespace tg_engine.userapi
                                                 }
                                             };
 
-                                            media = new InputMediaUploadedDocument()
-                                            {
-                                                file = inputFile,
-                                                mime_type = mime_type,
-                                                attributes = attributes,
-                                            };
-                                        }
-                                        break;
-                                    default:
-                                        break;
+                                                media = new InputMediaUploadedDocument()
+                                                {
+                                                    file = inputFile,
+                                                    mime_type = mime_type,
+                                                    attributes = attributes,
+                                                };
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    IL.MediaInfo il_media = new IL.MediaInfo()
+                                    {
+                                        file_name = em.file_name,
+                                        type = em.type,
+                                        storage_id = s3info.storage_id,
+                                        storage_url = s3info.url,
+                                        extension = s3info.extension
+                                    };
+
+                                    message.media = il_media;
+
                                 }
 
-                                IL.MediaInfo il_media = new IL.MediaInfo()
-                                {
-                                    file_name = em.file_name,
-                                    type = em.type,
-                                    storage_id = s3info.storage_id,
-                                    storage_url = s3info.url,
-                                    extension = s3info.extension
-                                };
-                                
-                                message.media = il_media;
+                                message.text = em.text;
+                                message.screen_text = em.screen_text;
+
+                                var res = await client.Messages_EditMessage(peer, em.telegram_message_id, message: em.text, media: media);
+
+                                var updated = await mongoProvider.UpdateMessage(message);
+
+                                await tgHubProvider.SendEvent(new updateMessageEvent(userChat, updated.updated));
+
+
+                                logger.inf(tag, $"{updated.updated.direction}:" +
+                                                $"{userChat.user} " +
+                                                $"(updated message_id={updated.updated.telegram_message_id})");
+
 
                             }
 
-                            message.text = em.text;
-                            message.screen_text = em.screen_text;
-
-                            var res = await client.Messages_EditMessage(peer, em.telegram_message_id, message: em.text, media: media);
-
-                            var updated = await mongoProvider.UpdateMessage(message);
-
-                            await tgHubProvider.SendEvent(new updateMessageEvent(userChat, updated.updated));
-                            
-
-                            logger.inf(tag, $"{updated.updated.direction}:" +
-                                            $"{userChat.user} " +
-                                            $"(updated message_id={updated.updated.telegram_message_id})");
-
-
                         }
+                        catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate editMessage tg_id={userChat.user.telegram_id} peer={peer.ID} message_id={0} {ex.Message}");
+                        }
+                        break;
 
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.err(tag, $"OnNewUpdate editMessage tg_id={userChat.user.telegram_id} peer={peer.ID} message_id={0} {ex.Message}");
-                    }
-                    break;
+                }
 
+            }
+            catch (Exception ex)
+            {
+                logger.err(tag, $"OnNewUpdate chat_id={update.chat_id} telegram_user_id={update.telegram_user_id} {ex.Message}");
             }
 
             await Task.CompletedTask;
