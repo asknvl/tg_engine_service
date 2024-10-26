@@ -1693,15 +1693,20 @@ namespace tg_engine.userapi
                             if (reactionUpdate != null)
                             {
                                 var upd = reactionUpdate as UpdateMessageReactions;
-                                var my_reactions = upd.reactions.recent_reactions.Where(r => r.peer_id == ID).ToList();
-                                var found = my_reactions.FirstOrDefault(r => ((ReactionEmoji)r.reaction).emoticon.Equals(sr.reaction));
-                                if (found != null)
-                                {
-                                    my_reactions.Remove(found);                                 
-                                    needAddReaction = false;
-                                }
 
-                                reactions = my_reactions.Select(r => r.reaction).ToList();
+                                if (upd.reactions != null && upd.reactions.recent_reactions != null && upd.reactions.recent_reactions.Length > 0)
+                                {
+
+                                    var my_reactions = upd.reactions.recent_reactions.Where(r => r.peer_id == ID).ToList();
+                                    var found = my_reactions.FirstOrDefault(r => ((ReactionEmoji)r.reaction).emoticon.Equals(sr.reaction));
+                                    if (found != null)
+                                    {
+                                        my_reactions.Remove(found);
+                                        needAddReaction = false;
+                                    }
+
+                                    reactions = my_reactions.Select(r => r.reaction).ToList();
+                                }
                             }
 
                             if (needAddReaction)
