@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace tg_engine.interlayer.messaging
 {
@@ -21,6 +22,7 @@ namespace tg_engine.interlayer.messaging
         public int telegram_message_id { get; set; }        
         public string? text { get; set; } = null;
         public string? screen_text { get; set; } = null;
+        public List<Reaction> reactions { get; set; } = null;
         public DateTime date { get; set; }
         public DateTime? edited_date { get; set; } = null;
         public bool is_read { get; set; }
@@ -83,5 +85,26 @@ namespace tg_engine.interlayer.messaging
         public const string video = "video";
         public const string voice = "voice";
         public const string sticker = "sticker";
-    }   
+    }
+
+    public class Reactions
+    {
+        [JsonPropertyName("in")]
+        public List<string> input { get; set; } = new();
+        [JsonPropertyName("out")]
+        public List<string> output { get; set; } = new();
+    }
+
+    //public class  Reaction 
+    //{
+    //    public string emoji { get; set; }
+    //    public string count { get; set; }   
+    //    public string is_my { get; set; }
+    //}
+
+    public class Reaction 
+    {
+        public string emoji { get; set; }
+        public List<string> initials { get; set; } = new(); 
+    }
 }

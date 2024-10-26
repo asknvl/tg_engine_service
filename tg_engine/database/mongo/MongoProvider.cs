@@ -49,6 +49,7 @@ namespace tg_engine.database.mongo
                        .Set(m => m.text, message.text)
                        .Set(m => m.screen_text, message.screen_text)
                        .Set(m => m.media, message.media)
+                       .Set(m => m.reactions, message.reactions)
                        .Set(m => m.edited_date, DateTime.UtcNow)
                        .Set(m => m.updated_at, DateTime.UtcNow)
                        .Set(m => m.is_deleted, message.is_deleted);

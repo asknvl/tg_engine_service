@@ -284,7 +284,7 @@ namespace tg_engine.userapi
         #region handlers
         async Task<IL.MessageBase> handleTextMessage(TL.MessageBase input, UserChat userChat)
         {
-            var message = await messageConstructor.Text(userChat, input, business_bot_username);
+            var message = await messageConstructor.Text(userChat, client.User, input, business_bot_username);
             return message;
         }
         async Task<IL.MessageBase> handleImage(TL.MessageBase input, MessageMediaPhoto mmp, UserChat userChat)
@@ -341,7 +341,7 @@ namespace tg_engine.userapi
                     logger.err(tag, $"handleImage: {ex.Message}");
                 }
 
-                message = await messageConstructor.Image(userChat, input, photo, business_bot_username, s3info);
+                message = await messageConstructor.Image(userChat, client.User, input, photo, business_bot_username, s3info);
             }
 
             return message;
@@ -357,7 +357,7 @@ namespace tg_engine.userapi
 
                 if (document.mime_type == "application/x-tgsticker" || document.mime_type == "image/webp")
                 {
-                    message = await messageConstructor.Sticker(userChat, input, document, business_bot_username);
+                    message = await messageConstructor.Sticker(userChat, client.User, input, document, business_bot_username);
                 }
                 else
                 {
@@ -393,15 +393,15 @@ namespace tg_engine.userapi
                         //    break;
 
                         case "image/jpeg":
-                            message = await messageConstructor.Photo(userChat, input, document, business_bot_username, s3info);
+                            message = await messageConstructor.Photo(userChat, client.User, input, document, business_bot_username, s3info);
                             break;
 
                         case "video/mp4":
-                            message = await messageConstructor.Video(userChat, input, document, business_bot_username, s3info);
+                            message = await messageConstructor.Video(userChat, client.User, input, document, business_bot_username, s3info);
                             break;
 
                         case "audio/ogg":
-                            message = await messageConstructor.Voice(userChat, input, document, business_bot_username, s3info);
+                            message = await messageConstructor.Voice(userChat, client.User, input, document, business_bot_username, s3info);
                             break;
 
                         case "":
@@ -691,9 +691,28 @@ namespace tg_engine.userapi
 
                             await tgHubProvider.SendEvent(new updateMessageEvent(userChat, updated.updated));
 
+                            //string logReactions = "";
+                            //foreach (var r in messageBase.reactions)
+                            //{
+
+                            //    string initials = "";
+                            //    foreach (var e in r.initials)
+                            //    {
+                            //        initials += $"{e} ";
+                            //    }
+
+                            //    logReactions += $"{r.emoji}({initials})";
+                            //}
+                            //Debug.WriteLine(logReactions);
+
                             logger.inf(tag, $"{messageBase.direction}:" +
                                             $"{userChat.user} " +
                                             $"(updated message_id={messageBase.telegram_message_id})");
+
+                            //var peer = new InputUser(userChat.user.telegram_id, userChat.access_hash);
+                            //var em = await client.Messages_GetMessageReactionsList(peer, message.ID);
+
+
                         }
                         catch (MongoWriteException e) when (e.WriteError?.Category == ServerErrorCategory.DuplicateKey)
                         {
@@ -917,7 +936,7 @@ namespace tg_engine.userapi
                     await handleUpdateMessage(uecm.message);
                     break;
 
-                case UpdateEditMessage uem:
+                case UpdateEditMessage uem:                
                     await handleUpdateMessage(uem.message);
                     break;
 
@@ -1477,23 +1496,6 @@ namespace tg_engine.userapi
                         }
                         break;
 
-                    //case aiStatus gs:
-                    //    try
-                    //    {
-                    //        var command = botProtocol.GetCommand(userChat.user.telegram_id, gs);
-                    //        if (botPeer != null)
-                    //            await client.SendMessageAsync(botPeer, command);
-
-                    //        logger.warn(tag, $"OnNewUpdate {command}");
-
-
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        logger.err(tag, $"OnNewUpdate aiStatus tg_id={userChat.user.telegram_id} {ex.Message}");
-                    //    }
-                    //    break;
-
                     case aiStatus st:
                         try
                         {
@@ -1679,6 +1681,52 @@ namespace tg_engine.userapi
                         }
                         break;
 
+                    case sendReaction sr:
+                        try
+                        {
+
+                            List<TL.Reaction> reactions = new();
+                            bool needAddReaction = true;
+
+                            var reactionsUpdate = await client.Messages_GetMessagesReactions(peer, new int[] { sr.telegram_message_id });
+                            var reactionUpdate = reactionsUpdate.UpdateList.FirstOrDefault(u => u is UpdateMessageReactions);
+                            if (reactionUpdate != null)
+                            {
+                                var upd = reactionUpdate as UpdateMessageReactions;
+                                var my_reactions = upd.reactions.recent_reactions.Where(r => r.peer_id == ID).ToList();
+                                var found = my_reactions.FirstOrDefault(r => ((ReactionEmoji)r.reaction).emoticon.Equals(sr.reaction));
+                                if (found != null)
+                                {
+                                    my_reactions.Remove(found);                                 
+                                    needAddReaction = false;
+                                }
+
+                                reactions = my_reactions.Select(r => r.reaction).ToList();
+                            }
+
+                            if (needAddReaction)
+                            {
+                                reactions.Add(new ReactionEmoji()
+                                {
+                                    emoticon = sr.reaction
+                                });
+                            }
+
+                            var res = await client.Messages_SendReaction(peer, sr.telegram_message_id, reaction: reactions.ToArray());
+
+                            var updated = res.UpdateList.FirstOrDefault(u => u is UpdateEditMessage);
+
+                            var messageBase = ((UpdateEditMessage)updated).message;
+
+                            await handleUpdateMessage(messageBase);
+
+
+                        } catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate sendReaction tg_id={userChat.user.telegram_id} peer={peer.ID} {ex.Message}");
+                        }
+                        break;
+
                 }
 
             }
@@ -1840,7 +1888,6 @@ namespace tg_engine.userapi
         public event Action<UserApiStatus> StatusChangedEvent;
         #endregion
     }
-
     public enum UserApiStatus : int
     {
         active = 1,

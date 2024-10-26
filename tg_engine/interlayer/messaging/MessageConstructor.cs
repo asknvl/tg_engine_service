@@ -16,9 +16,10 @@ namespace tg_engine.interlayer.messaging
     {
         #region vars
         ITranslator translator;
+        TL.User me;
         #endregion
 
-        public MessageConstructor(ITranslator translator) {
+        public MessageConstructor(ITranslator translator) {            
             this.translator = translator;
         }
 
@@ -43,7 +44,17 @@ namespace tg_engine.interlayer.messaging
                 throw new Exception("getText: message=null");
         }
 
-        async Task<MessageBase> getBase(UserChat userChat, TL.MessageBase input, string? business_bot_un)
+        string getInitials(string? fn, string? ln)
+        {
+            var _1 = (!string.IsNullOrEmpty(fn)) ? fn.Substring(0, 1) : "";
+            var _2 = (!string.IsNullOrEmpty(ln)) ? ln.Substring(0, 1) : "";            
+
+            var combine = $"{_1}{_2}";                        
+
+            return combine;
+        }
+
+        async Task<MessageBase> getBase(UserChat userChat,TL.User me, TL.MessageBase input, string? business_bot_un)
         {
             var chat_id = userChat.chat.id;
             var account_id = userChat.chat.account_id;
@@ -68,9 +79,11 @@ namespace tg_engine.interlayer.messaging
             bool is_business_bot_reply = false;
             string? business_bot_username = null;
 
+            var m = input as Message;
+
             if (!incomnig)
             {
-                var m = input as Message;
+                //var m = input as Message;
 
                 is_business_bot_reply = m.flags2.HasFlag(Message.Flags2.has_via_business_bot_id);
                 if (is_business_bot_reply)
@@ -79,10 +92,84 @@ namespace tg_engine.interlayer.messaging
                 }
             }
 
+            Reactions? reactions = null;
+
+            List<Reaction> reactions_tmp = null;
+
+            if (m.reactions != null && m.reactions.results.Length > 0)
+            {
+                //reactions = new Reactions();
+                reactions_tmp = new List<Reaction>();
+
+                string initials = "";
+
+                foreach (var reaction in m.reactions.results)
+                {
+                    var emodjiReaction = reaction.reaction as ReactionEmoji;
+
+                    Reaction il_reaction = new Reaction();
+                    il_reaction.emoji = emodjiReaction.emoticon;
+
+                    if (reaction.count > 1)
+                    {
+                        il_reaction.initials.Add(getInitials(userChat.user.firstname, userChat.user.lastname));
+                        il_reaction.initials.Add(getInitials(me.first_name, me.last_name));
+                    } else
+                    {
+                        var recent = m.reactions.recent_reactions.FirstOrDefault(r => (r.reaction as ReactionEmoji).emoticon.Equals(emodjiReaction.emoticon));
+                        if (recent != null)
+                        {
+                            var peerReaction = (MessagePeerReaction)recent;
+                            initials = (peerReaction.peer_id == userChat.user.telegram_id) ?
+                            getInitials(userChat.user.firstname, userChat.user.lastname) :
+                            getInitials(me.first_name, me.last_name);
+                            il_reaction.initials.Add(initials);
+                        } else
+                            il_reaction.initials.Add($"!{initials}");
+
+                    }
+
+                    reactions_tmp.Add(il_reaction);
+
+                    
+
+                }
+
+
+                //foreach (var reaction in m.reactions.recent_reactions)
+                //{
+                //    var emodjiReaction = reaction.reaction as ReactionEmoji;
+                //    if (emodjiReaction != null)
+                //    {
+
+
+                //        var found = reactions_tmp.FirstOrDefault(r => r.Equals(emodjiReaction.emoticon));
+                //        var initials = (reaction.peer_id == userChat.user.telegram_id) ? 
+                //            getInitials(userChat.user.firstname, userChat.user.lastname):
+                //            getInitials(me.first_name, me.last_name);
+
+                //        if (found == null)
+                //        {
+                //            found = new Reaction()
+                //            {
+                //                emoji = emodjiReaction.emoticon,
+                //                initials = new List<string>() { initials }
+                //            };
+
+                //            reactions_tmp.Add(found);
+                //        }
+                //        else
+                //        {
+                //            found.initials.Add(initials);   
+                //        }
+                //    }
+                //}
+            }
+
             var message = new MessageBase()
             {
                 account_id = account_id,
-                chat_id = chat_id,      
+                chat_id = chat_id,
                 chat_type = chat_type,
                 direction = direction,
                 reply_to_message_id = reply_to_message_id,
@@ -90,6 +177,7 @@ namespace tg_engine.interlayer.messaging
                 telegram_message_id = telegram_message_id,
                 text = text,
                 screen_text = screen_text,
+                reactions = reactions_tmp,
                 date = date,
                 is_business_bot_reply = is_business_bot_reply,
                 business_bot_username = business_bot_username
@@ -100,16 +188,16 @@ namespace tg_engine.interlayer.messaging
         #endregion
 
         #region public
-        public async Task<MessageBase> Text(UserChat userChat, TL.MessageBase input, string? business_bot_un)
+        public async Task<MessageBase> Text(UserChat userChat, TL.User me, TL.MessageBase input, string? business_bot_un)
         {
-            var message = await getBase(userChat, input, business_bot_un);
+            var message = await getBase(userChat, me, input, business_bot_un);
             //message.text = getText(input);
             return message;
         }
 
-        public async Task<MessageBase> Image(UserChat userChat, TL.MessageBase input, Photo photo, string? business_bot_username, S3ItemInfo? s3info)
+        public async Task<MessageBase> Image(UserChat userChat, TL.User me, TL.MessageBase input, Photo photo, string? business_bot_username, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, business_bot_username);
+            var message = await getBase(userChat, me, input, business_bot_username);
 
             if (s3info != null)
             {
@@ -126,9 +214,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Photo(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
+        public async Task<MessageBase> Photo(UserChat userChat, TL.User me, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, business_bot_un);
+            var message = await getBase(userChat, me, input, business_bot_un);
             string mediaType = MediaTypes.photo;
 
             var photo = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeImageSize) as TL.DocumentAttributeImageSize;
@@ -155,9 +243,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Video(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
+        public async Task<MessageBase> Video(UserChat userChat, TL.User me, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo? s3info)
         {
-            var message = await getBase(userChat, input, business_bot_un);
+            var message = await getBase(userChat, me, input, business_bot_un);
             string mediaType = MediaTypes.video;
 
             var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
@@ -191,9 +279,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo s3info)
+        public async Task<MessageBase> Voice(UserChat userChat, TL.User me, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo s3info)
         {
-            var message = await getBase(userChat, input, business_bot_un);
+            var message = await getBase(userChat, me, input, business_bot_un);
             string mediaType = MediaTypes.voice;
 
             //var video = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeVideo) as DocumentAttributeVideo;
@@ -224,9 +312,9 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
-        public async Task<MessageBase> Sticker(UserChat userChat, TL.MessageBase input, Document document, string? business_bot_un)
+        public async Task<MessageBase> Sticker(UserChat userChat, TL.User me, TL.MessageBase input, Document document, string? business_bot_un)
         {
-            var message = await getBase(userChat, input, business_bot_un);
+            var message = await getBase(userChat, me, input, business_bot_un);
 
             var sticker = document.attributes.FirstOrDefault(a => a is TL.DocumentAttributeSticker) as DocumentAttributeSticker;
 
