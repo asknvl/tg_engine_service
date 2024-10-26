@@ -483,7 +483,7 @@ namespace tg_engine.userapi
                                 {
                                     telegram_chat updatedChat;
 
-                                    if (!code.Equals("MANUAL") && !state)
+                                    if (!string.IsNullOrEmpty(code) && !code.Equals("MANUAL") && !state)
                                         updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, (int)AIStatuses.done);
                                     else
                                         updatedChat = await postgreProvider.SetAIStatus(foundUserChat.chat.id, state);
