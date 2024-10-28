@@ -1234,9 +1234,10 @@ namespace tg_engine.userapi
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                logger.inf(tag, $"OnNewMessage: chat_id={messageDto.chat_id}");
+                logger.inf(tag, $"OnNewMessage: account_id={account_id} telegram_user_id={messageDto.telegram_user_id}");
 
                 TL.Message result = null;
+
                 var userChat = await chatsProvider.GetUserChat(account_id, messageDto.telegram_user_id);
 
                 logger.inf(tag, $"OnNewMessage: {userChat.user.telegram_id} {userChat.access_hash}");
