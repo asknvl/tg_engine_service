@@ -527,7 +527,7 @@ namespace tg_engine.userapi
 
                 var message = input as Message;
 
-                var exists = await mongoProvider.CheckMessageExists(userChat.chat.id, input.ID);
+                var exists = await mongoProvider.CheckMessageExists(account_id, userChat.chat.id, input.ID);
                 if (exists)
                 {
                     logger.warn(tag, $"Сообщение с telegram_message_id={input.ID} уже существует (1)");
@@ -1252,28 +1252,28 @@ namespace tg_engine.userapi
                 };
 
                 //Временное сообщение о прочтении чата
-                //try
-                //{
-                //    await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                //    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                //}
-                //catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
-                //{
-                //    var un = userChat.user.username;
-                //    if (!string.IsNullOrEmpty(un))
-                //    {
-                //        var resolved = await client.Contacts_ResolveUsername(un);
-                //        var user = new telegram_user(resolved.User);
-                //        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
-                //        peer = resolved.User.ToInputPeer();
+                try
+                {
+                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                }
+                catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
+                {
+                    var un = userChat.user.username;
+                    if (!string.IsNullOrEmpty(un))
+                    {
+                        var resolved = await client.Contacts_ResolveUsername(un);
+                        var user = new telegram_user(resolved.User);
+                        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
+                        peer = resolved.User.ToInputPeer();
 
-                //    }
+                    }
 
-                //}
-                //catch (Exception ex)
-                //{
+                }
+                catch (Exception ex)
+                {
 
-                //}
+                }
 
                 int replyToMessageId = (messageDto.reply_to_message_id == null) ? 0 : messageDto.reply_to_message_id.Value;
 
@@ -1553,7 +1553,7 @@ namespace tg_engine.userapi
 
                             //получить сообщение из монги
 
-                            var message = await mongoProvider.GetMessage(em.chat_id, em.telegram_message_id);
+                            var message = await mongoProvider.GetMessage(account_id, em.chat_id, em.telegram_message_id);
 
                             if (message != null)
                             {

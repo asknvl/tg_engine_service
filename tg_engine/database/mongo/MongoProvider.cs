@@ -70,24 +70,26 @@ namespace tg_engine.database.mongo
             return (res, storage_id);            
         }
 
-        public async Task<List<MessageBase>> GetMessages(Guid chat_id)
-        {
-            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id);
-            var result = await messages.FindAsync(filter);
-            return await result.ToListAsync();
-        }
+        //public async Task<List<MessageBase>> GetMessages(Guid chat_id)
+        //{
+        //    var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id);
+        //    var result = await messages.FindAsync(filter);
+        //    return await result.ToListAsync();
+        //}
 
-        public async Task<MessageBase> GetMessage(Guid chat_id, int telegram_message_id)
+        public async Task<MessageBase> GetMessage(Guid account_id, Guid chat_id, int telegram_message_id)
         {
-            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+            var filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
+                         Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
                          Builders<MessageBase>.Filter.Eq("telegram_message_id", telegram_message_id);
 
             return await messages.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> CheckMessageExists(Guid chat_id, int message_id)
+        public async Task<bool> CheckMessageExists(Guid account_id, Guid chat_id, int message_id)
         {
-            var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
+            var filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
+                         Builders<MessageBase>.Filter.Eq("chat_id", chat_id) &
                          Builders<MessageBase>.Filter.Eq("telegram_message_id", message_id);
 
             var document = await messages.Find(filter)
