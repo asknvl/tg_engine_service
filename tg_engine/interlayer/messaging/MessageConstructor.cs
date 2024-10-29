@@ -93,77 +93,47 @@ namespace tg_engine.interlayer.messaging
             }
 
             Reactions? reactions = null;
-
             List<Reaction> reactions_tmp = null;
 
-            if (m.reactions != null && m.reactions.results.Length > 0)
+            try
             {
-                //reactions = new Reactions();
-                reactions_tmp = new List<Reaction>();
-
-                string initials = "";
-
-                foreach (var reaction in m.reactions.results)
+                if (m.reactions != null && m.reactions.results.Length > 0)
                 {
-                    var emodjiReaction = reaction.reaction as ReactionEmoji;
+                    //reactions = new Reactions();
+                    reactions_tmp = new List<Reaction>();
 
-                    Reaction il_reaction = new Reaction();
-                    il_reaction.emoji = emodjiReaction.emoticon;
+                    string initials = "";
 
-                    if (reaction.count > 1)
+                    foreach (var reaction in m.reactions.results)
                     {
-                        il_reaction.initials.Add(getInitials(userChat.user.firstname, userChat.user.lastname));
-                        il_reaction.initials.Add(getInitials(me.first_name, me.last_name));
-                    } else
-                    {
-                        var recent = m.reactions.recent_reactions.FirstOrDefault(r => (r.reaction as ReactionEmoji).emoticon.Equals(emodjiReaction.emoticon));
-                        if (recent != null)
+                        var emodjiReaction = reaction.reaction as ReactionEmoji;
+
+                        Reaction il_reaction = new Reaction();
+                        il_reaction.emoji = emodjiReaction.emoticon;
+
+                        if (reaction.count > 1)
                         {
-                            var peerReaction = (MessagePeerReaction)recent;
-                            initials = (peerReaction.peer_id == userChat.user.telegram_id) ?
-                            getInitials(userChat.user.firstname, userChat.user.lastname) :
-                            getInitials(me.first_name, me.last_name);
-                            il_reaction.initials.Add(initials);
-                        } else
-                            il_reaction.initials.Add($"!{initials}");
-
+                            il_reaction.initials.Add(getInitials(userChat.user.firstname, userChat.user.lastname));
+                            il_reaction.initials.Add(getInitials(me.first_name, me.last_name));
+                        }
+                        else
+                        {
+                            var recent = m.reactions.recent_reactions.FirstOrDefault(r => (r.reaction as ReactionEmoji).emoticon.Equals(emodjiReaction.emoticon));
+                            if (recent != null)
+                            {
+                                var peerReaction = (MessagePeerReaction)recent;
+                                initials = (peerReaction.peer_id == userChat.user.telegram_id) ?
+                                getInitials(userChat.user.firstname, userChat.user.lastname) :
+                                getInitials(me.first_name, me.last_name);
+                                il_reaction.initials.Add(initials);
+                            }
+                        }
+                        reactions_tmp.Add(il_reaction);
                     }
-
-                    reactions_tmp.Add(il_reaction);
-
-                    
-
                 }
-
-
-                //foreach (var reaction in m.reactions.recent_reactions)
-                //{
-                //    var emodjiReaction = reaction.reaction as ReactionEmoji;
-                //    if (emodjiReaction != null)
-                //    {
-
-
-                //        var found = reactions_tmp.FirstOrDefault(r => r.Equals(emodjiReaction.emoticon));
-                //        var initials = (reaction.peer_id == userChat.user.telegram_id) ? 
-                //            getInitials(userChat.user.firstname, userChat.user.lastname):
-                //            getInitials(me.first_name, me.last_name);
-
-                //        if (found == null)
-                //        {
-                //            found = new Reaction()
-                //            {
-                //                emoji = emodjiReaction.emoticon,
-                //                initials = new List<string>() { initials }
-                //            };
-
-                //            reactions_tmp.Add(found);
-                //        }
-                //        else
-                //        {
-                //            found.initials.Add(initials);   
-                //        }
-                //    }
-                //}
+            }
+            catch (Exception ex)
+            {
             }
 
             var message = new MessageBase()

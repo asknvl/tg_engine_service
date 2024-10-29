@@ -86,14 +86,7 @@ namespace tg_engine.interlayer.messaging
         public const string voice = "voice";
         public const string sticker = "sticker";
     }
-
-    public class Reactions
-    {
-        [JsonPropertyName("in")]
-        public List<string> input { get; set; } = new();
-        [JsonPropertyName("out")]
-        public List<string> output { get; set; } = new();
-    }
+     
 
     //public class  Reaction 
     //{
