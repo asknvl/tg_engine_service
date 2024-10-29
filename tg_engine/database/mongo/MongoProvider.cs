@@ -27,8 +27,8 @@ namespace tg_engine.database.mongo
             client = new MongoClient(connectionString);
             var database = client.GetDatabase(settings.db_name);
 
-            messages = database.GetCollection<MessageBase>("messages_test");
-            //messages = database.GetCollection<MessageBase>("messages");
+            //messages = database.GetCollection<MessageBase>("messages_test");
+            messages = database.GetCollection<MessageBase>("messages");
         }
 
         public async Task SaveMessage(MessageBase message)
@@ -50,9 +50,16 @@ namespace tg_engine.database.mongo
                        .Set(m => m.screen_text, message.screen_text)
                        .Set(m => m.media, message.media)
                        .Set(m => m.reactions, message.reactions)
-                       .Set(m => m.edited_date, DateTime.UtcNow)
+                       //.Set(m => m.edited_date, DateTime.UtcNow)
                        .Set(m => m.updated_at, DateTime.UtcNow)
                        .Set(m => m.is_deleted, message.is_deleted);
+
+            //если реально поменяли медиа или текст
+            if (!currentMessage.text.Equals(message.text) ||
+               (message.media != null && currentMessage != null && message.media.storage_id != currentMessage.media.storage_id))
+            {
+                update = update.Set(m => m.edited_date, DateTime.UtcNow);
+            }
 
             var options = new FindOneAndUpdateOptions<MessageBase>
             {

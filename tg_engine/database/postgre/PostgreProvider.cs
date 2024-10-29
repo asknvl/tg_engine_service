@@ -529,6 +529,12 @@ namespace tg_engine.database.postgre
                     foundChat.is_ai_active = status;
                     foundChat.ai_status = (status) ? (int)AIStatuses.on : (int)AIStatuses.off;
 
+                    if (!status)                    
+                        foundChat.ai_deactivate_date = DateTime.UtcNow;
+                    else
+                        foundChat.ai_processed = true;
+                    
+
                     await context.SaveChangesAsync();
 
                     return foundChat;
@@ -554,6 +560,18 @@ namespace tg_engine.database.postgre
                     if (Enum.IsDefined(typeof(AIStatuses), status))
                     {
                         foundChat.ai_status = status;
+
+                        switch (status)
+                        {
+                            case (int)AIStatuses.off:
+                            case (int)AIStatuses.done:
+                                foundChat.ai_deactivate_date = DateTime.UtcNow;
+                                break;
+                            case (int)AIStatuses.on:
+                                foundChat.ai_processed = true;
+                                break;
+                        }
+
                         await context.SaveChangesAsync();
                     }                    
 

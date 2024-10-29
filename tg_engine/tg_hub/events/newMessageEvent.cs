@@ -28,6 +28,7 @@ namespace tg_engine.tg_hub.events
                 edited_date = message.edited_date,
                 reply_to_message_id = message.reply_to_message_id,
                 media = message.media,
+                reactions = message.reactions,
                 is_business_bot_reply = message.is_business_bot_reply,
                 business_bot_username = message.business_bot_username,
                 operator_id = message.operator_id,
@@ -51,6 +52,7 @@ namespace tg_engine.tg_hub.events
         public DateTime? edited_date { get; set; }
         public int? reply_to_message_id { get; set; }
         public IL.MediaInfo? media { get; set; }
+        public List<IL.Reaction>? reactions { get; set; }
         public bool is_business_bot_reply { get; set; }
         public string? business_bot_username { get; set; }
         public string? operator_id { get; set; }

@@ -36,6 +36,8 @@ namespace tg_engine.tg_hub.events
                 unread_outbox_mark = userChat.chat.unread_outbox_mark,
                 is_ai_active = userChat.chat.is_ai_active,
                 ai_status = userChat.chat.ai_status,
+                ai_processed = userChat.chat.ai_processed,
+                ai_deactivate_date = userChat.chat.ai_deactivate_date,
 
                 user = new userData()
                 {
@@ -76,7 +78,8 @@ namespace tg_engine.tg_hub.events
         public bool? unread_outbox_mark { get; set; }
         public bool is_ai_active { get; set; }
         public int ai_status { get; set; }
-
+        public bool ai_processed { get; set; }
+        public DateTime? ai_deactivate_date { get; set; }
         public userData user { get; set; }
         public sourceData source { get; set; }
     }

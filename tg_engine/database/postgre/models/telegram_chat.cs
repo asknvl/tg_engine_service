@@ -29,5 +29,7 @@ namespace tg_engine.database.postgre.models
         public bool? unread_outbox_mark { get; set; } = false;
         public bool is_ai_active { get; set; } = false;
         public int ai_status { get; set; } = 0;
+        public bool ai_processed { get; set; } = false; 
+        public DateTime? ai_deactivate_date { get; set; }  
     }
 }
