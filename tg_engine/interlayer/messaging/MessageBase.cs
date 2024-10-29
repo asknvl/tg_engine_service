@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.ComponentModel;
 
 namespace tg_engine.interlayer.messaging
 {
@@ -86,7 +87,7 @@ namespace tg_engine.interlayer.messaging
         public const string voice = "voice";
         public const string sticker = "sticker";
     }
-     
+
 
     //public class  Reaction 
     //{
@@ -95,9 +96,16 @@ namespace tg_engine.interlayer.messaging
     //    public string is_my { get; set; }
     //}
 
+    public class ReactionData
+    {
+        public string initials { get; set; }
+        public string direction { get; set; }
+    }
+
     public class Reaction 
     {
         public string emoji { get; set; }
-        public List<string> initials { get; set; } = new(); 
+        //public List<string> initials { get; set; } = new(); 
+        public List<ReactionData> data  { get; set; } = new();
     }
 }

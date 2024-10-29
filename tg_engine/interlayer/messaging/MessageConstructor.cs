@@ -92,7 +92,6 @@ namespace tg_engine.interlayer.messaging
                 }
             }
 
-            Reactions? reactions = null;
             List<Reaction> reactions_tmp = null;
 
             try
@@ -113,8 +112,18 @@ namespace tg_engine.interlayer.messaging
 
                         if (reaction.count > 1)
                         {
-                            il_reaction.initials.Add(getInitials(userChat.user.firstname, userChat.user.lastname));
-                            il_reaction.initials.Add(getInitials(me.first_name, me.last_name));
+                            il_reaction.data.Add(new ReactionData() { 
+                                initials = getInitials(userChat.user.firstname, userChat.user.lastname),
+                                direction = "in"
+                            });
+                            //il_reaction.initials.Add(getInitials(userChat.user.firstname, userChat.user.lastname));
+
+                            il_reaction.data.Add(new ReactionData()
+                            {
+                                initials = getInitials(me.first_name, me.last_name),
+                                direction = "out"
+                            });
+                            //il_reaction.initials.Add(getInitials(me.first_name, me.last_name));
                         }
                         else
                         {
@@ -122,10 +131,29 @@ namespace tg_engine.interlayer.messaging
                             if (recent != null)
                             {
                                 var peerReaction = (MessagePeerReaction)recent;
-                                initials = (peerReaction.peer_id == userChat.user.telegram_id) ?
-                                getInitials(userChat.user.firstname, userChat.user.lastname) :
-                                getInitials(me.first_name, me.last_name);
-                                il_reaction.initials.Add(initials);
+                                //initials = (peerReaction.peer_id == userChat.user.telegram_id) ?
+                                //getInitials(userChat.user.firstname, userChat.user.lastname) :
+                                //getInitials(me.first_name, me.last_name);
+
+                                
+
+                                if (peerReaction.peer_id == userChat.user.telegram_id)
+                                {
+                                    initials = getInitials(userChat.user.firstname, userChat.user.lastname);
+                                    direction = "in";
+
+                                } else
+                                {
+                                    initials = getInitials(me.first_name, me.last_name);
+                                    direction = "out";
+                                }
+
+                                //il_reaction.initials.Add(initials);
+                                il_reaction.data.Add(new ReactionData() {
+                                    initials = initials,
+                                    direction = direction   
+                                });
+                                
                             }
                         }
                         reactions_tmp.Add(il_reaction);
