@@ -191,6 +191,27 @@ namespace tg_engine.s3
                 throw new Exception($"S3 Download error: {ex.Message}");
             }
         }
+
+        public async Task<bool> CheckExists(string storage_id)
+        {
+            try
+            {
+                var request = new GetObjectMetadataRequest
+                {
+                    BucketName = settings.bucket,
+                    Key = storage_id
+                };
+                var response = await client.GetObjectMetadataAsync(request);
+                return true; // If the call succeeds, the file exists
+            }
+            catch (AmazonS3Exception e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return false; // The file does not exist
+                                  // Rethrow the exception if it's not a Not Found exception
+                throw;
+            }
+        }
         #endregion
     }
 }

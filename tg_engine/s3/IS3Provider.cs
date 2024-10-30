@@ -11,7 +11,8 @@ namespace tg_engine.s3
         Task<S3ItemInfo> Upload(byte[] bytes, string extension);
         Task<(byte[], S3ItemInfo)> Download(string storage_id);
         Task Delete(string storage_id); 
-        Task<S3ItemInfo> GetInfo(string storage_id);
+        Task<S3ItemInfo> GetInfo(string storage_id);        
+        Task<bool> CheckExists(string storage_id);
     }
 
     public class S3ItemInfo

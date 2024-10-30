@@ -105,6 +105,12 @@ namespace tg_engine.interlayer.messaging
 
                     foreach (var reaction in m.reactions.results)
                     {
+
+                        //if (reaction.reaction is ReactionCustomEmoji)
+                        //{
+                        //    continue;
+                        //}
+
                         var emodjiReaction = reaction.reaction as ReactionEmoji;
 
                         Reaction il_reaction = new Reaction();

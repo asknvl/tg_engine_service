@@ -55,10 +55,13 @@ namespace tg_engine.database.mongo
                        .Set(m => m.is_deleted, message.is_deleted);
 
             //если реально поменяли медиа или текст
-            if (!currentMessage.text.Equals(message.text) ||
-               (message.media != null && currentMessage != null && message.media.storage_id != currentMessage.media.storage_id))
+
+            if (currentMessage != null)
             {
-                update = update.Set(m => m.edited_date, DateTime.UtcNow);
+                if (!currentMessage.text.Equals(message.text) || (message.media != null && currentMessage != null && message.media.storage_id != currentMessage.media.storage_id))
+                {
+                    update = update.Set(m => m.edited_date, DateTime.UtcNow);
+                }
             }
 
             var options = new FindOneAndUpdateOptions<MessageBase>
