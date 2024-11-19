@@ -56,14 +56,17 @@ namespace tg_engine.interlayer.chats
                     }
                 }
 
-                //bool needUpdate = false;
-                //if (userChat.user.firstname != user.firstname)
-                //{
-                //    userChat.user.firstname = user.firstname;
-                //    userChat.user.lastname = user.lastname;
-                //    userChat.user.username = user.username;
-                //    needUpdate = true;
-                //}
+
+
+                if (userChat.user.firstname != user.firstname ||
+                    userChat.user.lastname != user.lastname ||
+                    userChat.user.username != user.username)
+                {
+                    userChat.user.firstname = user.firstname;
+                    userChat.user.lastname = user.lastname;
+                    userChat.user.username = user.username;                    
+                }
+
 
                 if (userChat.chat.chat_type != type)
                 {

@@ -3,6 +3,7 @@ using tg_engine.config;
 using tg_engine.database.postgre.dtos;
 using tg_engine.database.postgre.models;
 using tg_engine.dm;
+using tg_engine.interlayer.chats;
 using tg_engine.rest.updates;
 using TL;
 
@@ -231,6 +232,19 @@ namespace tg_engine.database.postgre
                 if (foundChat != null)
                 {
                     foundChat.chat_type = chat_type;
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task UpdateUser(Guid chat_id, string? fn, string? ln, string? un)
+        {
+            using (var context = new PostgreDbContext(dbContextOptions))
+            {
+                var foundChat = await context.telegram_chats.SingleOrDefaultAsync(c => c.id == chat_id);
+                if (foundChat != null)
+                {
+                    foundChat.;
                     await context.SaveChangesAsync();
                 }
             }
