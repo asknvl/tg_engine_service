@@ -257,6 +257,10 @@ namespace tg_engine.database.mongo
             messages.UpdateMany(filter, update);
         }
         #endregion
+
+        #region пуши
+        #endregion
+
         #endregion
     }
 }

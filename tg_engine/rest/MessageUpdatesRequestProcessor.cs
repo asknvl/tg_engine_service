@@ -50,6 +50,7 @@ namespace tg_engine.rest
             public Guid telegram_user_id { get; set; }
             public string? operator_id { get; set; }
             public string? operator_letters { get; set; }
+            public bool? is_delayed { get; set; }
             public int? reply_to_message_id { get; set; } = null;
             public string? text { get; set; } = null;
             public string? screen_text { get; set; } = null;
@@ -57,7 +58,7 @@ namespace tg_engine.rest
             public string file_name { get; set; }
             public string file_extension { get; set; }
             public string? file_hash { get; set; } = null;
-            public byte[] file { get; set; }            
+            public byte[] file { get; set; }                       
         }
         #endregion
 
@@ -186,6 +187,9 @@ namespace tg_engine.rest
                                 var operator_letters = parser.GetParameterValue("operator_letters");
                                 clippedDto.operator_letters = operator_letters;
 
+                                var is_delayed = parser.GetParameterValue("is_delayed");
+                                clippedDto.is_delayed = is_delayed.ToLower().Equals("true");
+
                                 var file = parser.Files.First();
                                 if (file != null)
                                 {                                   
@@ -199,13 +203,11 @@ namespace tg_engine.rest
                                         data.CopyTo(ms);
                                         clippedDto.file = ms.ToArray();
                                     }
-
-
                                 }
-                                else
-                                {
-                                    throw new Exception("No file");
-                                }
+                                //else
+                                //{
+                                //    throw new Exception("No file");
+                                //}
 
                                 observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == clippedDto.account_id);
                                 if (observer != null)

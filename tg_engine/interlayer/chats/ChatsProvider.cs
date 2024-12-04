@@ -65,6 +65,12 @@ namespace tg_engine.interlayer.chats
                     userChat.user.firstname = user.firstname;
                     userChat.user.lastname = user.lastname;
                     userChat.user.username = user.username;                    
+
+                    await postgreProvider.UpdateUser(userChat.chat.id,
+                                                     userChat.user.firstname,
+                                                     userChat.user.lastname,
+                                                     userChat.user.username);    
+
                 }
 
 

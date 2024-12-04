@@ -268,7 +268,6 @@ namespace tg_engine.userapi
 
             return userChat;
         }
-
         string getExtensionFromMimeType(string input)
         {
             var res = input;
@@ -930,6 +929,12 @@ namespace tg_engine.userapi
 
                 case UpdateNewMessage unm:
                     await handleNewMessage(unm.message);
+
+                    var msg = unm.message as TL.Message;
+                    if (msg != null)
+                    {
+                        var text = client.EntitiesToHtml(msg.message, msg.entities);
+                    }
                     break;
 
                 case UpdateEditChannelMessage uecm:
@@ -938,6 +943,9 @@ namespace tg_engine.userapi
 
                 case UpdateEditMessage uem:                
                     await handleUpdateMessage(uem.message);
+                    break;
+
+                case UpdateUserName uun:
                     break;
 
             }
@@ -1360,15 +1368,6 @@ namespace tg_engine.userapi
                     chat_id = userChat.chat.id,
                     chat_type = userChat.chat.chat_type
                 };
-
-                //try
-                //{
-                //    await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                //    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                //}
-                //catch (Exception ex)
-                //{
-                //}
 
                 var hash = MediaHash.Get(clippedDto.file);
 
@@ -1793,7 +1792,6 @@ namespace tg_engine.userapi
                 default: throw new WTException("Messages_GetDialogs returned unexpected " + dialogs?.GetType().Name);
             }
         }
-
         public virtual async Task Start()
         {
 

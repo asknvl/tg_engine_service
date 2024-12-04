@@ -244,8 +244,15 @@ namespace tg_engine.database.postgre
                 var foundChat = await context.telegram_chats.SingleOrDefaultAsync(c => c.id == chat_id);
                 if (foundChat != null)
                 {
-                    foundChat.;
-                    await context.SaveChangesAsync();
+                    var foundUser = await context.telegram_users.SingleOrDefaultAsync(u => u.id == foundChat.telegram_user_id);
+                    if (foundUser != null)
+                    {
+                        foundUser.firstname = fn;
+                        foundUser.lastname = ln;
+                        foundUser.username = un;
+
+                        await context.SaveChangesAsync();
+                    }
                 }
             }
         }
