@@ -1,28 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {}
+    "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj": {}
   },
   "projects": {
-    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {
+    "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
+        "projectUniqueName": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj",
         "projectName": "logger",
-        "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
-        "packagesPath": "C:\\Users\\asknvl\\.nuget\\packages\\",
-        "outputPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\obj\\",
+        "projectPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj",
+        "packagesPath": "C:\\Users\\konovalov.a\\.nuget\\packages\\",
+        "outputPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\asknvl\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\konovalov.a\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {},
-          "https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/release/nuget/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
@@ -34,11 +33,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -55,12 +49,7 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     }
