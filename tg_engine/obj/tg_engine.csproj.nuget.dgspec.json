@@ -1,27 +1,28 @@
 {
   "format": 1,
   "restore": {
-    "C:\\KONOVALOV\\Sources\\tg_engine_service\\tg_engine\\tg_engine.csproj": {}
+    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj": {}
   },
   "projects": {
-    "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj": {
+    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj",
+        "projectUniqueName": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
         "projectName": "logger",
-        "projectPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj",
-        "packagesPath": "C:\\Users\\konovalov.a\\.nuget\\packages\\",
-        "outputPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\obj\\",
+        "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
+        "packagesPath": "C:\\Users\\asknvl\\.nuget\\packages\\",
+        "outputPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\konovalov.a\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\asknvl\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/release/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
@@ -33,6 +34,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -49,35 +55,41 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\KONOVALOV\\Sources\\tg_engine_service\\tg_engine\\tg_engine.csproj": {
+    "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj": {
       "version": "1.1.2",
       "restore": {
-        "projectUniqueName": "C:\\KONOVALOV\\Sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
+        "projectUniqueName": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
         "projectName": "tg_engine",
-        "projectPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
-        "packagesPath": "C:\\Users\\konovalov.a\\.nuget\\packages\\",
-        "outputPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\tg_engine\\obj\\",
+        "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\tg_engine.csproj",
+        "packagesPath": "C:\\Users\\asknvl\\.nuget\\packages\\",
+        "outputPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\tg_engine\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\konovalov.a\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\asknvl\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/release/nuget/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj": {
-                "projectPath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj"
+              "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj": {
+                "projectPath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj"
               }
             }
           }
@@ -86,11 +98,72 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "AWSSDK.S3": {
+              "target": "Package",
+              "version": "[3.7.400.1, )"
+            },
+            "DeepL.net": {
+              "target": "Package",
+              "version": "[1.10.0, )"
+            },
+            "HttpMultipartParser": {
+              "target": "Package",
+              "version": "[8.4.0, )"
+            },
+            "Lsj.MediaInfo.Wrapper.Core": {
+              "target": "Package",
+              "version": "[22.12.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[8.0.6, )"
+            },
+            "Microsoft.Extensions.Http": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[2.27.0, )"
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.4, )"
+            },
+            "WTelegramClient": {
+              "target": "Package",
+              "version": "[4.1.10, )"
+            },
+            "WTelegramClient.Extensions.Updates": {
+              "target": "Package",
+              "version": "[1.2.2, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -102,7 +175,12 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.201\\RuntimeIdentifierGraph.json"
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

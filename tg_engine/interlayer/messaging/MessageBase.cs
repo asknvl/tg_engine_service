@@ -38,7 +38,8 @@ namespace tg_engine.interlayer.messaging
         public string? business_bot_username { get; set; } = null;
         public string? operator_id { get; set; } = null;
         public string? operator_letters { get; set;} = null;
-        public bool is_delayed { get; set; } = false;
+        public bool is_scheduled { get; set; } = false;
+        public DateTime? scheduled_date { get; set ; } = null;
     }
 
     public class ReactionData

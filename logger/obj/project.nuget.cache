@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "R/qb+yB0KYanodTg/Qx7l0XKc6zw8or1Edz1+Tpc2oaF59Fwvn+6PyfOeQ4ZeihEt749TNF3R+FCFpBRzVW8/Q==",
+  "dgSpecHash": "nMaypgJ//ELOEy4BXM3cOo4IzN7QHXECuLLreczb/wXwccAm16SWajaSmW71zeUJLcUd4X19tKgUpNkuVZ/olw==",
   "success": true,
-  "projectFilePath": "C:\\KONOVALOV\\Sources\\tg_engine_service\\logger\\logger.csproj",
+  "projectFilePath": "C:\\WORK\\RaceUP\\sources\\tg_engine_service\\logger\\logger.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

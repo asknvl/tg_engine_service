@@ -50,7 +50,8 @@ namespace tg_engine.rest
             public Guid telegram_user_id { get; set; }
             public string? operator_id { get; set; }
             public string? operator_letters { get; set; }
-            public bool? is_delayed { get; set; }
+            public bool? is_scheduled { get; set; }
+            public DateTime? scheduled_date { get; set; }
             public int? reply_to_message_id { get; set; } = null;
             public string? text { get; set; } = null;
             public string? screen_text { get; set; } = null;
@@ -187,23 +188,35 @@ namespace tg_engine.rest
                                 var operator_letters = parser.GetParameterValue("operator_letters");
                                 clippedDto.operator_letters = operator_letters;
 
-                                var is_delayed = parser.GetParameterValue("is_delayed");
-                                clippedDto.is_delayed = is_delayed.ToLower().Equals("true");
+                                var is_scheduled = parser.GetParameterValue("is_scheduled");
+                                clippedDto.is_scheduled = is_scheduled.ToLower().Equals("true");
 
-                                var file = parser.Files.First();
-                                if (file != null)
-                                {                                   
-                                 
-                                    clippedDto.file_name = file.FileName;
-                                    clippedDto.file_extension = getExtensionFromMimeType(file.ContentType);                                   
-
-                                    Stream data = file.Data;
-                                    using (var ms = new MemoryStream())
+                                if (clippedDto.is_scheduled == true)
+                                {
+                                    var scheduled_date = parser.GetParameterValue("scheduled_date");
+                                    if (DateTime.TryParse(scheduled_date, out var date))
                                     {
-                                        data.CopyTo(ms);
-                                        clippedDto.file = ms.ToArray();
+                                        clippedDto.scheduled_date = date;   
                                     }
                                 }
+
+                                if (parser.Files.Count > 0)
+                                {
+                                    var file = parser.Files.First();
+                                    if (file != null)
+                                    {
+
+                                        clippedDto.file_name = file.FileName;
+                                        clippedDto.file_extension = getExtensionFromMimeType(file.ContentType);
+
+                                        Stream data = file.Data;
+                                        using (var ms = new MemoryStream())
+                                        {
+                                            data.CopyTo(ms);
+                                            clippedDto.file = ms.ToArray();
+                                        }
+                                    }
+                                }                                
                                 //else
                                 //{
                                 //    throw new Exception("No file");

@@ -88,6 +88,7 @@ namespace tg_engine.userapi
 
         protected System.Timers.Timer updateWatchdogTimer;
         protected System.Timers.Timer activityTimer;
+        protected System.Timers.Timer scheduleTimer;
 
         protected long ID;
 
@@ -138,6 +139,7 @@ namespace tg_engine.userapi
             activityTimer.Interval = 5 * 1000;
             activityTimer.Elapsed += ActivityTimer_Elapsed;
 
+            scheduleTimer = new System.Timers.Timer();
 
             status = UserApiStatus.inactive;
         }
@@ -1354,8 +1356,13 @@ namespace tg_engine.userapi
             {
                 account_id = account_id,
                 chat_id = userChat.chat.id,
-                chat_type = userChat.chat.chat_type
+                chat_type = userChat.chat.chat_type,
+                is_scheduled = true,
+                scheduled_date = clippedDto.scheduled_date
             };
+
+
+
         }
         #endregion
 
@@ -1472,7 +1479,7 @@ namespace tg_engine.userapi
         }
         public async Task OnNewMessage(clippedDto clippedDto)
         {
-            if (clippedDto.is_delayed)
+            if (clippedDto.is_scheduled == true)
                 await handleDelayedNewMessage(clippedDto);
             else
                 await handleRealTimeNewMessage(clippedDto);
