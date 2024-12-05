@@ -1262,59 +1262,93 @@ namespace tg_engine.userapi
                     chat_type = userChat.chat.chat_type
                 };
 
-                var hash = MediaHash.Get(clippedDto.file); //TODO проверить, что будет, если нулл
-
-                var fparams = await postgreProvider.GetFileParameters(hash);
-                if (fparams != null)
-                {
-                    logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
-                    s3info.extension = fparams.file_extension;
-                    s3info.storage_id = fparams.storage_id;
-                    s3info.url = fparams.link;
-                }
-                else
-                {
-                    logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
-                    s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
-
-                    fparams = new storage_file_parameter()
-                    {
-                        hash = hash,
-                        file_length = clippedDto.file.Length,
-                        file_type = clippedDto.type,
-                        file_extension = clippedDto.file_extension,
-                        is_uploaded = true,
-                        storage_id = s3info.storage_id,
-                        link = s3info.url,
-                        uploaded_at = DateTime.UtcNow
-                    };
-
-                    await postgreProvider.CreateFileParameters(fparams);
-                }
-
                 int replyToMessageId = (clippedDto.reply_to_message_id == null) ? 0 : clippedDto.reply_to_message_id.Value;
 
-                switch (clippedDto.type)
-                {
-                    case MediaTypes.image:
-                        result = await SendImage(peer,
-                                                 clippedDto.text,
-                                                 s3info.storage_id,
-                                                 message,
-                                                 reply_to_message_id: replyToMessageId);
-                        break;
 
-                    case MediaTypes.video:
-                    case MediaTypes.photo:
-                        result = await SendMediaDocument(peer,
-                                                         clippedDto.text,
-                                                         clippedDto.type,
-                                                         clippedDto.file_name,
-                                                         s3info.storage_id,
-                                                         message,
-                                                         reply_to_message_id: replyToMessageId);
-                        break;
-                }
+                if (clippedDto.file != null)
+                {
+
+                    var hash = MediaHash.Get(clippedDto.file); //TODO проверить, что будет, если нулл
+
+                    var fparams = await postgreProvider.GetFileParameters(hash);
+                    if (fparams != null)
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                        s3info.extension = fparams.file_extension;
+                        s3info.storage_id = fparams.storage_id;
+                        s3info.url = fparams.link;
+                    }
+                    else
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                        s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
+
+                        fparams = new storage_file_parameter()
+                        {
+                            hash = hash,
+                            file_length = clippedDto.file.Length,
+                            file_type = clippedDto.type,
+                            file_extension = clippedDto.file_extension,
+                            is_uploaded = true,
+                            storage_id = s3info.storage_id,
+                            link = s3info.url,
+                            uploaded_at = DateTime.UtcNow
+                        };
+
+                        await postgreProvider.CreateFileParameters(fparams);
+                    }
+
+                    switch (clippedDto.type)
+                    {
+                        case MediaTypes.image:
+                            result = await SendImage(peer,
+                                                     clippedDto.text,
+                                                     s3info.storage_id,
+                                                     message,
+                                                     reply_to_message_id: replyToMessageId);
+                            break;
+
+                        case MediaTypes.video:
+                        case MediaTypes.photo:
+                            result = await SendMediaDocument(peer,
+                                                             clippedDto.text,
+                                                             clippedDto.type,
+                                                             clippedDto.file_name,
+                                                             s3info.storage_id,
+                                                             message,
+                                                             reply_to_message_id: replyToMessageId);
+                            break;
+                    }
+
+                } else
+                    result = await SendTextMessage(peer, clippedDto.text, reply_to_message_id: replyToMessageId);
+
+
+                //switch (clippedDto.type)
+                //{
+                //    case MediaTypes.image:
+                //        result = await SendImage(peer,
+                //                                 clippedDto.text,
+                //                                 s3info.storage_id,
+                //                                 message,
+                //                                 reply_to_message_id: replyToMessageId);
+                //        break;
+
+                //    case MediaTypes.video:
+                //    case MediaTypes.photo:
+                //        result = await SendMediaDocument(peer,
+                //                                         clippedDto.text,
+                //                                         clippedDto.type,
+                //                                         clippedDto.file_name,
+                //                                         s3info.storage_id,
+                //                                         message,
+                //                                         reply_to_message_id: replyToMessageId);
+                //        break;
+
+                //    default:
+                //        result = await SendTextMessage(peer, clippedDto.text, reply_to_message_id: replyToMessageId);
+                //        break;
+                //}
 
                 if (result != null && userChat != null)
                 {
@@ -1361,7 +1395,36 @@ namespace tg_engine.userapi
                 scheduled_date = clippedDto.scheduled_date
             };
 
+            var hash = MediaHash.Get(clippedDto.file); //TODO проверить, что будет, если нулл
+            S3ItemInfo s3info = new();
 
+            var fparams = await postgreProvider.GetFileParameters(hash);
+            if (fparams != null)
+            {
+                logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                s3info.extension = fparams.file_extension;
+                s3info.storage_id = fparams.storage_id;
+                s3info.url = fparams.link;
+            }
+            else
+            {
+                logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
+
+                fparams = new storage_file_parameter()
+                {
+                    hash = hash,
+                    file_length = clippedDto.file.Length,
+                    file_type = clippedDto.type,
+                    file_extension = clippedDto.file_extension,
+                    is_uploaded = true,
+                    storage_id = s3info.storage_id,
+                    link = s3info.url,
+                    uploaded_at = DateTime.UtcNow
+                };
+
+                await postgreProvider.CreateFileParameters(fparams);
+            }
 
         }
         #endregion

@@ -34,3 +34,15 @@ C:\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.dll
 C:\sources\tg_engine_service\logger\obj\Debug\net8.0\refint\logger.dll
 C:\sources\tg_engine_service\logger\obj\Debug\net8.0\logger.pdb
 C:\sources\tg_engine_service\logger\obj\Debug\net8.0\ref\logger.dll
+C:\KONOVALOV\Sources\tg_engine_service\logger\bin\Debug\net8.0\logger.deps.json
+C:\KONOVALOV\Sources\tg_engine_service\logger\bin\Debug\net8.0\logger.dll
+C:\KONOVALOV\Sources\tg_engine_service\logger\bin\Debug\net8.0\logger.pdb
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.GeneratedMSBuildEditorConfig.editorconfig
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.AssemblyInfoInputs.cache
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.AssemblyInfo.cs
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.csproj.CoreCompileInputs.cache
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.sourcelink.json
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.dll
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\refint\logger.dll
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\logger.pdb
+C:\KONOVALOV\Sources\tg_engine_service\logger\obj\Debug\net8.0\ref\logger.dll

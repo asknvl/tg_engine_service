@@ -912,7 +912,10 @@
       },
       "logger/1.0.0": {
         "runtime": {
-          "logger.dll": {}
+          "logger.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }
