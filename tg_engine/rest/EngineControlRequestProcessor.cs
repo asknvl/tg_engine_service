@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -121,7 +122,7 @@ namespace tg_engine.rest
         #endregion
 
         #region public
-        public async Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route)
+        public async Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route, NameValueCollection? query = null)
         {
             var code = HttpStatusCode.NotFound;
             var responseText = code.ToString();

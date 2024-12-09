@@ -427,7 +427,7 @@ namespace tg_engine.database.postgre
         public async Task<telegram_chat> UpdateTopMessage(Guid chat_id, string direction,
                                                           int top_message,
                                                           string? top_message_text,
-                                                          DateTime top_message_date,
+                                                          DateTime? top_message_date,
                                                           bool igonreUnread = false)
         {
             using (var context = new PostgreDbContext(dbContextOptions))

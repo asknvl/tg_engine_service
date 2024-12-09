@@ -29,6 +29,7 @@ using tg_engine.database.hash;
 using System.IO;
 using tg_engine.business_bot;
 using SharpCompress.Compressors.Xz;
+using tg_engine.messaging_scheduled;
 
 namespace tg_engine.userapi
 {
@@ -140,9 +141,12 @@ namespace tg_engine.userapi
             activityTimer.Elapsed += ActivityTimer_Elapsed;
 
             scheduleTimer = new System.Timers.Timer();
+            scheduleTimer.AutoReset = true;
+            scheduleTimer.Interval = 10 * 1000;
+            scheduleTimer.Elapsed += ScheduleTimer_Elapsed;
 
             status = UserApiStatus.inactive;
-        }
+        }      
 
         #region private
         void processRpcException(RpcException ex)
@@ -226,6 +230,56 @@ namespace tg_engine.userapi
             catch (Exception ex)
             {
                 logger.err(tag, $"ActivityTimer_Elapsed: {ex.Message}");
+            }
+        }
+
+        async Task sendScheduledMessage(ScheduledMessage scheduled)
+        {
+
+            int maxAttempts = 3;
+            int attemptCounter = 0;
+            bool res = false;
+
+            while (attemptCounter < maxAttempts)
+            {
+                try
+                {
+                    await handleMessage(scheduled, true);
+                    logger.warn(tag, $"sendScheduledMessage: exp={scheduled.scheduled_date} act={DateTime.UtcNow}");
+                    res = true;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    attemptCounter++;
+                    logger.err(tag, $"sendScheduledMessage: attempt={attemptCounter} {ex.Message}");
+                    await Task.Delay(30 * 1000);
+                }
+            }
+            await mongoProvider.DeleteScheduled(scheduled);
+            await tgHubProvider.SendEvent(new sheduledMessageEvent(scheduled, res));            
+        }
+
+        private async void ScheduleTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                var scheduled = await mongoProvider.GetScheduledToSend(account_id);
+                foreach (var s in scheduled)
+                {
+                    try
+                    {
+                        await sendScheduledMessage(s);
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"ScheduleTimer_Elapsed: {ex.Message} (0)");
+                    }
+                }
+
+            } catch (Exception ex)
+            {
+                logger.err(tag, $"ScheduleTimer_Elapsed: {ex.Message} (1)");
             }
         }
         #endregion
@@ -1237,7 +1291,6 @@ namespace tg_engine.userapi
 
             return res;
         }
-
         public async Task handleRealTimeNewMessage(clippedDto clippedDto)
         {
             try
@@ -1382,55 +1435,78 @@ namespace tg_engine.userapi
                 logger.err(tag, $"OnNewClipped: chat_id={clippedDto.chat_id} {ex.Message}");
             }
         }
-        public async Task handleDelayedNewMessage(clippedDto clippedDto) {
-
-            var userChat = await chatsProvider.GetUserChat(account_id, clippedDto.telegram_user_id);
-
-            IL.MessageBase message = new()
+        public async Task handleScheduledNewMessage(clippedDto clippedDto)
+        {
+            try
             {
-                account_id = account_id,
-                chat_id = userChat.chat.id,
-                chat_type = userChat.chat.chat_type,
-                is_scheduled = true,
-                scheduled_date = clippedDto.scheduled_date
-            };
+                var userChat = await chatsProvider.GetUserChat(clippedDto.account_id, clippedDto.telegram_user_id);
 
-            var hash = MediaHash.Get(clippedDto.file); //TODO проверить, что будет, если нулл
-            S3ItemInfo s3info = new();
-
-            var fparams = await postgreProvider.GetFileParameters(hash);
-            if (fparams != null)
-            {
-                logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
-                s3info.extension = fparams.file_extension;
-                s3info.storage_id = fparams.storage_id;
-                s3info.url = fparams.link;
-            }
-            else
-            {
-                logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
-                s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
-
-                fparams = new storage_file_parameter()
+                ScheduledMessage messageDto = new ScheduledMessage()
                 {
-                    hash = hash,
-                    file_length = clippedDto.file.Length,
-                    file_type = clippedDto.type,
-                    file_extension = clippedDto.file_extension,
-                    is_uploaded = true,
-                    storage_id = s3info.storage_id,
-                    link = s3info.url,
-                    uploaded_at = DateTime.UtcNow
+                    account_id = clippedDto.account_id,
+                    chat_id = clippedDto.chat_id,
+                    telegram_user_id = clippedDto.telegram_user_id,
+                    operator_id = clippedDto.operator_id,
+                    operator_letters = clippedDto.operator_letters,
+                    reply_to_message_id = clippedDto.reply_to_message_id,
+                    text = clippedDto.text,
+                    screen_text = clippedDto.screen_text,
+                    is_scheduled = clippedDto.is_scheduled,
+                    scheduled_date = clippedDto.scheduled_date
                 };
 
-                await postgreProvider.CreateFileParameters(fparams);
+
+                if (clippedDto.file != null)
+                {
+                    var hash = MediaHash.Get(clippedDto.file); //TODO проверить, что будет, если нулл
+                    S3ItemInfo s3info = new();
+
+                    var fparams = await postgreProvider.GetFileParameters(hash);
+                    if (fparams != null)
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} found existing {fparams.storage_id}");
+                        s3info.extension = fparams.file_extension;
+                        s3info.storage_id = fparams.storage_id;
+                        s3info.url = fparams.link;
+                    }
+                    else
+                    {
+                        logger.warn(tag, $"GetFileParameters: {hash} not found, uploading...");
+                        s3info = await s3Provider.Upload(clippedDto.file, clippedDto.file_extension);
+
+                        fparams = new storage_file_parameter()
+                        {
+                            hash = hash,
+                            file_length = clippedDto.file.Length,
+                            file_type = clippedDto.type,
+                            file_extension = clippedDto.file_extension,
+                            is_uploaded = true,
+                            storage_id = s3info.storage_id,
+                            link = s3info.url,
+                            uploaded_at = DateTime.UtcNow
+                        };
+
+                        await postgreProvider.CreateFileParameters(fparams);
+
+                        mediaDto mediaDto = new mediaDto()
+                        {
+                            type = clippedDto.type,
+                            storage_id = s3info.storage_id,
+                            file_name = clippedDto.file_name
+
+                        };
+                    }
+                }
+
+                await mongoProvider.SaveScheduled(messageDto);
+
             }
-
+            catch (Exception ex)
+            {
+                logger.err(tag, $"OnNewMessage scheduled: chat_id={clippedDto.chat_id} {ex.Message}");
+            }
         }
-        #endregion
-
-        #region public       
-        public async Task OnNewMessage(messageDto messageDto)
+        async Task handleMessage(messageDto messageDto, bool? is_scheduled = null)
         {
             try
             {
@@ -1446,8 +1522,6 @@ namespace tg_engine.userapi
                 logger.inf(tag, $"OnNewMessage: {userChat.user.telegram_id} {userChat.access_hash}");
                 InputPeer peer = new InputPeerUser(userChat.user.telegram_id, userChat.access_hash);
 
-                //manager.Users.TryGetValue(userChat.user.telegram_id, out var user);
-
                 IL.MessageBase message = new()
                 {
                     account_id = account_id,
@@ -1455,29 +1529,29 @@ namespace tg_engine.userapi
                     chat_type = userChat.chat.chat_type
                 };
 
-                //Временное сообщение о прочтении чата
-                try
-                {
-                    await client.ReadHistory(peer, (int)userChat.chat.top_message);
-                    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
-                }
-                catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
-                {
-                    var un = userChat.user.username;
-                    if (!string.IsNullOrEmpty(un))
-                    {
-                        var resolved = await client.Contacts_ResolveUsername(un);
-                        var user = new telegram_user(resolved.User);
-                        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
-                        peer = resolved.User.ToInputPeer();
+                ////Временное сообщение о прочтении чата
+                //try
+                //{
+                //    await client.ReadHistory(peer, (int)userChat.chat.top_message);
+                //    await handleMessageRead(userChat, "in", (int)userChat.chat.top_message);
+                //}
+                //catch (Exception ex) when (ex.Message.Equals("PEER_ID_INVALID"))
+                //{
+                //    var un = userChat.user.username;
+                //    if (!string.IsNullOrEmpty(un))
+                //    {
+                //        var resolved = await client.Contacts_ResolveUsername(un);
+                //        var user = new telegram_user(resolved.User);
+                //        userChat = await chatsProvider.CollectUserChat(account_id, source_id, user, resolved.User.access_hash, false, ChatTypes.user);
+                //        peer = resolved.User.ToInputPeer();
 
-                    }
+                //    }
 
-                }
-                catch (Exception ex)
-                {
+                //}
+                //catch (Exception ex)
+                //{
 
-                }
+                //}
 
                 int replyToMessageId = (messageDto.reply_to_message_id == null) ? 0 : messageDto.reply_to_message_id.Value;
 
@@ -1518,6 +1592,9 @@ namespace tg_engine.userapi
                     message.operator_id = messageDto.operator_id;
                     message.operator_letters = messageDto.operator_letters;
                     message.reply_to_message_id = messageDto.reply_to_message_id;
+
+                    message.is_scheduled = is_scheduled;
+
                     await mongoProvider.SaveMessage(message);
 
                     var updatedChat = await postgreProvider.UpdateTopMessage(message.chat_id,
@@ -1537,13 +1614,20 @@ namespace tg_engine.userapi
             }
             catch (Exception ex)
             {
-                logger.err(tag, $"OnNewMessage: chat_id={messageDto.chat_id} {ex.Message}");
+                logger.err(tag, $"OnNewMessage realtime: chat_id={messageDto.chat_id} {ex.Message}");
             }
+        }
+        #endregion
+
+        #region public       
+        public async Task OnNewMessage(messageDto messageDto)
+        {
+            await handleMessage(messageDto);    
         }
         public async Task OnNewMessage(clippedDto clippedDto)
         {
             if (clippedDto.is_scheduled == true)
-                await handleDelayedNewMessage(clippedDto);
+                await handleScheduledNewMessage(clippedDto);
             else
                 await handleRealTimeNewMessage(clippedDto);
         }
@@ -1834,6 +1918,26 @@ namespace tg_engine.userapi
 
             await Task.CompletedTask;
         }
+        public async Task<object> OnUpdateRequest(UpdateBase update)
+        {
+            try
+            {
+                switch (update)
+                {
+                    case getScheduled gs:
+                        var res = await mongoProvider.GetScheduledToSend(gs.account_id);
+                        return res;                        
+
+                    default:
+                        throw new NotImplementedException();                        
+                }
+
+            } catch (Exception ex)
+            {
+                logger.err(tag, $"OnUpdateRequest: {ex.Message}");
+                throw;
+            }
+        }
         public async Task<Messages_Dialogs> GetAllDialogs(int? folder_id = null)
         {
 
@@ -1945,6 +2049,7 @@ namespace tg_engine.userapi
 
                 updateWatchdogTimer?.Start();
                 activityTimer?.Start();
+                scheduleTimer?.Start();
 
                 status = UserApiStatus.active;
 
@@ -1973,6 +2078,8 @@ namespace tg_engine.userapi
         {
             updateWatchdogTimer?.Stop();
             activityTimer?.Stop();
+            scheduleTimer?.Stop();
+
             manager.SaveState(state_path);
             client?.Dispose();
             verifyCodeReady.Set();

@@ -52,5 +52,11 @@ namespace tg_engine.interlayer.messaging
         public const string video = "video";
         public const string voice = "voice";
         public const string sticker = "sticker";
+
+        public static bool IsMediaType(string t)
+        {
+            bool res = t == image || t == circle || t == photo || t == video || t == voice || t == sticker;
+            return res;
+        }
     }
 }

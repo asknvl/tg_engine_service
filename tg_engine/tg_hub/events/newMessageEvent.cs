@@ -48,7 +48,7 @@ namespace tg_engine.tg_hub.events
         public int telegram_message_id { get; set; }
         public string? text { get; set; }
         public string? screen_text { get; set; }
-        public DateTime date { get; set; }
+        public DateTime? date { get; set; }
         public DateTime? edited_date { get; set; }
         public int? reply_to_message_id { get; set; }
         public IL.MediaInfo? media { get; set; }

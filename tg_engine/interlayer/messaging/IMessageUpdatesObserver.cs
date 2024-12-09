@@ -14,5 +14,6 @@ namespace tg_engine.interlayer.messaging
         Task OnNewMessage(messageDto message);
         Task OnNewMessage(clippedDto message);
         Task OnNewUpdate(UpdateBase update);
+        Task<object> OnUpdateRequest(UpdateBase update);
     }
 }

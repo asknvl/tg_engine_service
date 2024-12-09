@@ -24,7 +24,7 @@ namespace tg_engine.interlayer.messaging
         public string? text { get; set; } = null;
         public string? screen_text { get; set; } = null;
         public List<Reaction> reactions { get; set; } = null;
-        public DateTime date { get; set; }
+        public DateTime? date { get; set; } = null;
         public DateTime? edited_date { get; set; } = null;
         public bool is_read { get; set; }
         public DateTime? read_date { get; set; } = null;
@@ -38,8 +38,7 @@ namespace tg_engine.interlayer.messaging
         public string? business_bot_username { get; set; } = null;
         public string? operator_id { get; set; } = null;
         public string? operator_letters { get; set;} = null;
-        public bool is_scheduled { get; set; } = false;
-        public DateTime? scheduled_date { get; set ; } = null;
+        public bool? is_scheduled { get; set; } = false;        
     }
 
     public class ReactionData

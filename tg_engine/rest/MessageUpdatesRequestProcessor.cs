@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using tg_engine.interlayer.messaging;
 using tg_engine.rest.updates;
+using System.Web;
+using System.Collections.Specialized;
 using TL;
 
 namespace tg_engine.rest
@@ -34,6 +36,8 @@ namespace tg_engine.rest
             public mediaDto? media { get; set; } 
             public string? text { get; set; }
             public string? screen_text { get; set; }
+            public bool? is_scheduled { get; set; }
+            public DateTime? scheduled_date { get; set; }
         }
 
         public class mediaDto
@@ -94,11 +98,73 @@ namespace tg_engine.rest
             messageUpdatesObservers.Remove(observer);
         }
 
-        public async Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route)
+        public async Task<(HttpStatusCode, string)> ProcessGetRequest(string[] splt_route, NameValueCollection? query = null)
         {
             var code = HttpStatusCode.NotFound;
             var responseText = code.ToString();
-            await Task.CompletedTask;
+            IMessageUpdatesObserver? observer = null;
+
+            try
+            {
+                var updReq = splt_route[2];
+
+                switch (updReq)
+                {
+                    case "get-scheduled":
+                        try
+                        {                            
+                            Guid account_id = Guid.Empty;
+                            Guid chat_id = Guid.Empty;
+
+                            var qAccId = query.Get("account_id");                            
+
+                            if (qAccId != null && !Guid.TryParse(qAccId, out account_id))
+                            {
+                                throw new ArgumentException("Illegal account_id");
+                            }
+
+                            observer = messageUpdatesObservers.FirstOrDefault(o => o.account_id == account_id);
+                            if (observer != null)
+                            {
+                                var qChtId = query.Get("chat_id");
+                                if (qChtId != null && !Guid.TryParse(qChtId, out chat_id))
+                                {
+                                    throw new ArgumentException("Illegal chat_id");
+                                }
+
+                                var update = new getScheduled()
+                                {
+                                    account_id = account_id,
+                                    chat_id = chat_id,
+                                };
+
+                                var response = await observer.OnUpdateRequest(update);
+                                responseText = JsonConvert.SerializeObject(response);   
+                                code = HttpStatusCode.OK;
+                            }
+                        }                        
+                        catch (ArgumentException ex)
+                        {
+                            code = HttpStatusCode.BadRequest;
+                            responseText = $"{updReq}: {ex.Message}";
+                        }
+                        catch (Exception ex)
+                        {
+                            code = HttpStatusCode.InternalServerError;
+                            responseText = $"{updReq}: {ex.Message}";
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
+
+            } catch (Exception ex)
+            {
+
+            }
+            
             return (code, responseText);
         }
 
@@ -176,10 +242,11 @@ namespace tg_engine.rest
                                 var screen_text = parser.GetParameterValue("screen_text");
                                 clippedDto.screen_text = screen_text;
 
-                                var allowed = new string[] { "video", "image", "photo" };
+                                
+                                //var allowed = new string[] { MediaTypes.video, MediaTypes.image, MediaTypes.photo };
                                 var type = parser.GetParameterValue("type");
-                                if (string.IsNullOrEmpty(type) || !allowed.Contains(type))
-                                    throw new Exception("Illegal type");
+                                if (string.IsNullOrEmpty(type) || !MediaTypes.IsMediaType(type) /*!allowed.Contains(type)*/)
+                                    throw new Exception($"Illegal type {type}");
                                 clippedDto.type = type; 
 
                                 var operator_id = parser.GetParameterValue("operator_id");                                
@@ -203,7 +270,7 @@ namespace tg_engine.rest
                                 if (parser.Files.Count > 0)
                                 {
                                     var file = parser.Files.First();
-                                    if (file != null)
+                                    if (file != null && file.Data != null && file.Data.Length > 0)
                                     {
 
                                         clippedDto.file_name = file.FileName;

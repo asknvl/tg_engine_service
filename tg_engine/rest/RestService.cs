@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using tg_engine.config;
 using tg_engine.rest;
 using TL;
@@ -54,6 +55,8 @@ namespace tg_engine.rest
                 var m = $"RX:\n{path}";
                 logger.dbg(tag, m);
 
+                IRequestProcessor? processor = null;
+
                 try
                 {
                     switch (splt[1])
@@ -64,7 +67,16 @@ namespace tg_engine.rest
                             {
                                 (code, text) = await p.ProcessGetRequest(splt);
                             }                           
-                            break;                        
+                            break;
+                        case "updates":
+
+                            var queryParams = HttpUtility.ParseQueryString(request.Url.Query);
+                            processor = RequestProcessors.FirstOrDefault(p => p is MessageUpdatesRequestProcessor);
+                            if (processor != null)
+                            {
+                                (code, text) = await processor.ProcessGetRequest(splt, queryParams);
+                            }
+                            break;
                     }
                 } catch (Exception ex)
                 {

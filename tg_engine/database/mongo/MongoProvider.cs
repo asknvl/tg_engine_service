@@ -1,15 +1,9 @@
-﻿using Amazon.S3.Model;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MongoDB.Driver;
 using tg_engine.config;
 using tg_engine.interlayer.chats;
 using tg_engine.interlayer.messaging;
-
+using tg_engine.messaging_scheduled;
+using static tg_engine.rest.MessageUpdatesRequestProcessor;
 
 namespace tg_engine.database.mongo
 {
@@ -18,6 +12,7 @@ namespace tg_engine.database.mongo
         #region vars
         MongoClient client;
         IMongoCollection<MessageBase> messages;
+        IMongoCollection<ScheduledMessage> messages_scheduled;
         #endregion
 
         #region public
@@ -29,13 +24,14 @@ namespace tg_engine.database.mongo
 
             //messages = database.GetCollection<MessageBase>("messages_test");
             messages = database.GetCollection<MessageBase>("messages");
+            messages_scheduled = database.GetCollection<ScheduledMessage>("messages_scheduled");
         }
 
+        #region сообщения
         public async Task SaveMessage(MessageBase message)
         {
             await messages.InsertOneAsync(message);         
         }
-
         public async Task<(MessageBase, string?)> UpdateMessage(MessageBase message)
         {
             var filter = Builders<MessageBase>.Filter.Eq("chat_id", message.chat_id) &
@@ -79,14 +75,6 @@ namespace tg_engine.database.mongo
 
             return (res, storage_id);            
         }
-
-        //public async Task<List<MessageBase>> GetMessages(Guid chat_id)
-        //{
-        //    var filter = Builders<MessageBase>.Filter.Eq("chat_id", chat_id);
-        //    var result = await messages.FindAsync(filter);
-        //    return await result.ToListAsync();
-        //}
-
         public async Task<MessageBase> GetMessage(Guid account_id, Guid chat_id, int telegram_message_id)
         {
             var filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
@@ -95,7 +83,6 @@ namespace tg_engine.database.mongo
 
             return await messages.Find(filter).FirstOrDefaultAsync();
         }
-
         public async Task<bool> CheckMessageExists(Guid account_id, Guid chat_id, int message_id)
         {
             var filter = Builders<MessageBase>.Filter.Eq("account_id", account_id) &
@@ -108,7 +95,6 @@ namespace tg_engine.database.mongo
             return document != null;
 
         }
-
         public async Task<List<MessageBase>> MarkMessagesDeletedUser(Guid account_id, int[] ids)
         {
             FilterDefinition<MessageBase> filter;
@@ -132,7 +118,6 @@ namespace tg_engine.database.mongo
             }
             return found;
         }
-
         public async Task<List<MessageBase>> MarkMessagesDeletedChannel(Guid account_id, int[] ids, long channel_id)
         {
             FilterDefinition<MessageBase> filter;
@@ -155,15 +140,7 @@ namespace tg_engine.database.mongo
                 await messages.UpdateManyAsync(filter, update);
             }
             return found;
-        }
-
-        /// <summary>
-        /// Помечает сообщения в монго как прочитанные 
-        /// </summary>
-        /// <param name="chat_id"></param>
-        /// <param name="direction">Входящие или исходящие</param>
-        /// <param name="max_message_id"></param>
-        /// <returns>Вохвращает количество непрочитанных и айди последнего прочитанного</returns>
+        }       
         public async Task<(int, int)> MarkMessagesRead(Guid chat_id, string direction, int max_message_id)
         {
             int maxId = 0;
@@ -200,7 +177,6 @@ namespace tg_engine.database.mongo
 
             return (unreadCount, maxId);
         }
-
         public async Task<(int, int)> MarkMessagesRead(Guid chat_id, string direction)
         {
             int maxId = 0;
@@ -237,6 +213,37 @@ namespace tg_engine.database.mongo
 
             return (unreadCount, maxId);
         }
+        #endregion
+
+        #region отложенные сообщения
+        public async Task SaveScheduled(ScheduledMessage message)
+        {
+            await messages_scheduled.InsertOneAsync(message);   
+        }
+        public async Task<List<ScheduledMessage>> GetScheduledToSend(Guid account_id, Guid chat_id)
+        {
+            FilterDefinition<ScheduledMessage> filter;
+
+            var now = DateTime.UtcNow;
+
+            filter = Builders<ScheduledMessage>.Filter.Eq("account_id", account_id) &                     
+                     Builders<ScheduledMessage>.Filter.Lte(m => m.scheduled_date, now);
+
+            var cursor = await messages_scheduled.FindAsync(filter);
+            var found = await cursor.ToListAsync();
+
+            return found;
+        }
+
+        public async Task DeleteScheduled(ScheduledMessage message)
+        {
+            if (message != null && !string.IsNullOrEmpty(message.id))
+            {
+                var filter = Builders<ScheduledMessage>.Filter.Eq("id", message.id);
+                var result = await messages_scheduled.DeleteOneAsync(filter);
+            }
+        }
+        #endregion
 
         #region сервисное
         public void SetAccountToChatMessages(Guid chat_id, Guid account_id)
@@ -256,9 +263,6 @@ namespace tg_engine.database.mongo
 
             messages.UpdateMany(filter, update);
         }
-        #endregion
-
-        #region пуши
         #endregion
 
         #endregion
