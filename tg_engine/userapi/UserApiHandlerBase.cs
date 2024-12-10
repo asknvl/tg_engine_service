@@ -137,7 +137,7 @@ namespace tg_engine.userapi
 
             activityTimer = new System.Timers.Timer();
             activityTimer.AutoReset = true;
-            activityTimer.Interval = 5 * 1000;
+            activityTimer.Interval = 30 * 1000;
             activityTimer.Elapsed += ActivityTimer_Elapsed;
 
             scheduleTimer = new System.Timers.Timer();
@@ -269,7 +269,7 @@ namespace tg_engine.userapi
                 {
                     try
                     {
-                        await sendScheduledMessage(s);
+                        //await sendScheduledMessage(s);
 
                     } catch (Exception ex)
                     {
@@ -1925,7 +1925,7 @@ namespace tg_engine.userapi
                 switch (update)
                 {
                     case getScheduled gs:
-                        var res = await mongoProvider.GetScheduledToSend(gs.account_id);
+                        var res = await mongoProvider.GetScheduledToSend(gs.account_id, gs.chat_id);
                         return res;                        
 
                     default:

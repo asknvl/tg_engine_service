@@ -220,7 +220,7 @@ namespace tg_engine.database.mongo
         {
             await messages_scheduled.InsertOneAsync(message);   
         }
-        public async Task<List<ScheduledMessage>> GetScheduledToSend(Guid account_id, Guid chat_id)
+        public async Task<List<ScheduledMessage>> GetScheduledToSend(Guid account_id, Guid? chat_id = null)
         {
             FilterDefinition<ScheduledMessage> filter;
 
@@ -228,6 +228,11 @@ namespace tg_engine.database.mongo
 
             filter = Builders<ScheduledMessage>.Filter.Eq("account_id", account_id) &                     
                      Builders<ScheduledMessage>.Filter.Lte(m => m.scheduled_date, now);
+
+            if (chat_id.HasValue && chat_id.Value != Guid.Empty)
+            {
+                filter &= Builders<ScheduledMessage>.Filter.Eq("chat_id", chat_id.Value);
+            }
 
             var cursor = await messages_scheduled.FindAsync(filter);
             var found = await cursor.ToListAsync();

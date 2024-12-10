@@ -139,7 +139,7 @@ namespace tg_engine.rest
                                 };
 
                                 var response = await observer.OnUpdateRequest(update);
-                                responseText = JsonConvert.SerializeObject(response);   
+                                responseText = JsonConvert.SerializeObject(response, Formatting.Indented);   
                                 code = HttpStatusCode.OK;
                             }
                         }                        
