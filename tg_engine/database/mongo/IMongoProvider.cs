@@ -26,7 +26,7 @@ namespace tg_engine.database.mongo
         #region scheduled
         Task SaveScheduled(ScheduledMessage message);
         Task<List<ScheduledMessage>> GetScheduledToSend(Guid account_id, Guid? chat_id = null);
-        Task DeleteScheduled(ScheduledMessage message);
+        Task DeleteScheduled(List<string> ids);
         #endregion
 
         #region сервисные 

@@ -240,13 +240,21 @@ namespace tg_engine.database.mongo
             return found;
         }
 
-        public async Task DeleteScheduled(ScheduledMessage message)
+        public async Task DeleteScheduled(List<string> ids)
         {
-            if (message != null && !string.IsNullOrEmpty(message.id))
+            if (ids != null && ids.Count > 0)
             {
-                var filter = Builders<ScheduledMessage>.Filter.Eq("id", message.id);
-                var result = await messages_scheduled.DeleteOneAsync(filter);
+                var filter = Builders<ScheduledMessage>.Filter.In("id", ids);
+                var result = await messages_scheduled.DeleteManyAsync(filter);
             }
+            else
+                throw new ArgumentException("Nothing to delete");
+
+            //if (message != null && !string.IsNullOrEmpty(message.id))
+            //{
+            //    var filter = Builders<ScheduledMessage>.Filter.Eq("id", message.id);
+            //    var result = await messages_scheduled.DeleteOneAsync(filter);
+            //}
         }
         #endregion
 

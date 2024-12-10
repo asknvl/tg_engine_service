@@ -142,7 +142,7 @@ namespace tg_engine.userapi
 
             scheduleTimer = new System.Timers.Timer();
             scheduleTimer.AutoReset = true;
-            scheduleTimer.Interval = 10 * 1000;
+            scheduleTimer.Interval = 30 * 1000;
             scheduleTimer.Elapsed += ScheduleTimer_Elapsed;
 
             status = UserApiStatus.inactive;
@@ -256,7 +256,7 @@ namespace tg_engine.userapi
                     await Task.Delay(30 * 1000);
                 }
             }
-            await mongoProvider.DeleteScheduled(scheduled);
+            await mongoProvider.DeleteScheduled(new List<string> { scheduled.id });
             await tgHubProvider.SendEvent(new sheduledMessageEvent(scheduled, res));            
         }
 
@@ -269,7 +269,7 @@ namespace tg_engine.userapi
                 {
                     try
                     {
-                        //await sendScheduledMessage(s);
+                        await sendScheduledMessage(s);
 
                     } catch (Exception ex)
                     {
@@ -1487,15 +1487,18 @@ namespace tg_engine.userapi
                         };
 
                         await postgreProvider.CreateFileParameters(fparams);
-
-                        mediaDto mediaDto = new mediaDto()
-                        {
-                            type = clippedDto.type,
-                            storage_id = s3info.storage_id,
-                            file_name = clippedDto.file_name
-
-                        };
                     }
+
+                    mediaDto mediaDto = new mediaDto()
+                    {
+                        type = clippedDto.type,
+                        storage_id = s3info.storage_id,
+                        file_name = clippedDto.file_name
+
+                    };
+
+                    messageDto.media = mediaDto;
+
                 }
 
                 await mongoProvider.SaveScheduled(messageDto);
@@ -1908,8 +1911,16 @@ namespace tg_engine.userapi
                         }
                         break;
 
+                    case deleteScheduled ds:
+                        try
+                        {
+                            await mongoProvider.DeleteScheduled(ds.ids);
+                        } catch (Exception ex)
+                        {
+                            logger.err(tag, $"OnNewUpdate deleteScheduled {ex.Message}");                            
+                        }
+                        break;
                 }
-
             }
             catch (Exception ex)
             {

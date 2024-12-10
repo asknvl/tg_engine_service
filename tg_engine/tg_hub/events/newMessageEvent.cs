@@ -34,7 +34,8 @@ namespace tg_engine.tg_hub.events
                 operator_id = message.operator_id,
                 operator_letters = message.operator_letters,
                 created_at = message.created_at,
-                updated_at = message.updated_at
+                updated_at = message.updated_at,
+                is_scheduled = message.is_scheduled
             };
         }
     }
@@ -59,5 +60,6 @@ namespace tg_engine.tg_hub.events
         public string? operator_letters { get; set; }   
         public DateTime created_at { get; set; }
         public DateTime? updated_at { get; set; }
+        public bool? is_scheduled { get; set; }
     }
 }
