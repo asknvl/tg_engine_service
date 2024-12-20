@@ -503,6 +503,10 @@ namespace tg_engine.userapi
                             message = await messageConstructor.Voice(userChat, client.User, input, document, business_bot_username, s3info);
                             break;
 
+                        case "application/pdf":
+                            message = await messageConstructor.Pdf(userChat, client.User, input, document, business_bot_username, s3info);
+                            break;
+
                         case "":
                             break;
                     }
@@ -1250,6 +1254,14 @@ namespace tg_engine.userapi
                                 }
                             };
                             break;
+                        case MediaTypes.pdf:
+                            mime_type = "application/pdf";
+                            attributes = new DocumentAttribute[] {
+                                new DocumentAttributeFilename {
+                                    file_name = file_name
+                                }
+                            };
+                            break;
                     }
 
                     //var thumb = new InputMediaUploadedDocument()
@@ -1363,13 +1375,14 @@ namespace tg_engine.userapi
 
                         case MediaTypes.video:
                         case MediaTypes.photo:
+                        case MediaTypes.pdf:
                             result = await SendMediaDocument(peer,
                                                              clippedDto.text,
                                                              clippedDto.type,
                                                              clippedDto.file_name,
                                                              s3info.storage_id,
                                                              message,
-                                                             reply_to_message_id: replyToMessageId);
+                                                             reply_to_message_id: replyToMessageId);                        
                             break;
                     }
 

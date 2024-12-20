@@ -327,6 +327,23 @@ namespace tg_engine.interlayer.messaging
             return message;
         }
 
+        public async Task<MessageBase> Pdf(UserChat userChat, TL.User me, TL.MessageBase input, Document document, string? business_bot_un, S3ItemInfo s3info)
+        {
+            var message = await getBase(userChat, me, input, business_bot_un);
+
+            message.media = new MediaInfo()
+            {
+                type = MediaTypes.pdf,
+                file_name = document.Filename,
+                extension = s3info.extension,
+                length = document.size,
+                storage_id = s3info.storage_id,
+                storage_url = s3info.url
+            };
+
+            return message;
+        }
+
         //public async Task<MessageBase> Voice(UserChat userChat, TL.MessageBase input, Document document, Func<long, Task<UserChat>> getUserChat, S3ItemInfo s3info)
         //{
         //    var message = await getBase(userChat, input, getUserChat);
