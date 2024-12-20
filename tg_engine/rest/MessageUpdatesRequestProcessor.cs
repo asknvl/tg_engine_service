@@ -256,7 +256,8 @@ namespace tg_engine.rest
                                 clippedDto.operator_letters = operator_letters;
 
                                 var is_scheduled = parser.GetParameterValue("is_scheduled");
-                                clippedDto.is_scheduled = is_scheduled.ToLower().Equals("true");
+                                if (is_scheduled != null)
+                                    clippedDto.is_scheduled = is_scheduled.ToLower().Equals("true");
 
                                 if (clippedDto.is_scheduled == true)
                                 {
