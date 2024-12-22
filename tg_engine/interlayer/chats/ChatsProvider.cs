@@ -62,6 +62,9 @@ namespace tg_engine.interlayer.chats
                     userChat.user.lastname != user.lastname ||
                     userChat.user.username != user.username)
                 {
+
+                    logger.warn("chatsProvider", $"user info changed: {userChat.user.firstname} -> {user.firstname}, {userChat.user.lastname}->{user.lastname}");
+
                     userChat.user.firstname = user.firstname;
                     userChat.user.lastname = user.lastname;
                     userChat.user.username = user.username;                    

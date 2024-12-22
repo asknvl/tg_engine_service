@@ -929,6 +929,23 @@ namespace tg_engine.userapi
             }
             await Task.CompletedTask;
         }
+
+        async Task handleUpdateUserName(UpdateUserName uun)
+        {           
+            var userChat = await collectUserChat(uun.user_id);
+            if (userChat.chat.chat_type != ChatTypes.user)
+                return;
+
+            var username = uun.usernames.FirstOrDefault(u => u.flags.HasFlag(TL.Username.Flags.active));
+            var username_string = (username != null) ? username.username : null;
+
+            userChat.user.firstname = uun.first_name;
+            userChat.user.lastname = uun.last_name;
+            userChat.user.username = username_string;
+
+            await postgreProvider.UpdateUser(userChat.chat.id, uun.first_name, uun.last_name, username_string);
+            await tgHubProvider.SendEvent(new updateChatEvent(userChat, source_id, source_name, direction_id));
+        }
         #endregion
 
         #region OnUpdate
@@ -1050,6 +1067,14 @@ namespace tg_engine.userapi
                     break;
 
                 case UpdateUserName uun:
+                    try
+                    {
+                        await handleUpdateUserName(uun);
+
+                    } catch (Exception ex)
+                    {
+                        logger.err(tag, $"UpdateUserName: {ex.Message} {ex?.InnerException?.Message}");
+                    }
                     break;
 
             }
